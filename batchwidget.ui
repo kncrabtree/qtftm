@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>BatchWidget</class>
+ <widget class="QWidget" name="BatchWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>623</width>
+    <height>421</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QPushButton" name="batchAddButton">
+       <property name="toolTip">
+        <string>Add a scan</string>
+       </property>
+       <property name="text">
+        <string>Add</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="batchInsertButton">
+       <property name="toolTip">
+        <string>Insert a scan before the selected scan</string>
+       </property>
+       <property name="text">
+        <string>Insert</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="batchAddCalButton">
+       <property name="toolTip">
+        <string>Add a calibration scan</string>
+       </property>
+       <property name="text">
+        <string>Add Cal</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="batchInsertCalButton">
+       <property name="toolTip">
+        <string>Add a calibration scan before the selected scan</string>
+       </property>
+       <property name="text">
+        <string>Insert Cal</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="verticalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="batchMoveUpButton">
+       <property name="toolTip">
+        <string>Moce selected scan(s) up one row</string>
+       </property>
+       <property name="text">
+        <string>Move up</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="batchMoveDownButton">
+       <property name="toolTip">
+        <string>Move selected scan(s) down one row</string>
+       </property>
+       <property name="text">
+        <string>Move down</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="batchEditButton">
+       <property name="toolTip">
+        <string>Edit selected scan</string>
+       </property>
+       <property name="text">
+        <string>Edit</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="batchDeleteButton">
+       <property name="toolTip">
+        <string>Selete selected scan(s)</string>
+       </property>
+       <property name="text">
+        <string>Delete</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="verticalSpacer">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="batchClearButton">
+       <property name="toolTip">
+        <string>Clear all scans from table</string>
+       </property>
+       <property name="text">
+        <string>Clear All</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="sortButton">
+       <property name="text">
+        <string>Sort...</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="batchLoadButton">
+       <property name="toolTip">
+        <string>Load a batch list from file</string>
+       </property>
+       <property name="text">
+        <string>Load</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="batchSaveButton">
+       <property name="toolTip">
+        <string>Save current list to file</string>
+       </property>
+       <property name="text">
+        <string>Save</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QVBoxLayout" name="rightLayout">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Scans</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QTableView" name="batchTableView">
+       <property name="font">
+        <font>
+         <pointsize>8</pointsize>
+        </font>
+       </property>
+       <property name="alternatingRowColors">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>batchAddButton</tabstop>
+  <tabstop>batchInsertButton</tabstop>
+  <tabstop>batchAddCalButton</tabstop>
+  <tabstop>batchInsertCalButton</tabstop>
+  <tabstop>batchMoveUpButton</tabstop>
+  <tabstop>batchMoveDownButton</tabstop>
+  <tabstop>batchEditButton</tabstop>
+  <tabstop>batchDeleteButton</tabstop>
+  <tabstop>batchClearButton</tabstop>
+  <tabstop>batchLoadButton</tabstop>
+  <tabstop>batchSaveButton</tabstop>
+  <tabstop>batchTableView</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

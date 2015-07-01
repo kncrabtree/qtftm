@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>AutoFitWidget</class>
+ <widget class="QWidget" name="AutoFitWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>241</width>
+    <height>334</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QCheckBox" name="autoFitEnabledCheckBox">
+     <property name="toolTip">
+      <string>If checked, the program will attempt to automatically fit the data when acquisition is complete.</string>
+     </property>
+     <property name="text">
+      <string>AutoFit Enabled</string>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="autoFitSettingsBox">
+     <property name="title">
+      <string>AutoFit Settings</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout">
+      <property name="fieldGrowthPolicy">
+       <enum>QFormLayout::ExpandingFieldsGrow</enum>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="sourceConfigLabel">
+        <property name="text">
+         <string>Source Config</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="sourceConfigComboBox">
+        <property name="toolTip">
+         <string>Specify configuration of source, as lineshapes are different for coaxial and perpendicular configurations</string>
+        </property>
+        <item>
+         <property name="text">
+          <string>Coaxial</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="bufferGasLabel">
+        <property name="text">
+         <string>Buffer Gas</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QComboBox" name="bufferGasComboBox">
+        <property name="toolTip">
+         <string>Choose the buffer gas that is used in the experiment.</string>
+        </property>
+        <property name="currentIndex">
+         <number>4</number>
+        </property>
+        <item>
+         <property name="text">
+          <string>H2</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>He</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>N2</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>O2</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Ne</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Ar</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Kr</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Xe</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="temperatureLabel">
+        <property name="text">
+         <string>Temperature</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QDoubleSpinBox" name="temperatureDoubleSpinBox">
+        <property name="toolTip">
+         <string>Temperature of the gas prior to expansion</string>
+        </property>
+        <property name="suffix">
+         <string> K</string>
+        </property>
+        <property name="minimum">
+         <double>77.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>10000.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>293.149999999999977</double>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="processingSettingsBox">
+     <property name="title">
+      <string>Processing Settings</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout_2">
+      <property name="fieldGrowthPolicy">
+       <enum>QFormLayout::ExpandingFieldsGrow</enum>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="delayLabel">
+        <property name="text">
+         <string>Delay</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QDoubleSpinBox" name="delayDoubleSpinBox">
+        <property name="toolTip">
+         <string>Replace FID data with zeroes at all points prior to this time. This will be used for fitting.</string>
+        </property>
+        <property name="specialValueText">
+         <string>Off</string>
+        </property>
+        <property name="keyboardTracking">
+         <bool>false</bool>
+        </property>
+        <property name="suffix">
+         <string> µs</string>
+        </property>
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <double>100.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="highPassLabel">
+        <property name="text">
+         <string>High Pass</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QDoubleSpinBox" name="highPassDoubleSpinBox">
+        <property name="toolTip">
+         <string>Applies high-pass filter to data prior to fitting.</string>
+        </property>
+        <property name="specialValueText">
+         <string>Off</string>
+        </property>
+        <property name="keyboardTracking">
+         <bool>false</bool>
+        </property>
+        <property name="suffix">
+         <string> kHz</string>
+        </property>
+        <property name="decimals">
+         <number>0</number>
+        </property>
+        <property name="maximum">
+         <double>1000.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>50.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="expFilterLabel">
+        <property name="text">
+         <string>Exp Filter</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QDoubleSpinBox" name="expFilterDoubleSpinBox">
+        <property name="toolTip">
+         <string>Convolves FID with exponential decay prior to fitting.</string>
+        </property>
+        <property name="wrapping">
+         <bool>true</bool>
+        </property>
+        <property name="specialValueText">
+         <string>Off</string>
+        </property>
+        <property name="keyboardTracking">
+         <bool>false</bool>
+        </property>
+        <property name="suffix">
+         <string> µs</string>
+        </property>
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <double>1000.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>10.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QCheckBox" name="removeDCCheckBox">
+        <property name="toolTip">
+         <string>Removes any DC offset from FID. This will only affect the display of the data, not the fitting.</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLabel" name="removeDCLabel">
+        <property name="text">
+         <string>Remove DC</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QCheckBox" name="zeroPadFIDCheckBox">
+        <property name="toolTip">
+         <string>Extends length of FID by at least a factor of 2, filling with zeroes. This only affects the display of data, not the fitting.</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QLabel" name="zeroPadFIDLabel">
+        <property name="text">
+         <string>Zero-pad FID</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -1,0 +1,21 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>icons/abort.png</file>
+        <file>icons/pause.png</file>
+        <file>icons/printbatch.png</file>
+        <file>icons/printscan.png</file>
+        <file>icons/resume.png</file>
+        <file>icons/sleep.png</file>
+        <file>icons/startbatch.png</file>
+        <file>icons/startsingle.png</file>
+        <file>icons/qtftm.png</file>
+        <file>icons/calibrate.png</file>
+        <file>icons/peakcavity.png</file>
+        <file>icons/cavitymodedown.png</file>
+        <file>icons/cavitymodeup.png</file>
+        <file>icons/communication.png</file>
+        <file>icons/view.png</file>
+        <file>icons/open.png</file>
+        <file>led.qml</file>
+    </qresource>
+</RCC>

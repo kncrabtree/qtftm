@@ -1,0 +1,9 @@
+The source code is stored in subversion repository on Luck at /home/svn/repos/qtftm.
+To write to the repository, you must have a username and password in the /home/svn/repos/conf/passwd file; it's trivial to add a new user, just edit the file.
+Make sure you put your username and password into the authenticate tab of Tools>Options>Version Control>Subversion in Qt Creator if you're using it.
+
+There is a mirror repository on Serena at /home/svn/mirror, which contains a backup version of both repositories (qtftm and bbacq).
+It is configured for use with the svnsync synchronize command, and it must be done with username syncuser and password mmwavgrp.
+To back up the repository, the command must be run manually (from either machine), and the svnserve daemon must be running on the remote machine.
+If we had permanant IP addresses or hostnames, this could easily be wrapped into the post-commit hook script, or set up as a cron job.
+For now, we do not have those, so it is a good idea to sync the mirror periodically.

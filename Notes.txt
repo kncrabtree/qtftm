@@ -1,0 +1,138 @@
+Notes on the tuning/retuning/measuring the cavity voltage,
+May 10+ 2015 PRAA
+
+
+
+
+
+email from Kyle, May 8
+
+Right, if the fine tuning fails, then it will try tuning again on the next scan because the voltage is out of range. And certainly if the DR doesn't get turned off, it's likely tuning will fail. You'll want to make sure the DR gets turned off appropriately.
+
+In any event, it might be worth making that retuning time longer. If you use QSettings, you can enter a number of seconds into the config file and that number will be used on the fly. Example code:
+
+bool MotorDriver::canSkipTune(double freq)
+{
+     QSettings s(QSettings::SystemScope, QSettings::organizationName(), QSettings::applicationName())
+     int retuneInterval = s.value(QString("motorDriver/retuneInterval"),300).toInt();
+
+     if(fabs(freq-d_lastTuneFreq) < 0.01 && d_lastTuneTime.addSecs(retuneInterval) > QDateTime::currentDateTime() && d_lastTuneVoltage>300 && d_lastTuneVoltage<3000)
+          return true;
+
+     return false;
+}
+
+Then, in the settings file (/home/data/CfA Spectroscopy Lab/QtFTM.conf), you'd find the [motorDriver] field (create it if it doesn't exist) and put:
+
+[motorDriver]
+retuneInterval=300
+
+Or whatever other interval you want. If you decide to change it, you can just edit the config file at any time, and the program will immediately read and start using the new value. You can also make a nice user interface for it. Note that this requires Qt5 and may require you to add the line
+
+QMAKE_CXXFLAGS += -std=c++11
+
+to your project file.
+
+In MainWindow constructor, somewhere after line 50 (where the QSettings object is instantiated):
+
+int retuneInterval = s.value(QString("motorDriver/retuneInterval"),300).toInt();
+
+QWidgetAction *wa = new QWidgetAction;
+QWidget *w = new QWidget;
+QFormLayout *fl = new QFormLayout;
+
+QSpinBox *refreshBox = new QSpinBox;
+refreshBox->setRange(60,__INT_MAX__);
+refreshBox->setSuffix(QString(" s"));
+refreshBox->setValue(retuneInterval);
+refreshBox->setSingleStep(60);
+refreshBox->setToolTip(QString("After this time, the motor driver will retune the cavity before a scan even if the FTM frequency has not changed."));
+
+connect(refreshBox,static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),[=](int  v) {
+     QSettings s(QSettings::SystemScope, QSettings::organizationName(), QSettings::applicationName());
+     s.setValue(QString("motorDriver/retuneInterval"),v);
+     s.sync();
+});
+
+fl->addRow(QString("Retune Interval"),refreshBox);
+w->setLayout(fl);
+wa->setDefaultWidget(w);
+
+ui->menuMotor_Driver->addSeparator();
+ui->menuMotor_Driver->addWidget(wa);
+
+
+-Kyle
+
+
+
+
+----------
+Dr. Kyle N. Crabtree
+Assistant Professor, Department of Chemistry
+University of California – Davis
+190 Chemistry Building
+One Shields Avenue
+Davis, CA 95616
+(530)-752-6024
+kncrabtree@ucdavis.edu
+
+On Fri, May 8, 2015 at 1:49 PM, Paul@AlbertisWindow.com <Paul@albertiswindow.com> wrote:
+
+
+Hi Kyle -
+
+We did a couple of experiments on FTM 1 today, and found that it behaved
+largely as you describe.  I then looked at Marie's batch file, it did no re-tuning
+until 5 minutes had passed, and then continuously re-tuned for 3 minutes and
+11 seconds, and then stopped re-tuning for the remaining 3 minutes of
+the scan.
+
+In 6 of the roughly 30 tunings, it failed to tune properly - Marie thinks that
+this was because the DR failed to turn off.
+
+We will try to reproduce the setup and re-run her batch file on Monday . . .
+
+
+
+
+
+On Thu 15/05/07 11:41 AM , Kyle Crabtree kncrabtree@ucdavis.edu sent:
+> Hi Marie-Aline,
+> Yes, it's certainly not right to retune before each scan in a case
+> like this, and the software is not supposed to do it. With the version
+> of the code I have (which I guess is from July 2014), for each scan
+> before any tuning happens, the HardwareManager::prepareForScan
+> function calls MotorDriver::canSkipTune(). Here's the check that
+> the motor driver does in the version I have:
+>  if(fabs(freq-d_lastTuneFreq)
+> QDateTime::currentDateTime() && d_lastTuneVoltage>300 &&
+> d_lastTuneVoltagesetFromScan(ssw->toScan());
+>     drSsw->ui->ssShotsSpinBox->setEnabled(false);
+>     drSsw->enableSkipTune(true);
+> BatchWidget::BatchWidget(SingleScanWidget *ssw, QWidget *parent) :
+>      QWidget(parent),
+>      ui(new Ui::BatchWidget)
+> {
+>         ui->setupUi(this);
+>         //store scan settings
+>         batchSsw = new SingleScanWidget(this);
+>     batchSsw->setFromScan(ssw->toScan());
+>     batchSsw->enableSkipTune(true);         // added May 6
+> 2015 PRAA
+> //      batchSsw->setFtmFreq(ssw->ftmFreq());
+> //      batchSsw->setAttn(ssw->attn());
+> //      batchSsw->setDrFreq(ssw->drFreq());
+> //      batchSsw->setDrPower(ssw->drPower());
+> //      batchSsw->setPulseConfig(ssw->pulseConfig());
+>         batchSsw->setVisible(false);
+>
+>
+> Links:
+> ------
+> [4] http://sitemail.netnation.com/tel:%28530%29-752-6024
+>
+>
+
+
+
