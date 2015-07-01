@@ -59,12 +59,25 @@ bool TcpInstrument::writeCmd(QString cmd)
         }
     }
 
-    qint64 ret = p_socket->write(cmd.toLatin1());
+    return writeBinary(cmd.toLatin1());
+}
+
+bool TcpInstrument::writeBinary(QByteArray dat)
+{
+    if(p_socket->state() != QTcpSocket::ConnectedState)
+    {
+        emit hardwareFailure();
+        emit logMessage(QString("Could not write data. Socket is not connected. (Data = %1)").arg(QString(dat)),QtFTM::LogError);
+        return false;
+    }
+
+    qint64 ret = p_socket->write(dat);
 
     if(ret == -1)
     {
         emit hardwareFailure();
-        emit logMessage(QString("Could not write command. (Command = %1)").arg(cmd),QtFTM::LogError);
+        emit logMessage(QString("Could not write data. Write failed. (Data = %1, Hex = %2)")
+                        .arg(QString(dat).arg(QString(dat.toHex()))),QtFTM::LogError);
         return false;
     }
 
@@ -72,7 +85,8 @@ bool TcpInstrument::writeCmd(QString cmd)
         if(!p_socket->waitForBytesWritten(30000))
         {
             emit hardwareFailure();
-            emit logMessage(QString("Timed out while waiting for command write. Command = %1").arg(cmd),QtFTM::LogError);
+            emit logMessage(QString("Timed out while waiting for write to finish. Data = %1")
+                            .arg(QString(dat)),QtFTM::LogError);
             return false;
         }
     }

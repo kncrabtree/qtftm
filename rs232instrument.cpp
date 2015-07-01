@@ -55,12 +55,25 @@ bool Rs232Instrument::writeCmd(QString cmd)
         return false;
     }
 
-    qint64 ret = p_sp->write(cmd.toLatin1());
+    return writeBinary(cmd.toLatin1());
+}
+
+bool Rs232Instrument::writeBinary(QByteArray dat)
+{
+    if(!d_sp->isOpen())
+    {
+        emit hardwareFailure();
+        emit logMessage(QString("Could not write data. Serial port is not open. (Data = %1)").arg(QString(dat)),QtFTM::LogError);
+        return false;
+    }
+
+    qint64 ret = p_sp->write(dat);
 
     if(ret == -1)
     {
         emit hardwareFailure();
-        emit logMessage(QString("Could not write command. Write failed (Command = %1)").arg(cmd),QtFTM::LogError);
+        emit logMessage(QString("Could not write data. Write failed. (Data = %1, Hex = %2)")
+                        .arg(QString(dat).arg(QString(dat.toHex()))),QtFTM::LogError);
         return false;
     }
 
@@ -68,7 +81,8 @@ bool Rs232Instrument::writeCmd(QString cmd)
         if(!p_sp->waitForBytesWritten(30000))
         {
             emit hardwareFailure();
-            emit logMessage(QString("Timed out while waiting for command write to finish. Command = %1").arg(cmd),QtFTM::LogError);
+            emit logMessage(QString("Timed out while waiting for write to finish. Data = %1")
+                            .arg(QString(dat)),QtFTM::LogError);
             return false;
         }
     }
