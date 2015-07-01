@@ -150,7 +150,8 @@ void Batch::processScan(Scan s)
         mdmin = num - ((double)ft.size()/2.0 + 1.0)/(double)ft.size()*0.9;
         mdmax = num - ((double)ft.size()/2.0 - (double)ft.size())/(double)ft.size()*0.9;
     }
-    BatchManager::BatchPlotMetaData md(BatchManager::Batch,s.number(),mdmin,mdmax,d_thisScanIsCal,markerText);
+    bool badTune = s.cavityVoltage() < 0;
+    BatchManager::BatchPlotMetaData md(BatchManager::Batch,s.number(),mdmin,mdmax,d_thisScanIsCal,badTune,markerText);
 
 	//record the marker text and FT max for saving
 	QPair<double,QString> scanInfo(max,markerText.replace(QString("\n"),QString("; ")));

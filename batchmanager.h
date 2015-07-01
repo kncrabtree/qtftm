@@ -73,12 +73,13 @@ public:
 		double minXVal; /*!< Minimum frequency for this scan. */
 		double maxXVal; /*!< Maximum frequency for this scan */
 		bool isCal; /*!< Is this scan a calibration? */
+        bool badTune;
 		QString text; /*!< Text to be displayed on a plot (see Batch implementation) */
 
 		/*!
 		 * \brief Constructor with default initialization
 		 */
-		BatchPlotMetaData() : type(BatchManager::SingleScan), scanNum(-1), minXVal(0.0), maxXVal(1.0), isCal(false), text(QString()) {}
+        BatchPlotMetaData() : type(BatchManager::SingleScan), scanNum(-1), minXVal(0.0), maxXVal(1.0), isCal(false), badTune(false), text(QString()) {}
 
 		/*!
 		 \brief Constructor with explicit initialization
@@ -91,15 +92,15 @@ public:
 		 \param c Is calibration?
 		 \param s Extra text
 		*/
-		explicit BatchPlotMetaData(BatchManager::BatchType t, int n, double min, double max, bool c, QString s = QString()) :
-			type(t), scanNum(n), minXVal(min), maxXVal(max), isCal(c), text(s) {}
+        explicit BatchPlotMetaData(BatchManager::BatchType t, int n, double min, double max, bool c, bool b = false, QString s = QString()) :
+            type(t), scanNum(n), minXVal(min), maxXVal(max), isCal(c), badTune(b), text(s) {}
 		/*!
 		 \brief Copy constructor
 
 		 \param other Structure to copy
 		*/
 		BatchPlotMetaData(const BatchPlotMetaData &other) : type(other.type), scanNum(other.scanNum), minXVal(other.minXVal),
-			maxXVal(other.maxXVal), isCal(other.isCal), text(other.text) {}
+            maxXVal(other.maxXVal), isCal(other.isCal), badTune(other.badTune), text(other.text) {}
 	};
 
 	/*!
