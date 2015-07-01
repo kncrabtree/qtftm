@@ -72,6 +72,9 @@ DEFINES += QTFTM_GPIBCONTROLLER=1
 #Attenuator. 0 = virtual, 1 = Aeroflex Weinschel Attenuator
 DEFINES += QTFTM_ATTENUATOR=1
 
+#Pin switch delay generator. 0 = virtual, 1 = Antonucci
+DEFINES += QTFTM_PDG=1
+
 DISTFILES += \
     Notes.txt
 

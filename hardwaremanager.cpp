@@ -53,7 +53,7 @@ void HardwareManager::initializeHardware()
     connect(attn,&Attenuator::taattnUpdate,this,&HardwareManager::taattenUpdate);
     d_hardwareList.append(qMakePair(attn,nullptr));
 
-    pin = new PinSwitchDriveDelayGenerator();
+    pin = new PDGHardware();
     connect(pin,&PinSwitchDriveDelayGenerator::protectionDelayUpdate,this,&HardwareManager::hmProtectionDelayUpdate);
     connect(pin,&PinSwitchDriveDelayGenerator::scopeTriggerDelayUpdate,this,&HardwareManager::hmScopeDelayUpdate);
     connect(this,&HardwareManager::setProtectionDelayFromUI,pin,&PinSwitchDriveDelayGenerator::setProtectionDelay);

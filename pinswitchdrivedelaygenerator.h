@@ -1,13 +1,9 @@
 #ifndef PINSWITCHDRIVEDELAYGENERATOR_H
 #define PINSWITCHDRIVEDELAYGENERATOR_H
 
+#include "hardwareobject.h"
 
-#include "rs232instrument.h"
-#include <QPair>
-#include <QDateTime>
-
-
-class PinSwitchDriveDelayGenerator : public Rs232Instrument
+class PinSwitchDriveDelayGenerator : public HardwareObject
 {
     Q_OBJECT
 public:
@@ -24,31 +20,26 @@ signals:
     void scopeTriggerDelayUpdate(int);
 
 public slots:
-    void initialize();
-    bool testConnection();
+    virtual int setProtectionDelay(int delayInMicroseconds) =0;
+    virtual int setScopeDelay(int delayInMicroscconds) =0;
+    virtual void readAll() =0;
 
-    int setProtectionDelay(int delayInMicroseconds);
-    int setScopeDelay(int delayInMicroscconds);
+protected:
+    int d_currentScopeDelay;
+    int d_currentProtectionDelay;
 
-    void readAll();
-
-     int currentScopeDelay() const;
-
-     int currentProtectionDelay() const;
-
-
-
-
-    void shutUp(bool quiet) { d_quiet = quiet; }
-
-private:
-
-    int d_currentScopeDelay, d_currentProtectionDelay, d_quiet;
-
-
-
-    bool sendDelay(Channel ch, int delayInMicroSeconds);
 };
 
+#ifdef QTFTM_PDG
+#if QTFTM_PDG == 1
+#include "pindelaygeneratorpa.h"
+class PinDelayGeneratorPA;
+typedef PinDelayGeneratorPA PDGHardware;
+#else
+#include "virtualpindelaygenerator"
+class VirtualPinDelayGenerator;
+typedef VirtualPinDelayGenerator PDGHardware
+#endif
+#endif
 
 #endif // PINSWITCHDRIVEDELAYGENERATOR_H
