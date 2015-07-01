@@ -511,7 +511,18 @@ bool AbstractBatchPlot::eventFilter(QObject *obj, QEvent *ev)
 void AbstractBatchPlot::replot()
 {
     if(!d_doNotReplot)
+    {
         ZoomPanPlot::replot();
+        if(d_recalcZoneOnResize && !d_metaDataList.isEmpty())
+        {
+            int index = d_zoneScanNum - d_metaDataList.first().scanNum;
+            if(index >=0 && index < d_metaDataList.size())
+            {
+                formatSelectedZone(index);
+                ZoomPanPlot::replot();
+            }
+        }
+    }
 }
 
 void AbstractBatchPlot::doPrint(double start, double end, double xRange, int plotsPerPage, QString title, QPrinter *pr, bool oneCurvePerPlot, bool autoYRanges)
