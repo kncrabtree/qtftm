@@ -1118,3 +1118,118 @@ void Analysis::estimateDopplerPairAmplitude(const QVector<QPointF> ft, DopplerPa
 
     dp->setAmplitude( (amp1+amp2)/2.0 - blAmp );
 }
+
+
+Fid Analysis::parseWaveform(const QByteArray d, double probeFreq)
+{
+    //the byte array consists of a waveform prefix with data about the scaling, etc, followed by a block of data preceded by #xyyyy (number of y characters = x)
+    //to parse, first find the hash and split the prefix from the total array, then split the prefix on semicolons
+    int hashIndex = d.indexOf('#');
+    QByteArray prefix = d.mid(0,hashIndex);
+    QList<QByteArray> prefixFields = prefix.split(';');
+
+    //important data from prefix: number of bytes (0), byte format (3), byte order (4), x increment (10), y multiplier (14), y offset (15)
+    if(prefixFields.size()<16)
+    {
+//        emit logMessage(QString("Could not parse waveform prefix. Too few fields. If this problem persists, restart program."),QtFTM::LogWarning);
+        return Fid(5e-7,probeFreq,QVector<double>(400));
+    }
+
+    bool ok = true;
+    int n_bytes = prefixFields.at(0).trimmed().toInt(&ok);
+    if(!ok || n_bytes < 1 || n_bytes > 2)
+    {
+//        emit logMessage(QString("Could not parse waveform prefix. Invalid number of bytes per record. If this problem persists, restart program."),QtFTM::LogWarning);
+        return Fid(5e-7,probeFreq,QVector<double>(400));
+    }
+
+    bool n_signed = true;
+    if(prefixFields.at(3).trimmed() == QByteArray("RP"))
+        n_signed = false;
+
+    QDataStream::ByteOrder n_order = QDataStream::BigEndian;
+    if(prefixFields.at(4).trimmed() == QByteArray("LSB"))
+        n_order = QDataStream::LittleEndian;
+
+    double xIncr = prefixFields.at(10).trimmed().toDouble(&ok);
+    if(!ok || xIncr <= 0.0)
+    {
+//        emit logMessage(QString("Could not parse waveform prefix. Invalid X spacing. If this problem persists, restart program."),QtFTM::LogWarning);
+        return Fid(5e-7,probeFreq,QVector<double>(400));
+    }
+
+    double yMult = prefixFields.at(14).trimmed().toDouble(&ok);
+    if(!ok || yMult == 0.0)
+    {
+//        emit logMessage(QString("Could not parse waveform prefix. Invalid Y multipier. If this problem persists, restart program."),QtFTM::LogWarning);
+        return Fid(5e-7,probeFreq,QVector<double>(400));
+    }
+
+    double yOffset = prefixFields.at(14).trimmed().toDouble(&ok);
+    if(!ok)
+    {
+//        emit logMessage(QString("Could not parse waveform prefix. Invalid Y offset. If this problem persists, restart program."),QtFTM::LogWarning);
+        return Fid(5e-7,probeFreq,QVector<double>(400));
+    }
+
+    //calculate data stride
+    int stride = (int)ceil(500e-9/xIncr);
+
+    //now, locate and extract data block
+    int numHeaderBytes = d.mid(hashIndex+1,1).toInt();
+    int numDataBytes = d.mid(hashIndex+2,numHeaderBytes).toInt();
+    int numRecords = numDataBytes/n_bytes;
+    QByteArray dataBlock = d.mid(hashIndex+numHeaderBytes+2,numDataBytes);
+
+    if(dataBlock.size() < numDataBytes)
+    {
+//        emit logMessage(QString("Could not parse waveform. Incomplete wave. If this problem persists, restart program."),QtFTM::LogWarning);
+        return Fid(xIncr*(double)stride,probeFreq,QVector<double>(400));
+    }
+
+    //prepare data stream and data vector
+    QDataStream ds(&dataBlock,QIODevice::ReadOnly);
+    ds.setByteOrder(n_order);
+    QVector<double> dat;
+    dat.reserve((int)ceil(numRecords/stride));
+
+    for(int i=0; i<numRecords; i++)
+    {
+        double yVal;
+        if(n_bytes == 1)
+        {
+            if(n_signed)
+            {
+                qint8 num;
+                ds >> num;
+                yVal = yMult*((double)num+yOffset);
+            }
+            else
+            {
+                quint8 num;
+                ds >> num;
+                yVal = yMult*((double)num+yOffset);
+            }
+        }
+        else
+        {
+            if(n_signed)
+            {
+                qint16 num;
+                ds >> num;
+                yVal = yMult*((double)num+yOffset);
+            }
+            else
+            {
+                quint16 num;
+                ds >> num;
+                yVal = yMult*((double)num+yOffset);
+            }
+        }
+        if(!(i%stride))
+            dat.append(yVal);
+    }
+
+    return Fid(xIncr*(double)stride,probeFreq,dat);
+
+}

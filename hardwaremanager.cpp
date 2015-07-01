@@ -28,7 +28,7 @@ void HardwareManager::initializeHardware()
 {
 	emit statusMessage(QString("Initializing..."));
 
-	scope = new Oscilloscope();
+    scope = new OscilloscopeHardware();
 	connect(scope,&Oscilloscope::fidAcquired,this,&HardwareManager::scopeWaveAcquired);
     connect(scope,&Oscilloscope::statusMessage,this,&HardwareManager::statusMessage);
     d_hardwareList.append(qMakePair(scope,new QThread(this)));

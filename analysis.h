@@ -109,6 +109,11 @@ FitResult dopplerMixedFit(const gsl_multifit_fdfsolver_type *solverType, const Q
 FitResult lorSingleFit(const gsl_multifit_fdfsolver_type *solverType, const QVector<QPointF> data, const double probeFreq, const double y0, const double slope, const double width, const QList<QPointF> singleParams, const int maxIterations = 50);
 FitResult fitLine(QVector<QPointF> data, double probeFreq);
 
+/*******************************
+ *   OSCILLOSCOPE PARSING      *
+ ******************************/
+Fid parseWaveform(const QByteArray d, double probeFreq);
+
 }
 
 #endif // ANALYSIS_H

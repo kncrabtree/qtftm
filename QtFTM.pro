@@ -36,6 +36,7 @@ include(acquisition.pri)
 include(hardware.pri)
 include(data.pri)
 include(settings.pri)
+include(implementations.pri)
 
 SOURCES += main.cpp
 
@@ -59,6 +60,11 @@ DEFINES += HP8340
 #This line should reflect which spectrometer the code is being compiled for
 #DEFINES += QTFTM_FTM2
 DEFINES += QTFTM_FTM1
+
+#Hardware definitions
+
+#Oscilloscope. 0 = virtual, 1 = DPO3012
+DEFINES += QTFTM_OSCILLOSCOPE=1
 
 DISTFILES += \
     Notes.txt

@@ -65,20 +65,20 @@ MainWindow::MainWindow(QWidget *parent) :
     res10kHzAction = resGroup->addAction(QString("10 kHz"));
     res10kHzAction->setCheckable(true);
 
-    Oscilloscope::Resolution r = (Oscilloscope::Resolution)s.value(QString("scope/resolution"),(int)Oscilloscope::Res_5kHz).toInt();
+    QtFTM::ScopeResolution r = (QtFTM::ScopeResolution)s.value(QString("scope/resolution"),(int)QtFTM::Res_5kHz).toInt();
 
     switch(r)
     {
-    case Oscilloscope::Res_1kHz:
+    case QtFTM::Res_1kHz:
         res1kHzAction->setChecked(true);
         break;
-    case Oscilloscope::Res_2kHz:
+    case QtFTM::Res_2kHz:
         res2kHzAction->setChecked(true);
         break;
-    case Oscilloscope::Res_5kHz:
+    case QtFTM::Res_5kHz:
         res5kHzAction->setChecked(true);
         break;
-    case Oscilloscope::Res_10kHz:
+    case QtFTM::Res_10kHz:
         res10kHzAction->setChecked(true);
         break;
     }
@@ -161,10 +161,10 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(ui->analysisWidget,&AnalysisWidget::scanChanged,ui->batchPlot,&BatchPlot::showZone);
 	connect(ui->batchPlot,&BatchPlot::colorChanged,ui->analysisWidget->plot(),&FtPlot::changeColor);
 	connect(ui->batchPlot,&BatchPlot::colorChanged,ui->acqFtPlot,&FtPlot::changeColor);
-    connect(res1kHzAction,&QAction::triggered,[=](){ resolutionChanged(Oscilloscope::Res_1kHz); });
-    connect(res2kHzAction,&QAction::triggered,[=](){ resolutionChanged(Oscilloscope::Res_2kHz); });
-    connect(res5kHzAction,&QAction::triggered,[=](){ resolutionChanged(Oscilloscope::Res_5kHz); });
-    connect(res10kHzAction,&QAction::triggered,[=](){ resolutionChanged(Oscilloscope::Res_10kHz); });
+    connect(res1kHzAction,&QAction::triggered,[=](){ resolutionChanged(QtFTM::Res_1kHz); });
+    connect(res2kHzAction,&QAction::triggered,[=](){ resolutionChanged(QtFTM::Res_2kHz); });
+    connect(res5kHzAction,&QAction::triggered,[=](){ resolutionChanged(QtFTM::Res_5kHz); });
+    connect(res10kHzAction,&QAction::triggered,[=](){ resolutionChanged(QtFTM::Res_10kHz); });
     connect(ui->saveLogButton,&QAbstractButton::clicked,this,&MainWindow::saveLogCallback);
     connect(ui->g1lineEdit,&QLineEdit::editingFinished,this,&MainWindow::gasNamesChanged);
     connect(ui->g2lineEdit,&QLineEdit::editingFinished,this,&MainWindow::gasNamesChanged);
@@ -961,7 +961,7 @@ void MainWindow::applyPulseNames()
     s.endGroup();
 }
 
-void MainWindow::resolutionChanged(Oscilloscope::Resolution res)
+void MainWindow::resolutionChanged(QtFTM::ScopeResolution res)
 {
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
     s.setValue(QString("scope/resolution"),(int)res);

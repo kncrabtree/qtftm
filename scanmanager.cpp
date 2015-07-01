@@ -1,6 +1,9 @@
 #include "scanmanager.h"
+
 #include <QSettings>
 #include <QApplication>
+
+#include "analysis.h"
 
 ScanManager::ScanManager(QObject *parent) :
     QObject(parent), d_paused(false), d_acquiring(false), d_waitingForInitialization(false),
@@ -24,9 +27,9 @@ void ScanManager::fidReceived(const QByteArray d)
 
 	//if a scan is active, take the probe frequency from the scan. otherwise, use most recent value
 	if(d_currentScan.isInitialized() && !d_currentScan.isAcquisitionComplete())
-		f = Oscilloscope::parseWaveform(d,d_currentScan.fid().probeFreq());
+        f = Analysis::parseWaveform(d,d_currentScan.fid().probeFreq());
 	else
-		f = Oscilloscope::parseWaveform(d,d_currentProbeFreq);
+        f = Analysis::parseWaveform(d,d_currentProbeFreq);
 
     if(f.probeFreq()<0.0) //parsing error!
         return;

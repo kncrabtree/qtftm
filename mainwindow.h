@@ -81,7 +81,7 @@ public slots:
     void launchIOBoardSettings();
     void launchPulseGeneratorSettings();
     void applyPulseNames();
-    void resolutionChanged(Oscilloscope::Resolution res);
+    void resolutionChanged(QtFTM::ScopeResolution res);
     void tuningComplete();
     void tuneCavityCallback();
     void calibrateCavityCallback();
