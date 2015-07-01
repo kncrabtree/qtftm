@@ -43,6 +43,12 @@ public:
         bool visible;
     };
 
+    struct BadZone {
+        QwtPlotZoneItem *zone;
+        BatchManager::BatchPlotMetaData md;
+        bool recalcWidthOnResize;
+    };
+
 signals:
     void requestScan(int);
     void colorChanged(QString,QColor);
@@ -55,6 +61,7 @@ public slots:
     virtual void loadCalScan(const double x); //default Implementation; can override
     virtual void setSelectedZone(int scanNum); // default implementation; can override for Batch
     virtual void formatSelectedZone(int metadataIndex); // default implementation; can override if needed
+    virtual void setZoneWidth(QwtPlotZoneItem *zone,BatchManager::BatchPlotMetaData md);
     virtual void filterData();
     virtual void print() =0;
     virtual void exportXY();
@@ -70,7 +77,7 @@ protected:
     QwtPlotCurve *p_calCurve;
     QVector<QPointF> d_calCurveData;
     QwtPlotZoneItem *p_selectedZone;
-    QList<QwtPlotZoneItem*> d_badTuneZones;
+    QList<BadZone> d_badTuneZones;
     QList<BatchManager::BatchPlotMetaData> d_metaDataList;
     QList<PlotCurveMetaData> d_plotCurveMetaData;
 
@@ -78,7 +85,9 @@ protected:
     bool d_showZonePending;
     bool d_recalcZoneOnResize;
     bool d_doNotReplot;
+    bool d_hideBadZones;
 
+    void addBadZone(BatchManager::BatchPlotMetaData md);
     virtual QMenu *contextMenu();
     virtual bool eventFilter(QObject *obj, QEvent *ev);
     virtual void replot();

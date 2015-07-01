@@ -77,6 +77,9 @@ void DrPlot::receiveData(BatchManager::BatchPlotMetaData md, QList<QVector<QPoin
     }
 
     d_metaDataList.append(md);
+    if(md.badTune)
+        addBadZone(md);
+
     if(d_showZonePending && !md.isCal)
     {
         d_showZonePending = false;

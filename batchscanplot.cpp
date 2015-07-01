@@ -69,6 +69,8 @@ void BatchScanPlot::receiveData(BatchManager::BatchPlotMetaData md, QList<QVecto
     d_plotMarkers.append(m);
 
     d_metaDataList.append(md);
+    if(md.badTune)
+        addBadZone(md);
 
     if(!md.isCal)
     {

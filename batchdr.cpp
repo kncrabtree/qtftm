@@ -376,7 +376,7 @@ void BatchDR::processScan(Scan s)
 				else //this shouldn't happen, but append a 0
 					d_drData[i].append(QPointF(s.drFreq(),0.0));
 			}
-            bool badTune = s.cavityVoltage() < 0;
+            bool badTune = s.tuningVoltage() < 0;
 
 			//send out cal and actual data together
 			BatchPlotMetaData md1(DrScan,s.number()-1,plotStart,plotEnd,true);

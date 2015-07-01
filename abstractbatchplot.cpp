@@ -10,7 +10,7 @@
 #include <qwt6/qwt_symbol.h>
 
 AbstractBatchPlot::AbstractBatchPlot(QString name, QWidget *parent) :
-    ZoomPanPlot(name,parent), d_zoneScanNum(0), d_showZonePending(false), d_recalcZoneOnResize(false), d_doNotReplot(false)
+    ZoomPanPlot(name,parent), d_zoneScanNum(0), d_showZonePending(false), d_recalcZoneOnResize(false), d_doNotReplot(false), d_hideBadZones(false)
 {
     QFont labelFont(QString("sans serif"),8);
     setAxisFont(QwtPlot::xBottom,labelFont);
@@ -269,12 +269,27 @@ void AbstractBatchPlot::formatSelectedZone(int metadataIndex)
         return;
 
     BatchManager::BatchPlotMetaData md = d_metaDataList.at(metadataIndex);
+    setZoneWidth(p_selectedZone,md);
+    if(md.isCal && p_calCurve != nullptr)
+        d_recalcZoneOnResize = true;
+    else
+        d_recalcZoneOnResize = false;
+
+    if(md.isCal)
+        p_selectedZone->setPen(QPen(QColor(QPalette().color(QPalette::Text)),1.0,Qt::DotLine));
+    else
+        p_selectedZone->setPen(QPen(QColor(QPalette().color(QPalette::Text))));
+}
+
+void AbstractBatchPlot::setZoneWidth(QwtPlotZoneItem *zone, BatchManager::BatchPlotMetaData md)
+{
+    if(zone == nullptr)
+        return;
+
     if(md.isCal)
     {
         if(p_calCurve != nullptr)
         {
-            d_recalcZoneOnResize = true;
-
             double symbolHalfWidth = p_calCurve->symbol()->size().width()/2.0;
             QwtScaleMap map = canvasMap(QwtPlot::xBottom);
 
@@ -285,22 +300,13 @@ void AbstractBatchPlot::formatSelectedZone(int metadataIndex)
             double zoneMin = map.invTransform(map.transform(md.minXVal)-symbolHalfWidth-1.0);
             double zoneMax = map.invTransform(map.transform(md.minXVal)+symbolHalfWidth+1.0);
 
-            p_selectedZone->setInterval(zoneMin,zoneMax);
+            zone->setInterval(zoneMin,zoneMax);
         }
         else
-        {
-            d_recalcZoneOnResize = false;
-            p_selectedZone->setInterval(md.minXVal,md.maxXVal);
-        }
-
-        p_selectedZone->setPen(QPen(QColor(QPalette().color(QPalette::Text)),1.0,Qt::DotLine));
+            zone->setInterval(md.minXVal,md.maxXVal);
     }
     else
-    {
-        d_recalcZoneOnResize = false;
-        p_selectedZone->setInterval(md.minXVal,md.maxXVal);
-        p_selectedZone->setPen(QPen(QColor(QPalette().color(QPalette::Text))));
-    }
+        zone->setInterval(md.minXVal,md.maxXVal);
 }
 
 void AbstractBatchPlot::filterData()
@@ -488,6 +494,37 @@ void AbstractBatchPlot::toggleCurve(QVariant item, bool hide, int index)
 
         replot();
     }
+}
+
+void AbstractBatchPlot::addBadZone(BatchManager::BatchPlotMetaData md)
+{
+    if(!md.badTune)
+        return;
+
+    QwtPlotZoneItem *zone = new QwtPlotZoneItem();
+    zone->setOrientation(Qt::Vertical);
+    QColor c(Qt::red);
+    c.setAlpha(128);
+    zone->setBrush(QBrush(c));
+    zone->setZ(10.0);
+    c.setAlpha(0);
+    zone->setPen(QPen(c));
+    zone->setVisible(!d_hideBadZones);
+
+    bool resize = false;
+    if(md.isCal && p_calCurve != nullptr)
+        resize = true;
+
+    setZoneWidth(zone,md);
+    zone->attach(this);
+
+    BadZone bz;
+    bz.zone = zone;
+    bz.md = md;
+    bz.recalcWidthOnResize = resize;
+
+    d_badTuneZones.append(bz);
+
 }
 
 QMenu *AbstractBatchPlot::contextMenu()

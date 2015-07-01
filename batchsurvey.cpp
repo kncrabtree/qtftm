@@ -235,7 +235,7 @@ void BatchSurvey::processScan(Scan s)
 	//if the step size is too big, there will be gaps!
 	QVector<QPointF> ft = d_fitter->doStandardFT(s.fid()).first;
 	QList<QVector<QPointF> > out;
-    bool badTune = s.cavityVoltage() < 0;
+    bool badTune = s.tuningVoltage() < 0;
 
 	if(thisScanWasCal)
 	{

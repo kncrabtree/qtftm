@@ -77,6 +77,9 @@ void SurveyPlot::receiveData(BatchManager::BatchPlotMetaData md, QList<QVector<Q
     }
 
     d_metaDataList.append(md);
+    if(md.badTune)
+        addBadZone(md);
+
     if(d_showZonePending)
     {
         d_showZonePending = false;
