@@ -244,10 +244,7 @@ void HardwareManager::hardwareFailure(HardwareObject *obj)
             emit failure();
     }
     else
-    {
-        emit logMessage(QString("Automatic error recovery invoked, retrying curent scan."),LogHandler::Highlight);
         emit retryScan();
-    }
 
 	checkStatus();
 }

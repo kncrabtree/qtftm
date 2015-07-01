@@ -228,6 +228,7 @@ void ScanManager::retryScan()
         d_paused = false;
         disconnect(this,&ScanManager::newFid,this,&ScanManager::acqAverage);
 
+        emit logMessage(QString("Automatic error recovery invoked, retrying curent scan."),LogHandler::Highlight);
         prepareScan(d_scanCopyForRetry);
     }
 }
