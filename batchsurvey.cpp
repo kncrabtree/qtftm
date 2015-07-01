@@ -5,7 +5,7 @@
 
 BatchSurvey::BatchSurvey(Scan first, double step, double end, bool hascal, Scan cal, int scansPerCal, AbstractFitter *af) :
     BatchManager(Survey,false,af), d_surveyTemplate(first), d_hasCalibration(hascal), d_calTemplate(cal),
-    d_scansPerCal(scansPerCal), d_currentSurveyIndex(0), d_nextScanIsCal(false)
+    d_scansPerCal(scansPerCal), d_currentSurveyIndex(0)
 {
 	d_numKey = QString("surveyNum");
 	d_prettyName = QString("Survey");
@@ -41,7 +41,7 @@ BatchSurvey::BatchSurvey(Scan first, double step, double end, bool hascal, Scan 
 		else
             d_totalCalScans = 2;
 
-        d_nextScanIsCal = true;
+        d_thisScanIsCal = true;
 	}
 	else
 	{
@@ -57,7 +57,7 @@ BatchSurvey::BatchSurvey(int num) : BatchManager(Survey,true)
     d_numKey = QString("surveyNum");
     d_prettyName = QString("Survey");
     d_batchNum = num;
-    d_nextScanIsCal = false;
+    d_thisScanIsCal = false;
 
     int surveyNum = num;
     int surveyMillions = (int)floor((double)surveyNum/1000000.0);
@@ -141,7 +141,7 @@ BatchSurvey::BatchSurvey(int num) : BatchManager(Survey,true)
 
     if(d_hasCalibration)
     {
-        d_nextScanIsCal = true;
+        d_thisScanIsCal = true;
 
         //find cal scans list
         while(!out.atEnd())
@@ -179,19 +179,19 @@ BatchSurvey::BatchSurvey(int num) : BatchManager(Survey,true)
 Scan BatchSurvey::prepareNextScan()
 {
 	//if the next scan should be a calibration scan, use the cal template
-    if(d_nextScanIsCal)
+    if(d_thisScanIsCal)
 		return d_calTemplate;
 
 	//create new scan with the appropriate ft frequency
     double freq = d_surveyTemplate.ftFreq() + (double)d_currentSurveyIndex*d_step;
 	Scan out(d_surveyTemplate);
 	out.setFtFreq(freq);
-	return out;
+    return out;
 }
 
 bool BatchSurvey::isBatchComplete()
 {
-    if(d_currentSurveyIndex == d_totalSurveyScans && !d_nextScanIsCal)
+    if(d_currentSurveyIndex == d_totalSurveyScans && !d_thisScanIsCal)
 		return true;
 
 	return false;
@@ -202,29 +202,15 @@ void BatchSurvey::processScan(Scan s)
 {
 	//if nextScanIsCal is true, that means the incoming scan was a calibration; so the next one will not be
 	//otherwise, survey index should be incremented
-    bool thisScanWasCal = d_nextScanIsCal;
-    if(d_nextScanIsCal)
+    bool thisScanWasCal = d_thisScanIsCal;
+    if(d_thisScanIsCal)
 	{
-        d_nextScanIsCal = false;
-        d_calScanNumbers.append(s.number());
+
 	}
 	else
 	{
-        d_surveyScanNumbers.append(s.number());
-        d_currentSurveyIndex++;
-		if(d_hasCalibration)
-		{
-            if(d_currentSurveyIndex == d_totalSurveyScans)
-			{
-				//we've finished the survey; take a cal scan
-                d_nextScanIsCal = true;
-			}
-            else if(d_scansPerCal > 0 && (d_currentSurveyIndex % d_scansPerCal) == 0)
-			{
-				//it's time to take a cal scan
-                d_nextScanIsCal = true;
-			}
-		}
+
+
 	}
 
     //Probably don't need to fit calibration scans!
@@ -239,6 +225,9 @@ void BatchSurvey::processScan(Scan s)
 
 	if(thisScanWasCal)
 	{
+        d_thisScanIsCal = false;
+        d_calScanNumbers.append(s.number());
+
 		double max = 0.0;
 		for(int i=0; i<ft.size(); i++)
 			max = qMax(max,ft.at(i).y());
@@ -268,6 +257,9 @@ void BatchSurvey::processScan(Scan s)
 	}
 	else
 	{
+        d_surveyScanNumbers.append(s.number());
+        d_currentSurveyIndex++;
+
 		double startFreq = s.fid().probeFreq() + d_chunkStart;
 		double endFreq = s.fid().probeFreq() + d_chunkEnd;
         BatchPlotMetaData md(type(),s.number(),startFreq,endFreq,false,badTune);
@@ -294,9 +286,21 @@ void BatchSurvey::processScan(Scan s)
 
         out.append(d_surveyData);
 		emit plotData(md, out);
+
+        if(d_hasCalibration)
+        {
+            if(d_currentSurveyIndex == d_totalSurveyScans)
+            {
+                //we've finished the survey; take a cal scan
+                d_thisScanIsCal = true;
+            }
+            else if(d_scansPerCal > 0 && (d_currentSurveyIndex % d_scansPerCal) == 0)
+            {
+                //it's time to take a cal scan
+                d_thisScanIsCal = true;
+            }
+        }
 	}
-
-
 
 }
 

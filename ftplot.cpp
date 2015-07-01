@@ -5,6 +5,7 @@
 #include <QPalette>
 #include <math.h>
 #include <qwt6/qwt_plot_zoneitem.h>
+#include <qwt6/qwt_plot_textlabel.h>
 #include <QSettings>
 #include <QGridLayout>
 #include <QLabel>
@@ -46,6 +47,19 @@ FtPlot::FtPlot(QWidget *parent) :
     ftCurve.setRenderHint(QwtPlotItem::RenderAntialiased);
     fidCurve.setRenderHint(QwtPlotItem::RenderAntialiased);
     fitCurve.setRenderHint(QwtPlotItem::RenderAntialiased);
+
+    p_calLabel = new QwtPlotTextLabel();
+    p_calLabel->setZ(10.0);
+    QwtText calText(QString("CAL"));
+    calText.setRenderFlags(Qt::AlignRight | Qt::AlignTop);
+    calText.setBackgroundBrush(QBrush(QPalette().color(QPalette::Window)));
+    calText.setColor(QPalette().color(QPalette::Text));
+    QFont f(QString("monospace"),36);
+    f.setBold(true);
+    calText.setFont(f);
+    p_calLabel->setText(calText);
+    p_calLabel->setVisible(false);
+    p_calLabel->attach(this);
 
 	auto doubleVc = static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged);
 
@@ -112,6 +126,9 @@ FtPlot::FtPlot(QWidget *parent) :
 
 FtPlot::~FtPlot()
 {
+    p_calLabel->detach();
+    delete p_calLabel;
+
 	ftThread->quit();
 	ftThread->wait();
 	delete ftThread;
@@ -320,7 +337,12 @@ void FtPlot::changeColor(QString itemName, QColor c)
 				replot();
 			}
 		}
-	}
+    }
+}
+
+void FtPlot::setCalVisible(bool on)
+{
+    p_calLabel->setVisible(on);
 }
 
 void FtPlot::replot()

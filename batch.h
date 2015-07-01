@@ -32,7 +32,6 @@ private:
     QVector<QPointF> d_theData;
     QVector<QPointF> d_calData;
     QList<QPair<int,QPair<double,QString> > > d_saveData;
-    bool d_thisScanIsCal;
 
     QList<bool> d_loadCalList;
     int d_loadingIndex;

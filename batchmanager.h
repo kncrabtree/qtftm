@@ -166,7 +166,7 @@ signals:
 
 	 \param Scan The scan to acquire
 	*/
-	void beginScan(Scan);
+    void beginScan(Scan, bool isCal = false);
 	/*!
 	 \brief Tells UI that the batch is complete
 
@@ -240,6 +240,7 @@ protected:
 	 \return Scan The next scan
 	*/
 	virtual Scan prepareNextScan() =0;
+
 	/*!
 	 \brief Returns whether the batch is complete
 
@@ -253,6 +254,7 @@ protected:
     QList<int> d_loadScanList;
     QList<Scan> d_loadAttnList;
     bool d_loading;
+    bool d_thisScanIsCal;
 
 private:
     void loadBatch();

@@ -44,7 +44,6 @@ private:
 	int d_numScans;
 	int d_completedScans;
 	bool d_hasCalibration;
-	bool d_lastScanWasCal;
 	QList<QVector<QPointF> > d_drData;
 	QList<QVector<double> > d_cal;
 	QList<QVector<double> > d_dr;

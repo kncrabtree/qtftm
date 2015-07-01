@@ -40,7 +40,6 @@ private:
     int d_totalCalScans;
 
     int d_currentSurveyIndex;
-    bool d_nextScanIsCal;
 
     QVector<QPointF> d_calData;
     QVector<QPointF> d_surveyData;

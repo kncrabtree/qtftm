@@ -430,8 +430,9 @@ void MainWindow::saveLogCallback()
     }
 }
 
-void MainWindow::scanStarting(Scan s)
+void MainWindow::scanStarting(Scan s, bool isCal)
 {
+    ui->acqFtPlot->setCalVisible(isCal);
 	ui->shotsProgressBar->setValue(0);
 	ui->shotsProgressBar->setMaximum(s.targetShots());
 }

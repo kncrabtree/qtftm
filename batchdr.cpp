@@ -4,7 +4,7 @@
 
 BatchDR::BatchDR(Scan ftScan, double start, double stop, double step, int numScansBetween, QList<QPair<double, double> > ranges, bool doCal, AbstractFitter *f) :
     BatchManager(DrScan,false,f), d_template(ftScan), d_start(start), d_stop(stop), d_numScansBetween (0), d_integrationRanges(ranges),
-    d_completedScans(0), d_hasCalibration(doCal), d_lastScanWasCal(false)
+    d_completedScans(0), d_hasCalibration(doCal)
 {
 	d_numKey = QString("drNum");
 	d_prettyName = QString("DR Scan");
@@ -193,6 +193,8 @@ BatchDR::BatchDR(int num, AbstractFitter *ftr) : BatchManager(DrScan,true,ftr), 
     //Calibration means measuring background between scans. So it doubles the length
     if(d_hasCalibration)
     {
+        d_thisScanIsCal = true;
+
         //need to reserve space for calibration data
         for(int i=0; i<d_integrationRanges.size(); i++)
         {
@@ -205,10 +207,9 @@ BatchDR::BatchDR(int num, AbstractFitter *ftr) : BatchManager(DrScan,true,ftr), 
     {
         //add an empty vector to cal scans for later use
         d_cal.append(QVector<double>());
+        d_thisScanIsCal = false;
     }
 
-
-    d_lastScanWasCal = false; //this will be set to true in processScan and subsequently toggled back and forth if the scan has a calibration
     f.close();
 }
 
@@ -238,19 +239,19 @@ Scan BatchDR::prepareNextScan()
 	//if there's a calibration, we might need to disable DR pulses
 	if(d_hasCalibration)
 	{
-		if(d_lastScanWasCal) //make sure DR pulse is enabled!
-			d_lastScanWasCal = false;
+        if(d_thisScanIsCal) //make sure DR pulse is enabled!
+            d_thisScanIsCal = false;
 		else
 		{
 			//this is a calibration scan, so disable DR pulses
 			c[3].enabled = false;
-			d_lastScanWasCal = true;
+            d_thisScanIsCal = true;
 		}
 	}
 
 	next.setPulseConfiguration(c);
 
-	return next;
+    return next;
 }
 
 bool BatchDR::isBatchComplete()
@@ -264,9 +265,6 @@ bool BatchDR::isBatchComplete()
 void BatchDR::processScan(Scan s)
 {
 	d_scanNumbers.append(s.number());
-
-    if(d_loading && d_hasCalibration)
-        d_lastScanWasCal = !d_lastScanWasCal;
 
 	//do the FT
 	QVector<QPointF> ft = d_fitter->doStandardFT(s.fid()).first;
@@ -346,7 +344,7 @@ void BatchDR::processScan(Scan s)
 		}
 
 		//record integral. store it in the appropriate vector for later processing
-		if(d_lastScanWasCal)
+        if(d_thisScanIsCal)
 			d_cal[i].append(integral);
 		else
 			d_dr[i].append(integral);
@@ -358,7 +356,7 @@ void BatchDR::processScan(Scan s)
 		qSwap(plotStart,plotEnd);
 
 	//only send out data if this was a real DR scan, not a calibration
-	if(!d_lastScanWasCal)
+    if(!d_thisScanIsCal)
 	{
 		//if we are doing calibration, we need to ratio the integrals after collecting a cal and a dr
 		if(d_hasCalibration)
@@ -397,8 +395,11 @@ void BatchDR::processScan(Scan s)
 	//only increment scan if this was a DR scan, not a calibration scan
 	//note that lastScanWasCal refers to the scan that is now being processed!
 	//lastScanWasCal is always false for a Dr scan without calibration
-	if(!d_lastScanWasCal)
+    if(!d_thisScanIsCal)
 		d_completedScans++;
+
+    if(d_loading && d_hasCalibration)
+        d_thisScanIsCal = !d_thisScanIsCal;
 }
 
 

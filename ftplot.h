@@ -13,6 +13,7 @@
 #include <QDoubleSpinBox>
 #include <QCheckBox>
 
+class QwtPlotTextLabel;
 
 class FtPlot : public QwtPlot
 {
@@ -62,6 +63,7 @@ public slots:
 	void clearRanges();
 	void attachIntegrationRanges(QList<QPair<double,double> > p);
 	void changeColor(QString itemName, QColor c);
+    void setCalVisible(bool on);
 
 	virtual void replot();
 
@@ -81,6 +83,7 @@ protected:
 	QwtPlotCurve fitCurve;
 	QwtText fidXLabel;
 	QwtText ftXLabel;
+    QwtPlotTextLabel *p_calLabel;
 
 	virtual void contextMenuEvent(QContextMenuEvent *ev);
 	virtual QMenu* buildContextMenu();

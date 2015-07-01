@@ -3,7 +3,7 @@
 #include <QApplication>
 
 Batch::Batch(QList<QPair<Scan, bool> > l, AbstractFitter *ftr) :
-    BatchManager(BatchManager::Batch,false,ftr), d_scanList(l), d_thisScanIsCal(false)
+    BatchManager(BatchManager::Batch,false,ftr), d_scanList(l)
 {
 	//since all scans are already in a list, we just have to calculate total shots
 	d_totalShots = 0;
@@ -74,7 +74,7 @@ Scan Batch::prepareNextScan()
 	//pop the first item off the list, and keep track of whether it's a calibration scan
     QPair<Scan,bool> p = d_scanList.takeFirst();
     d_thisScanIsCal = p.second;
-	return p.first;
+    return p.first;
 }
 
 bool Batch::isBatchComplete()
