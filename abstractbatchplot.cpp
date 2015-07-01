@@ -550,15 +550,31 @@ void AbstractBatchPlot::replot()
     if(!d_doNotReplot)
     {
         ZoomPanPlot::replot();
+        bool replotAgain = false;
         if(d_recalcZoneOnResize && !d_metaDataList.isEmpty())
         {
             int index = d_zoneScanNum - d_metaDataList.first().scanNum;
             if(index >=0 && index < d_metaDataList.size())
             {
                 formatSelectedZone(index);
-                ZoomPanPlot::replot();
+                replotAgain = true;
             }
         }
+        if(!d_badTuneZones.isEmpty() && !d_hideBadZones)
+        {
+            for(int i=0; i<d_badTuneZones.size(); i++)
+            {
+                if(d_badTuneZones.at(i).recalcWidthOnResize)
+                {
+                    setZoneWidth(d_badTuneZones.at(i).zone,d_badTuneZones.at(i).md);
+                    replotAgain = true;
+                }
+            }
+        }
+
+        if(replotAgain)
+            ZoomPanPlot::replot();
+
     }
 }
 
@@ -647,7 +663,24 @@ void AbstractBatchPlot::doPrint(double start, double end, double xRange, int plo
                 double xMin = start + (double)((page*plotsPerPage) + rect)*xRange;
                 double xMax = start + (double)((page*plotsPerPage) + rect + 1)*xRange;
                 setAxisScale(QwtPlot::xBottom,xMin,xMax);
+
+                //if bad zones are visible, they need to be recalculated after replotting
                 QwtPlot::replot();
+
+                bool replotAgain = false;
+                if(!d_badTuneZones.isEmpty() && !d_hideBadZones)
+                {
+                    for(int i=0; i<d_badTuneZones.size(); i++)
+                    {
+                        if(d_badTuneZones.at(i).recalcWidthOnResize)
+                        {
+                            setZoneWidth(d_badTuneZones.at(i).zone,d_badTuneZones.at(i).md);
+                            replotAgain = true;
+                        }
+                    }
+                }
+                if(replotAgain)
+                    QwtPlot::replot();
                 rend.render(this,&p,graphRects.at(rect));
 
                 if(xMax >= end)
@@ -682,7 +715,24 @@ void AbstractBatchPlot::doPrint(double start, double end, double xRange, int plo
                         static_cast<QwtLegendLabel*>(leg->legendWidget(itemToInfo(d_plotCurves[j])))->hide();
                     }
                 }
+                //if bad zones are visible, they need to be recalculated after replotting
                 QwtPlot::replot();
+
+                bool replotAgain = false;
+                if(!d_badTuneZones.isEmpty() && !d_hideBadZones)
+                {
+                    for(int i=0; i<d_badTuneZones.size(); i++)
+                    {
+                        if(d_badTuneZones.at(i).recalcWidthOnResize)
+                        {
+                            setZoneWidth(d_badTuneZones.at(i).zone,d_badTuneZones.at(i).md);
+                            replotAgain = true;
+                        }
+                    }
+                }
+                if(replotAgain)
+                    QwtPlot::replot();
+
                 rend.render(this,&p,graphRects.at(rect));
 
                 //break out of the plotting loop if we're done
