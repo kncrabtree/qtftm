@@ -74,7 +74,12 @@ Scan Batch::prepareNextScan()
 	//pop the first item off the list, and keep track of whether it's a calibration scan
     QPair<Scan,bool> p = d_scanList.takeFirst();
     d_thisScanIsCal = p.second;
-	return p.first;
+    return p.first;
+}
+
+bool Batch::isNextScanCal()
+{
+    return d_thisScanIsCal;
 }
 
 bool Batch::isBatchComplete()

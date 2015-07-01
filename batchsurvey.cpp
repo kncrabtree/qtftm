@@ -186,7 +186,12 @@ Scan BatchSurvey::prepareNextScan()
     double freq = d_surveyTemplate.ftFreq() + (double)d_currentSurveyIndex*d_step;
 	Scan out(d_surveyTemplate);
 	out.setFtFreq(freq);
-	return out;
+    return out;
+}
+
+bool BatchSurvey::isNextScanCal()
+{
+    return d_nextScanIsCal;
 }
 
 bool BatchSurvey::isBatchComplete()

@@ -41,7 +41,7 @@ public slots:
 	void updateProgressBars();
 	void updateUiConfig();
     void saveLogCallback();
-	void scanStarting(Scan s);
+    void scanStarting(Scan s, bool isCal);
 	void batchComplete(bool aborted);
 	void pauseAcq();
 	void resumeAcq();

@@ -39,6 +39,7 @@ signals:
     
 public slots:
     Scan prepareNextScan();
+    bool isNextScanCal();
     bool isBatchComplete();
     void processScan(Scan s);
     void writeReport();

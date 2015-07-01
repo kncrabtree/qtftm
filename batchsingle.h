@@ -22,6 +22,7 @@ public slots:
 protected:
 	Scan prepareNextScan();
 	void processScan(Scan s);
+    bool isNextScanCal();
 	bool isBatchComplete();
 	void writeReport();
 

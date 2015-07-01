@@ -16,7 +16,12 @@ void BatchSingle::processScan(Scan s)
 {
 	FitResult res = d_fitter->doFit(s);
 	Q_UNUSED(res)
-	d_completed = true;
+    d_completed = true;
+}
+
+bool BatchSingle::isNextScanCal()
+{
+    return false;
 }
 
 bool BatchSingle::isBatchComplete()

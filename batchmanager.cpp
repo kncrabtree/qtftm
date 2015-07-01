@@ -54,7 +54,9 @@ void BatchManager::scanComplete(const Scan s)
 	if(!s.isAborted() && !isBatchComplete())
 	{
 		//proceed to next scan
-		emit beginScan(prepareNextScan());
+        Scan next = prepareNextScan();
+        bool nextCal = isNextScanCal();
+        emit beginScan(next,nextCal);
 	}
 	else
 	{
@@ -88,7 +90,11 @@ void BatchManager::beginBatch()
     emit titleReady(title());
 
     if(!d_loading)
-        emit beginScan(prepareNextScan());
+    {
+        Scan next = prepareNextScan();
+        bool nextCal = isNextScanCal();
+        emit beginScan(next,nextCal);
+    }
     else
         loadBatch();
 }
