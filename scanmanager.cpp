@@ -47,7 +47,7 @@ void ScanManager::prepareScan(Scan s)
 	{
 		//this would be really bad... let's just hope it never happens.
 		//we'll just ignore this scan, Perhaps there's a better idea?
-		emit logMessage(QString("A new scan was started while hardware is being initialized for another scan. The new scan is being ignored."),LogHandler::Warning);
+		emit logMessage(QString("A new scan was started while hardware is being initialized for another scan. The new scan is being ignored."),QtFTM::LogWarning);
 		return;
 	}
 
@@ -184,7 +184,7 @@ void ScanManager::acqAverage(const Fid f)
 		d_currentScan.save();	
 		if(!d_currentScan.isSaved())
 		{
-			emit logMessage(QString("Could not open file for saving scan %1").arg(d_currentScan.number()),LogHandler::Error);
+			emit logMessage(QString("Could not open file for saving scan %1").arg(d_currentScan.number()),QtFTM::LogError);
 			emit fatalSaveError();
         }
 		emit acquisitionComplete(d_currentScan);
@@ -206,7 +206,7 @@ void ScanManager::abortScan()
 		d_currentScan.save();
 		if(!d_currentScan.isSaved())
 		{
-			emit logMessage(QString("Could not open file for saving scan %1").arg(d_currentScan.number()),LogHandler::Error);
+			emit logMessage(QString("Could not open file for saving scan %1").arg(d_currentScan.number()),QtFTM::LogError);
 			emit fatalSaveError();
 		}
         d_acquiring = false;
@@ -228,7 +228,7 @@ void ScanManager::retryScan()
         d_paused = false;
         disconnect(this,&ScanManager::newFid,this,&ScanManager::acqAverage);
 
-        emit logMessage(QString("Automatic error recovery invoked, retrying curent scan."),LogHandler::Highlight);
+        emit logMessage(QString("Automatic error recovery invoked, retrying curent scan."),QtFTM::LogHighlight);
         prepareScan(d_scanCopyForRetry);
     }
 }

@@ -63,8 +63,8 @@ void PinSwitchDriveDelayGenerator::readAll()
     if(resp.isEmpty() || !resp.startsWith("S:"))
     {
         emit hardwareFailure();
-        emit logMessage(QString("Communication error with %1 while reading delay generator state").arg(d_prettyName),LogHandler::Error);
-        emit logMessage(QString("Response: %1 (Hex: %2)").arg(QString(resp)).arg(QString(resp.toHex())),LogHandler::Error);
+        emit logMessage(QString("Communication error with %1 while reading delay generator state").arg(d_prettyName),QtFTM::LogError);
+        emit logMessage(QString("Response: %1 (Hex: %2)").arg(QString(resp)).arg(QString(resp.toHex())),QtFTM::LogError);
         return;
     }
 
@@ -79,8 +79,8 @@ void PinSwitchDriveDelayGenerator::readAll()
     if(!ok)
     {
         emit hardwareFailure();
-        emit logMessage(QString("Could not parse response from %1.").arg(d_prettyName),LogHandler::Error);
-        emit logMessage(QString("Response: %1 (Hex: %2)").arg(QString(resp)).arg(QString(resp.toHex())),LogHandler::Error);
+        emit logMessage(QString("Could not parse response from %1.").arg(d_prettyName),QtFTM::LogError);
+        emit logMessage(QString("Response: %1 (Hex: %2)").arg(QString(resp)).arg(QString(resp.toHex())),QtFTM::LogError);
         return;
     }
 
@@ -125,8 +125,8 @@ bool PinSwitchDriveDelayGenerator::sendDelay(Channel ch, int delayInMicroseconds
     if(resp.isEmpty())
     {
         emit hardwareFailure();
-        emit logMessage(QString("Communication error with %1 while setting delay.").arg(d_prettyName),LogHandler::Error);
-        emit logMessage(QString("Response: %1 (Hex: %2)").arg(QString(resp)).arg(QString(resp.toHex())),LogHandler::Error);
+        emit logMessage(QString("Communication error with %1 while setting delay.").arg(d_prettyName),QtFTM::LogError);
+        emit logMessage(QString("Response: %1 (Hex: %2)").arg(QString(resp)).arg(QString(resp.toHex())),QtFTM::LogError);
         return false;
     }
     return true;

@@ -32,7 +32,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	//register custom types with meta object system
 	qRegisterMetaType<QVector<QPointF> >("QVector<QPointF>");
 	qRegisterMetaType<Fid>("Fid");
-	qRegisterMetaType<LogHandler::MessageCode>("LogHandler::MessageCode");
+	qRegisterMetaType<QtFTM::LogMessageCode>("QtFTM::LogMessageCode");
 	qRegisterMetaType<Scan>("Scan");
 	qRegisterMetaType<PulseGenerator::PulseChannelConfiguration>("PulseGenerator::PulseChannelConfiguration");
 	qRegisterMetaType<PulseGenerator::Setting>("PulseGenerator::Setting");

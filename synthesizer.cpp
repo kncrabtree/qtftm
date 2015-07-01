@@ -24,14 +24,14 @@ void Synthesizer::updateBandFromUi()
     int band = s.value(key().append(QString("/currentBand")),0).toInt(&ok);
     if(!ok)
     {
-        emit logMessage(QString("Could not read current band for %1 from settings. Please check settings file.").arg(d_prettyName),LogHandler::Error);
+        emit logMessage(QString("Could not read current band for %1 from settings. Please check settings file.").arg(d_prettyName),QtFTM::LogError);
         return;
     }
 
     double m = s.value(key().append(QString("/bands/%1/mult").arg(band+1)),1.0).toDouble(&ok);
     if(!ok)
     {
-        emit logMessage(QString("Could not read current band multiplier for %1 from settings. Please check settings file.").arg(d_prettyName),LogHandler::Error);
+        emit logMessage(QString("Could not read current band multiplier for %1 from settings. Please check settings file.").arg(d_prettyName),QtFTM::LogError);
         return;
     }
 
@@ -39,7 +39,7 @@ void Synthesizer::updateBandFromUi()
     double o = s.value(key().append(QString("/bands/%1/offset").arg(band+1)),1.0).toDouble(&ok);
     if(!ok)
     {
-        emit logMessage(QString("Could not read current band offset for %1 from settings. Please check settings file.").arg(d_prettyName),LogHandler::Error);
+        emit logMessage(QString("Could not read current band offset for %1 from settings. Please check settings file.").arg(d_prettyName),QtFTM::LogError);
         return;
     }
 
@@ -58,7 +58,7 @@ double Synthesizer::realToRaw(double f)
     if(outputFreq < d_hardwareMinFreq || outputFreq > d_hardwareMaxFreq)
     {
         emit logMessage(QString("Calculated raw frequency for %1 (%2 MHz) is outside range of synthesizer (%3 - %4 MHz). Please check band settings and try again.")
-                        .arg(d_prettyName).arg(QString::number(outputFreq,'f',3)).arg(QString::number(d_hardwareMinFreq,'f',3)).arg(QString::number(d_hardwareMaxFreq,'f',3)),LogHandler::Error);
+                        .arg(d_prettyName).arg(QString::number(outputFreq,'f',3)).arg(QString::number(d_hardwareMinFreq,'f',3)).arg(QString::number(d_hardwareMaxFreq,'f',3)),QtFTM::LogError);
         return -1.0;
     }
 
@@ -79,7 +79,7 @@ bool Synthesizer::calculateBand(double f)
     int band = s.value(QString("%1/currentBand").arg(d_key),0).toInt(&ok);
     if(!ok || band < 0)
     {
-        emit logMessage(QString("Could not read current band for %1. Please check settings file.").arg(d_prettyName),LogHandler::Error);
+        emit logMessage(QString("Could not read current band for %1. Please check settings file.").arg(d_prettyName),QtFTM::LogError);
         return false;
     }
 
@@ -91,7 +91,7 @@ bool Synthesizer::calculateBand(double f)
     double bandMin = s.value(QString("min")).toDouble(&ok);
     if(!ok || bandMin < 50.0)
     {
-        emit logMessage(QString("Could not read current band minimum frequency for %1. Please check settings file.").arg(d_prettyName),LogHandler::Error);
+        emit logMessage(QString("Could not read current band minimum frequency for %1. Please check settings file.").arg(d_prettyName),QtFTM::LogError);
         return false;
     }
 
@@ -99,7 +99,7 @@ bool Synthesizer::calculateBand(double f)
     double bandMax = s.value(QString("max")).toDouble(&ok);
     if(!ok || bandMax < 50.0)
     {
-        emit logMessage(QString("Could not read current band maximum frequency for %1. Please check settings file.").arg(d_prettyName),LogHandler::Error);
+        emit logMessage(QString("Could not read current band maximum frequency for %1. Please check settings file.").arg(d_prettyName),QtFTM::LogError);
         return false;
     }
 
@@ -107,7 +107,7 @@ bool Synthesizer::calculateBand(double f)
     double mult = s.value(QString("mult"),1.0).toDouble(&ok);
     if(!ok || mult < 1.0)
     {
-        emit logMessage(QString("Could not read current band multiplier for %1. Please check settings file.").arg(d_prettyName),LogHandler::Error);
+        emit logMessage(QString("Could not read current band multiplier for %1. Please check settings file.").arg(d_prettyName),QtFTM::LogError);
         return false;
     }
 
@@ -115,7 +115,7 @@ bool Synthesizer::calculateBand(double f)
     double offset = s.value(QString("offset"),0.0).toDouble(&ok);
     if(!ok)
     {
-        emit logMessage(QString("Could not read current band offset for %1. Please check settings file.").arg(d_prettyName),LogHandler::Error);
+        emit logMessage(QString("Could not read current band offset for %1. Please check settings file.").arg(d_prettyName),QtFTM::LogError);
         return false;
     }
     s.endArray();
@@ -170,7 +170,7 @@ bool Synthesizer::calculateBand(double f)
                 bandMin = s.value(QString("min")).toDouble(&ok);
                 if(!ok || bandMin < 50.0)
                 {
-                    emit logMessage(QString("Could not read current band minimum frequency for %1. Please check settings file.").arg(d_prettyName),LogHandler::Error);
+                    emit logMessage(QString("Could not read current band minimum frequency for %1. Please check settings file.").arg(d_prettyName),QtFTM::LogError);
                     return false;
                 }
 
@@ -178,7 +178,7 @@ bool Synthesizer::calculateBand(double f)
                 bandMax = s.value(QString("max")).toDouble(&ok);
                 if(!ok || bandMax < 50.0)
                 {
-                    emit logMessage(QString("Could not read current band maximum frequency for %1. Please check settings file.").arg(d_prettyName),LogHandler::Error);
+                    emit logMessage(QString("Could not read current band maximum frequency for %1. Please check settings file.").arg(d_prettyName),QtFTM::LogError);
                     return false;
                 }
 
@@ -186,7 +186,7 @@ bool Synthesizer::calculateBand(double f)
                 mult = s.value(QString("mult"),1.0).toDouble(&ok);
                 if(!ok || mult < 1.0)
                 {
-                    emit logMessage(QString("Could not read current band multiplier for %1. Please check settings file.").arg(d_prettyName),LogHandler::Error);
+                    emit logMessage(QString("Could not read current band multiplier for %1. Please check settings file.").arg(d_prettyName),QtFTM::LogError);
                     return false;
                 }
 
@@ -194,21 +194,21 @@ bool Synthesizer::calculateBand(double f)
                 offset = s.value(QString("offset"),0.0).toDouble(&ok);
                 if(!ok)
                 {
-                    emit logMessage(QString("Could not read current band offset for %1. Please check settings file.").arg(d_prettyName),LogHandler::Error);
+                    emit logMessage(QString("Could not read current band offset for %1. Please check settings file.").arg(d_prettyName),QtFTM::LogError);
                     return false;
                 }
                 s.endArray();
             }
             else
             {
-                emit logMessage(QString("Could not find a valid band for %1 at frequency %2. Check band settings and try again.").arg(d_prettyName).arg(QString::number(f,'f',3)),LogHandler::Error);
+                emit logMessage(QString("Could not find a valid band for %1 at frequency %2. Check band settings and try again.").arg(d_prettyName).arg(QString::number(f,'f',3)),QtFTM::LogError);
                 return false;
             }
         }
         else //frequency is outside range, and automatic switching is disabled.
         {
             emit logMessage(QString("Invalid frequency for %1. Frequency = %2 MHz, current min = %3 MHz, current max = %4 MHz.Automatic band switching is disabled. Please change band and try again.")
-                            .arg(d_prettyName).arg(QString::number(f,'f',3)).arg(QString::number(bandMin,'f',3)).arg(QString::number(bandMax,'f',3)),LogHandler::Error);
+                            .arg(d_prettyName).arg(QString::number(f,'f',3)).arg(QString::number(bandMin,'f',3)).arg(QString::number(bandMax,'f',3)),QtFTM::LogError);
             return false;
         }
     }

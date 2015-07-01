@@ -45,7 +45,7 @@ bool Attenuator::testConnection()
     QString attenDataFile = s.value(QString("%1/file").arg(d_key),QString("")).toString();
 
     if(!parseAttenFile(attenDataFile))
-        emit logMessage(QString("No valid attenuation table. Tuning attenuation will not be set automatically!"),LogHandler::Error);
+        emit logMessage(QString("No valid attenuation table. Tuning attenuation will not be set automatically!"),QtFTM::LogError);
 
     return true;
 }
@@ -129,7 +129,7 @@ int Attenuator::readAttn()
     if(resp.isEmpty())
     {
         emit hardwareFailure();
-        emit logMessage(QString("%1 did not respond to attenuation query.").arg(d_prettyName),LogHandler::Error);
+        emit logMessage(QString("%1 did not respond to attenuation query.").arg(d_prettyName),QtFTM::LogError);
         return -1;
     }
     bool ok = false;
@@ -137,7 +137,7 @@ int Attenuator::readAttn()
     if(!ok || a < 0)
     {
         emit hardwareFailure();
-        emit logMessage(QString("%1 gave an invalid response to attenuation query (response: %2)").arg(d_prettyName).arg(QString(resp)),LogHandler::Error);
+        emit logMessage(QString("%1 gave an invalid response to attenuation query (response: %2)").arg(d_prettyName).arg(QString(resp)),QtFTM::LogError);
         return -1;
     }
 
@@ -155,14 +155,14 @@ bool Attenuator::parseAttenFile(QString fileName)
     QFile f(fileName);
     if(!f.exists())
     {
-        emit logMessage(QString("The specified attenuation data file (%1) does not exist. The tuning attenuation table has not been changed.").arg(f.fileName()),LogHandler::Warning);
+        emit logMessage(QString("The specified attenuation data file (%1) does not exist. The tuning attenuation table has not been changed.").arg(f.fileName()),QtFTM::LogWarning);
         emit attenFileParseSuccess(false);
         return false;
     }
 
     if(!f.open(QIODevice::ReadOnly))
     {
-        emit logMessage(QString("The specified attenuation data file (%1) could not be opened. The tuning attenuation table has not been changed.").arg(f.fileName()),LogHandler::Warning);
+        emit logMessage(QString("The specified attenuation data file (%1) could not be opened. The tuning attenuation table has not been changed.").arg(f.fileName()),QtFTM::LogWarning);
         emit attenFileParseSuccess(false);
         return false;
     }
@@ -178,7 +178,7 @@ bool Attenuator::parseAttenFile(QString fileName)
         QList<QByteArray> l = dat.split('\t');
         if(l.size() < 2)
         {
-            emit logMessage(QString("Could not parse attentuation data entry: %1. Skipping...").arg(QString(dat)),LogHandler::Warning);
+            emit logMessage(QString("Could not parse attentuation data entry: %1. Skipping...").arg(QString(dat)),QtFTM::LogWarning);
             continue;
         }
 
@@ -186,7 +186,7 @@ bool Attenuator::parseAttenFile(QString fileName)
         double f = l.at(0).trimmed().toDouble(&ok);
         if(!ok)
         {
-            emit logMessage(QString("Could not parse attentuation data entry: %1. Skipping...").arg(QString(dat)),LogHandler::Warning);
+            emit logMessage(QString("Could not parse attentuation data entry: %1. Skipping...").arg(QString(dat)),QtFTM::LogWarning);
             continue;
         }
 
@@ -194,7 +194,7 @@ bool Attenuator::parseAttenFile(QString fileName)
         int a = l.at(1).trimmed().toInt(&ok);
         if(!ok)
         {
-            emit logMessage(QString("Could not parse attentuation data entry: %1. Skipping...").arg(QString(dat)),LogHandler::Warning);
+            emit logMessage(QString("Could not parse attentuation data entry: %1. Skipping...").arg(QString(dat)),QtFTM::LogWarning);
             continue;
         }
 
@@ -205,7 +205,7 @@ bool Attenuator::parseAttenFile(QString fileName)
 
     if(newData.isEmpty())
     {
-        emit logMessage(QString("Could not read attenuation data file %1. The tuning attenuation table has not been changed.").arg(f.fileName()),LogHandler::Warning);
+        emit logMessage(QString("Could not read attenuation data file %1. The tuning attenuation table has not been changed.").arg(f.fileName()),QtFTM::LogWarning);
         emit attenFileParseSuccess(false);
         return false;
     }

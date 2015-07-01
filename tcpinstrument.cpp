@@ -67,7 +67,7 @@ bool TcpInstrument::writeCmd(QString cmd)
     //if(return_value == -1)
     {
         emit hardwareFailure();
-        emit logMessage(QString("Could not write command to %1. (Command = %2)").arg(d_prettyName).arg(cmd),LogHandler::Error);
+        emit logMessage(QString("Could not write command to %1. (Command = %2)").arg(d_prettyName).arg(cmd),QtFTM::LogError);
         return false;
     }
     return true;
@@ -94,7 +94,7 @@ QByteArray TcpInstrument::queryCmd(QString cmd)
     //if(return_value == -1)
     {
         emit hardwareFailure();
-        emit logMessage(QString("Could not write query to %1. (query = %2)").arg(d_prettyName).arg(cmd),LogHandler::Error);
+        emit logMessage(QString("Could not write query to %1. (query = %2)").arg(d_prettyName).arg(cmd),QtFTM::LogError);
         return QByteArray();
     }
 
@@ -104,7 +104,7 @@ QByteArray TcpInstrument::queryCmd(QString cmd)
         if(!d_socket->waitForReadyRead(d_timeOut))
         {
             emit hardwareFailure();
-            emit logMessage(QString("%1 did not respond to query. (query = %2)").arg(d_prettyName).arg(cmd),LogHandler::Error);
+            emit logMessage(QString("%1 did not respond to query. (query = %2)").arg(d_prettyName).arg(cmd),QtFTM::LogError);
             return QByteArray();
         }
 
@@ -125,7 +125,7 @@ QByteArray TcpInstrument::queryCmd(QString cmd)
         }
 
         emit hardwareFailure();
-        emit logMessage(QString("%1 timed out while waiting for termination character. (query = %2, partial response = %3)").arg(d_prettyName).arg(cmd).arg(QString(out)),LogHandler::Error);
+        emit logMessage(QString("%1 timed out while waiting for termination character. (query = %2, partial response = %3)").arg(d_prettyName).arg(cmd).arg(QString(out)),QtFTM::LogError);
         emit logMessage(QString("Hex response: %1").arg(QString(out.toHex())));
         return out;
     }
@@ -137,7 +137,7 @@ bool TcpInstrument::connectSocket()
     d_socket->connectToHost(d_ip,d_port);
     if(!d_socket->waitForConnected(1000))
     {
-        emit logMessage(QString("Could not connect to %1 at %2:%3. %4").arg(d_prettyName).arg(d_ip).arg(d_port).arg(d_socket->errorString()),LogHandler::Error);
+        emit logMessage(QString("Could not connect to %1 at %2:%3. %4").arg(d_prettyName).arg(d_ip).arg(d_port).arg(d_socket->errorString()),QtFTM::LogError);
         return false;
     }
     d_socket->setSocketOption(QAbstractSocket::KeepAliveOption,1);

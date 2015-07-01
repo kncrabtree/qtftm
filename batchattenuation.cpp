@@ -161,7 +161,7 @@ void BatchAttenuation::processScan(Scan s)
         else // this is the second attempt, so we'll skip this one and move on
         {
             d_retrying = false;
-            emit logMessage(QString("Tuning was unsuccessful after 2 tries at %1 MHz. This frequency was skipped.").arg(s.ftFreq(),0,'f',3),LogHandler::Warning);
+            emit logMessage(QString("Tuning was unsuccessful after 2 tries at %1 MHz. This frequency was skipped.").arg(s.ftFreq(),0,'f',3),QtFTM::LogWarning);
         }
     }
     else
@@ -231,7 +231,7 @@ void BatchAttenuation::writeReport()
 {
     if(d_tuningValues.isEmpty())
     {
-        emit logMessage(QString("Did not create %1 report because no tunings were completed successfully.").arg(d_prettyName),LogHandler::Warning);
+        emit logMessage(QString("Did not create %1 report because no tunings were completed successfully.").arg(d_prettyName),QtFTM::LogWarning);
         return;
     }
 
@@ -247,7 +247,7 @@ void BatchAttenuation::writeReport()
     {
         if(!d.mkpath(d.absolutePath()))
         {
-            emit logMessage(QString("Could not create directory for saving %1! Creation of %2 failed, and data were not saved!").arg(d_prettyName).arg(d.absolutePath()),LogHandler::Error);
+            emit logMessage(QString("Could not create directory for saving %1! Creation of %2 failed, and data were not saved!").arg(d_prettyName).arg(d.absolutePath()),QtFTM::LogError);
             emit fatalSaveError();
             return;
         }
@@ -261,7 +261,7 @@ void BatchAttenuation::writeReport()
 
     if(!out.open(QIODevice::WriteOnly))
     {
-        emit logMessage(QString("Could not open file for writing %1 data! Creation of %2 failed, and data were not saved!").arg(d_prettyName).arg(out.fileName()),LogHandler::Error);
+        emit logMessage(QString("Could not open file for writing %1 data! Creation of %2 failed, and data were not saved!").arg(d_prettyName).arg(out.fileName()),QtFTM::LogError);
         emit fatalSaveError();
         return;
     }
@@ -271,7 +271,7 @@ void BatchAttenuation::writeReport()
     {
         if(!d2.mkpath(d2.absolutePath()))
         {
-            emit logMessage(QString("Could not create directory for saving attenuation file! Creation of %1 failed, and data were not saved!").arg(d2.absolutePath()),LogHandler::Error);
+            emit logMessage(QString("Could not create directory for saving attenuation file! Creation of %1 failed, and data were not saved!").arg(d2.absolutePath()),QtFTM::LogError);
             emit fatalSaveError();
             return;
         }
@@ -298,7 +298,7 @@ void BatchAttenuation::writeReport()
     if(!atnFile.open(QIODevice::WriteOnly))
     {
         writeAtnFile = false;
-        emit logMessage(QString("Could not open .atn file for writing (%1)").arg(atnFile.fileName()),LogHandler::Warning);
+        emit logMessage(QString("Could not open .atn file for writing (%1)").arg(atnFile.fileName()),QtFTM::LogWarning);
     }
 
 
@@ -341,7 +341,7 @@ void BatchAttenuation::writeReport()
 
         atnFile.close();
 
-        emit logMessage(QString("Attenuation file written to %1").arg(atnFile.fileName()),LogHandler::Normal);
+        emit logMessage(QString("Attenuation file written to %1").arg(atnFile.fileName()),QtFTM::LogNormal);
     }
 
     s.setValue(d_numKey,num+1);

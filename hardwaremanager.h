@@ -2,7 +2,7 @@
 #define HARDWAREMANAGER_H
 
 #include <QObject>
-#include "loghandler.h"
+#include "datastructs.h"
 #include "oscilloscope.h"
 #include "gpiblancontroller.h"
 #include "ftmsynthesizer.h"
@@ -216,9 +216,9 @@ signals:
     /*!
      * \brief Emitted when a message needs to be displayed on the log
      * \param QString Message
-     * \param LogHandler::MessageCode Message status
+     * \param QtFTM::LogMessageCode Message status
      */
-	void logMessage(const QString, const LogHandler::MessageCode = LogHandler::Normal);
+	void logMessage(const QString, const QtFTM::LogMessageCode = QtFTM::LogNormal);
 
     /*!
      * \brief Emitted when a message needs to be displayed in the status bar

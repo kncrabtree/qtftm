@@ -407,7 +407,7 @@ void BatchDR::writeReport()
 {
 	if(d_drData.at(0).isEmpty())
 	{
-		emit logMessage(QString("Did not create DR scan report because no DR scans were completed."),LogHandler::Warning);
+		emit logMessage(QString("Did not create DR scan report because no DR scans were completed."),QtFTM::LogWarning);
 		return;
 	}
 
@@ -423,7 +423,7 @@ void BatchDR::writeReport()
 	{
 		if(!d.mkpath(d.absolutePath()))
 		{
-			emit logMessage(QString("Could not create directory for saving DR scan! Creation of %1 failed, and data were not saved!").arg(d.absolutePath()),LogHandler::Error);
+			emit logMessage(QString("Could not create directory for saving DR scan! Creation of %1 failed, and data were not saved!").arg(d.absolutePath()),QtFTM::LogError);
 			emit fatalSaveError();
 			return;
 		}
@@ -437,7 +437,7 @@ void BatchDR::writeReport()
 
 	if(!out.open(QIODevice::WriteOnly))
 	{
-		emit logMessage(QString("Could not open file for writing DR data! Creation of %1 failed, and data were not saved!").arg(out.fileName()),LogHandler::Error);
+		emit logMessage(QString("Could not open file for writing DR data! Creation of %1 failed, and data were not saved!").arg(out.fileName()),QtFTM::LogError);
 		emit fatalSaveError();
 		return;
 	}

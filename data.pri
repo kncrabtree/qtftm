@@ -20,4 +20,5 @@ HEADERS += fid.h \
     analysis.h \
     lorentziandopplerlmsfitter.h \
     nofitter.h \
-    fitresult.h
+    fitresult.h \
+    $$PWD/datastructs.h

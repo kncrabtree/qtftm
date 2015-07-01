@@ -4,15 +4,13 @@
 #include <QObject>
 #include <QString>
 
+#include "datastructs.h"
+
 class LogHandler : public QObject
 {
     Q_OBJECT
 public:
     explicit LogHandler(QObject *parent = nullptr);
-
-	//definitions of log message types
-	enum MessageCode {Normal, Warning, Error, Highlight};
-
 
 signals:
 	//sends the formatted messages to the UI
@@ -21,7 +19,7 @@ signals:
 
 public slots:
 	//access functions for transmitting messages to UI
-	void logMessage(const QString text, const LogHandler::MessageCode type=LogHandler::Normal);
+	void logMessage(const QString text, const QtFTM::LogMessageCode type=QtFTM::LogNormal);
 
 };
 

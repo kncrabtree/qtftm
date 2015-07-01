@@ -2,7 +2,7 @@
 #define SCANMANAGER_H
 
 #include <QObject>
-#include "loghandler.h"
+#include "datastructs.h"
 #include "fid.h"
 #include "oscilloscope.h"
 #include "scan.h"
@@ -51,9 +51,9 @@ signals:
 	 \brief Sends message to log
 
 	 \param QString The message
-	 \param LogHandler::MessageCode Type of message
+	 \param QtFTM::LogMessageCode Type of message
 	*/
-	void logMessage(const QString, const LogHandler::MessageCode = LogHandler::Normal);
+	void logMessage(const QString, const QtFTM::LogMessageCode = QtFTM::LogNormal);
 	/*!
 	 \brief Sends message to status bar.
 

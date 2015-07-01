@@ -149,7 +149,7 @@ void HardwareManager::initializeHardware()
         s.setValue(QString("%1/prettyName").arg(obj->key()),obj->name());
         s.setValue(QString("%1/connected").arg(obj->key()),false);
 
-        connect(obj,&HardwareObject::logMessage,[=](QString msg, LogHandler::MessageCode mc){
+        connect(obj,&HardwareObject::logMessage,[=](QString msg, QtFTM::LogMessageCode mc){
             emit logMessage(QString("%1: %2").arg(obj->name()).arg(msg),mc);
         });
         connect(obj,&HardwareObject::connected,[=](bool success, QString msg){ connectionResult(obj,success,msg); });
@@ -201,8 +201,8 @@ void HardwareManager::connectionResult(HardwareObject *obj, bool success, QStrin
 		emit logMessage(obj->name().append(QString(" connected successfully.")));
 	else
 	{
-		emit logMessage(obj->name().append(QString(" connection failed!")),LogHandler::Error);
-		emit logMessage(msg,LogHandler::Error);
+		emit logMessage(obj->name().append(QString(" connection failed!")),QtFTM::LogError);
+		emit logMessage(msg,QtFTM::LogError);
 	}
 
 	emit testComplete(obj->name(),success,msg);
@@ -828,7 +828,7 @@ void HardwareManager::attnTablePrepTuneComplete(bool success)
 
         if(v <= 0 && !success) // something is very wrong... no choice but to abort unsuccessfully
         {
-            emit logMessage(QString("Could not calibrate at %1 dB! Automatic attenuation table generation aborted.").arg(d_tuningOldA),LogHandler::Error);
+            emit logMessage(QString("Could not calibrate at %1 dB! Automatic attenuation table generation aborted.").arg(d_tuningOldA),QtFTM::LogError);
             restoreSettingsAfterAttnPrep(false);
             return;
         }
@@ -862,7 +862,7 @@ void HardwareManager::attnTablePrepTuneComplete(bool success)
         {
             if(d_tuningOldA-5 < 0) // something is probably very wrong! Abort!
             {
-                emit logMessage(QString("Could not tune at %1 dB! Automatic attenuation table generation aborted.").arg(d_tuningOldA),LogHandler::Error);
+                emit logMessage(QString("Could not tune at %1 dB! Automatic attenuation table generation aborted.").arg(d_tuningOldA),QtFTM::LogError);
                 restoreSettingsAfterAttnPrep(false);
                 return;
             }

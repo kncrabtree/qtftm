@@ -88,7 +88,7 @@ double DrSynthesizer::readFreq()
     if(resp.isEmpty())
     {
         emit hardwareFailure();
-        emit logMessage(QString("%1 gave a null response to frequency query").arg(d_prettyName),LogHandler::Error);
+        emit logMessage(QString("%1 gave a null response to frequency query").arg(d_prettyName),QtFTM::LogError);
         return -1.0;
     }
 #ifdef HP8340
@@ -98,7 +98,7 @@ double DrSynthesizer::readFreq()
 #endif
     {
         emit hardwareFailure();
-        emit logMessage(QString("Could not parse frequency response from %1. Response: %2 (Hex: %3)").arg(d_prettyName).arg(QString(resp)).arg(QString(resp.toHex())),LogHandler::Error);
+        emit logMessage(QString("Could not parse frequency response from %1. Response: %2 (Hex: %3)").arg(d_prettyName).arg(QString(resp)).arg(QString(resp.toHex())),QtFTM::LogError);
         return -1.0;
     }
 
@@ -133,7 +133,7 @@ double DrSynthesizer::readPower()
 //    if(!statusResp.length() == 2)
 //    {
 //        emit hardwareFailure();
-//        emit logMessage(QString("Could not read status bytes from %1. Response hex: %2").arg(d_prettyName).arg(QString(statusResp.toHex())),LogHandler::Error);
+//        emit logMessage(QString("Could not read status bytes from %1. Response hex: %2").arg(d_prettyName).arg(QString(statusResp.toHex())),QtFTM::LogError);
 //        return -2e100;
 //    }
 
@@ -154,7 +154,7 @@ double DrSynthesizer::readPower()
     if(resp.isEmpty())
     {
         emit hardwareFailure();
-        emit logMessage(QString("%1 gave a null response to power query").arg(d_prettyName),LogHandler::Error);
+        emit logMessage(QString("%1 gave a null response to power query").arg(d_prettyName),QtFTM::LogError);
         return -2e100;
     }
 
@@ -187,7 +187,7 @@ double DrSynthesizer::readPower()
         if(resp.isEmpty())
         {
             emit hardwareFailure();
-            emit logMessage(QString("%1 gave a null response to power query").arg(d_prettyName),LogHandler::Error);
+            emit logMessage(QString("%1 gave a null response to power query").arg(d_prettyName),QtFTM::LogError);
             return -2e100;
         }
 
@@ -199,14 +199,14 @@ double DrSynthesizer::readPower()
         if(!ok)
         {
             emit hardwareFailure();
-            emit logMessage(QString("Could not parse power response from %1. Response: %2 (Hex: %3)").arg(d_prettyName).arg(QString(resp)).arg(QString(resp.toHex())),LogHandler::Error);
+            emit logMessage(QString("Could not parse power response from %1. Response: %2 (Hex: %3)").arg(d_prettyName).arg(QString(resp)).arg(QString(resp.toHex())),QtFTM::LogError);
             return -2e100;
         }
     }
 //    else if(!ok)
 //    {
 //        emit hardwareFailure();
-//        emit logMessage(QString("Could not parse power response from %1. Response: %2 (Hex: %3)").arg(d_prettyName).arg(QString(resp)).arg(QString(resp.toHex())),LogHandler::Error);
+//        emit logMessage(QString("Could not parse power response from %1. Response: %2 (Hex: %3)").arg(d_prettyName).arg(QString(resp)).arg(QString(resp.toHex())),QtFTM::LogError);
 //        return -2e100;
 //    }
 

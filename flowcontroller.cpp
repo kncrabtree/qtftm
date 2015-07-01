@@ -225,7 +225,7 @@ void FlowController::readPressureControlStatus()
     if(resp.isEmpty())
     {
         emit hardwareFailure();
-        emit logMessage(QString("%1 did not respond to pressure control mode query.").arg(d_prettyName),LogHandler::Error);
+        emit logMessage(QString("%1 did not respond to pressure control mode query.").arg(d_prettyName),QtFTM::LogError);
         //d_connected = false;
         return;
     }
@@ -235,7 +235,7 @@ void FlowController::readPressureControlStatus()
     if(!ok)
     {
         emit hardwareFailure();
-        emit logMessage(QString("Could not parse pressure control mode response from %1. Response: %2").arg(d_prettyName).arg(QString(resp)),LogHandler::Error);
+        emit logMessage(QString("Could not parse pressure control mode response from %1. Response: %2").arg(d_prettyName).arg(QString(resp)),QtFTM::LogError);
         //d_connected = false;
         return;
     }
@@ -267,7 +267,7 @@ void FlowController::pressureQuery()
     if(resp.isEmpty())
     {
         emit hardwareFailure();
-        emit logMessage(QString("%1 did not respond to pressure range query.").arg(d_prettyName),LogHandler::Error);
+        emit logMessage(QString("%1 did not respond to pressure range query.").arg(d_prettyName),QtFTM::LogError);
         //d_connected = false;
         return;
     }
@@ -278,7 +278,7 @@ void FlowController::pressureQuery()
     if(!ok || i >= d_pressureRangeList.size() || i<0)
     {
         emit hardwareFailure();
-        emit logMessage(QString("Could not read pressure gauge range from %1. Response: %2").arg(d_prettyName).arg(QString(resp)),LogHandler::Error);
+        emit logMessage(QString("Could not read pressure gauge range from %1. Response: %2").arg(d_prettyName).arg(QString(resp)),QtFTM::LogError);
         //d_connected = false;
         return;
     }
@@ -303,7 +303,7 @@ void FlowController::pressureQuery()
     if(resp.isEmpty())
     {
         emit hardwareFailure();
-        emit logMessage(QString("%1 did not respond to pressure query.").arg(d_prettyName),LogHandler::Error);
+        emit logMessage(QString("%1 did not respond to pressure query.").arg(d_prettyName),QtFTM::LogError);
         //d_connected = false;
         return;
     }
@@ -314,7 +314,7 @@ void FlowController::pressureQuery()
     if(!ok)
     {
         emit hardwareFailure();
-        emit logMessage(QString("Could not read pressure from %1. Response: %2").arg(d_prettyName).arg(QString(resp)),LogHandler::Error);
+        emit logMessage(QString("Could not read pressure from %1. Response: %2").arg(d_prettyName).arg(QString(resp)),QtFTM::LogError);
         //d_connected = false;
         return;
     }
@@ -346,7 +346,7 @@ void FlowController::flowQuery(int ch)
     if(resp.isEmpty())
     {
         emit hardwareFailure();
-        emit logMessage(QString("%1 did not respond to flow range query for channel %2.").arg(d_prettyName).arg(ch),LogHandler::Error);
+        emit logMessage(QString("%1 did not respond to flow range query for channel %2.").arg(d_prettyName).arg(ch),QtFTM::LogError);
         //d_connected = false;
         return;
     }
@@ -357,7 +357,7 @@ void FlowController::flowQuery(int ch)
     if(!ok || i >= d_gasRangeList.size() || i<0)
     {
         emit hardwareFailure();
-        emit logMessage(QString("Could not read flow range from %1 for channel %2. Response: %3").arg(d_prettyName).arg(ch).arg(QString(resp)),LogHandler::Error);
+        emit logMessage(QString("Could not read flow range from %1 for channel %2. Response: %3").arg(d_prettyName).arg(ch).arg(QString(resp)),QtFTM::LogError);
         //d_connected = false;
         return;
     }
@@ -383,7 +383,7 @@ void FlowController::flowQuery(int ch)
     if(resp.isEmpty())
     {
         emit hardwareFailure();
-        emit logMessage(QString("%1 did not respond to correction factor query for channel %2.").arg(d_prettyName).arg(ch),LogHandler::Error);
+        emit logMessage(QString("%1 did not respond to correction factor query for channel %2.").arg(d_prettyName).arg(ch),QtFTM::LogError);
         //d_connected = false;
         return;
     }
@@ -394,7 +394,7 @@ void FlowController::flowQuery(int ch)
     if(!ok)
     {
         emit hardwareFailure();
-        emit logMessage(QString("Could not read correction factor from %1 for channel %2. Response: %3").arg(d_prettyName).arg(ch).arg(QString(resp)),LogHandler::Error);
+        emit logMessage(QString("Could not read correction factor from %1 for channel %2. Response: %3").arg(d_prettyName).arg(ch).arg(QString(resp)),QtFTM::LogError);
         //d_connected = false;
         return;
     }
@@ -412,7 +412,7 @@ void FlowController::flowQuery(int ch)
     if(resp.isEmpty())
     {
         emit hardwareFailure();
-        emit logMessage(QString("%1 did not respond to flow query for channel %2.").arg(d_prettyName).arg(ch),LogHandler::Error);
+        emit logMessage(QString("%1 did not respond to flow query for channel %2.").arg(d_prettyName).arg(ch),QtFTM::LogError);
         //d_connected = false;
         return;
     }
@@ -423,7 +423,7 @@ void FlowController::flowQuery(int ch)
     if(!ok && resp != "-----")
     {
         emit hardwareFailure();
-        emit logMessage(QString("Could not read flow from %1 for channel %2. Response: %3").arg(d_prettyName).arg(ch).arg(QString(resp)),LogHandler::Error);
+        emit logMessage(QString("Could not read flow from %1 for channel %2. Response: %3").arg(d_prettyName).arg(ch).arg(QString(resp)),QtFTM::LogError);
         //d_connected = false;
         return;
     }
@@ -483,7 +483,7 @@ void FlowController::queryPressureSetPoint()
     if(resp.isEmpty())
     {
         emit hardwareFailure();
-        emit logMessage(QString("%1 did not respond to pressure range query.").arg(d_prettyName),LogHandler::Error);
+        emit logMessage(QString("%1 did not respond to pressure range query.").arg(d_prettyName),QtFTM::LogError);
         //d_connected = false;
         return;
     }
@@ -510,7 +510,7 @@ void FlowController::queryPressureSetPoint()
     if(resp.isEmpty())
     {
         emit hardwareFailure();
-        emit logMessage(QString("%1 did not respond to pressure query.").arg(d_prettyName),LogHandler::Error);
+        emit logMessage(QString("%1 did not respond to pressure query.").arg(d_prettyName),QtFTM::LogError);
         //d_connected = false;
         return;
     }
@@ -521,7 +521,7 @@ void FlowController::queryPressureSetPoint()
     if(!ok)
     {
         emit hardwareFailure();
-        emit logMessage(QString("Could not read pressure from %1. Response: %2").arg(d_prettyName).arg(QString(resp)),LogHandler::Error);
+        emit logMessage(QString("Could not read pressure from %1. Response: %2").arg(d_prettyName).arg(QString(resp)),QtFTM::LogError);
         //d_connected = false;
         return;
     }
@@ -551,7 +551,7 @@ void FlowController::queryFlowSetPoint(int ch)
     if(resp.isEmpty())
     {
         emit hardwareFailure();
-        emit logMessage(QString("%1 did not respond to flow range query for channel %2.").arg(d_prettyName).arg(ch),LogHandler::Error);
+        emit logMessage(QString("%1 did not respond to flow range query for channel %2.").arg(d_prettyName).arg(ch),QtFTM::LogError);
         //d_connected = false;
         return;
     }
@@ -577,7 +577,7 @@ void FlowController::queryFlowSetPoint(int ch)
     if(resp.isEmpty())
     {
         emit hardwareFailure();
-        emit logMessage(QString("%1 did not respond to setpoint query for channel %2.").arg(d_prettyName).arg(ch),LogHandler::Error);
+        emit logMessage(QString("%1 did not respond to setpoint query for channel %2.").arg(d_prettyName).arg(ch),QtFTM::LogError);
         //d_connected = false;
         return;
     }
@@ -588,7 +588,7 @@ void FlowController::queryFlowSetPoint(int ch)
     if(!ok)
     {
         emit hardwareFailure();
-        emit logMessage(QString("Could not read setpoint from %1 for channel %2. Response: %3").arg(d_prettyName).arg(ch).arg(QString(resp)),LogHandler::Error);
+        emit logMessage(QString("Could not read setpoint from %1 for channel %2. Response: %3").arg(d_prettyName).arg(ch).arg(QString(resp)),QtFTM::LogError);
         //d_connected = false;
         return;
     }

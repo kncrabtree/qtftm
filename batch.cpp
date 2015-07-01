@@ -171,7 +171,7 @@ void Batch::writeReport()
 {
     if(d_saveData.isEmpty())
 	{
-		emit logMessage(QString("Did not create batch scan report because no scans were completed."),LogHandler::Warning);
+		emit logMessage(QString("Did not create batch scan report because no scans were completed."),QtFTM::LogWarning);
 		return;
 	}
 
@@ -187,7 +187,7 @@ void Batch::writeReport()
 	{
 		if(!d.mkpath(d.absolutePath()))
 		{
-			emit logMessage(QString("Could not create directory for saving batch scan! Creation of %1 failed, and data were not saved!").arg(d.absolutePath()),LogHandler::Error);
+			emit logMessage(QString("Could not create directory for saving batch scan! Creation of %1 failed, and data were not saved!").arg(d.absolutePath()),QtFTM::LogError);
 			emit fatalSaveError();
 			return;
 		}
@@ -201,7 +201,7 @@ void Batch::writeReport()
 
 	if(!out.open(QIODevice::WriteOnly))
 	{
-		emit logMessage(QString("Could not open file for writing batch data! Creation of %1 failed, and data were not saved!").arg(out.fileName()),LogHandler::Error);
+		emit logMessage(QString("Could not open file for writing batch data! Creation of %1 failed, and data were not saved!").arg(out.fileName()),QtFTM::LogError);
 		emit fatalSaveError();
 		return;
 	}

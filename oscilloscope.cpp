@@ -20,7 +20,7 @@ Fid Oscilloscope::parseWaveform(const QByteArray d, double probeFreq)
     //important data from prefix: number of bytes (0), byte format (3), byte order (4), x increment (10), y multiplier (14), y offset (15)
     if(prefixFields.size()<16)
     {
-//        emit logMessage(QString("Could not parse waveform prefix. Too few fields. If this problem persists, restart program."),LogHandler::Warning);
+//        emit logMessage(QString("Could not parse waveform prefix. Too few fields. If this problem persists, restart program."),QtFTM::LogWarning);
         return Fid(5e-7,probeFreq,QVector<double>(400));
     }
 
@@ -28,7 +28,7 @@ Fid Oscilloscope::parseWaveform(const QByteArray d, double probeFreq)
     int n_bytes = prefixFields.at(0).trimmed().toInt(&ok);
     if(!ok || n_bytes < 1 || n_bytes > 2)
     {
-//        emit logMessage(QString("Could not parse waveform prefix. Invalid number of bytes per record. If this problem persists, restart program."),LogHandler::Warning);
+//        emit logMessage(QString("Could not parse waveform prefix. Invalid number of bytes per record. If this problem persists, restart program."),QtFTM::LogWarning);
         return Fid(5e-7,probeFreq,QVector<double>(400));
     }
 
@@ -43,21 +43,21 @@ Fid Oscilloscope::parseWaveform(const QByteArray d, double probeFreq)
     double xIncr = prefixFields.at(10).trimmed().toDouble(&ok);
     if(!ok || xIncr <= 0.0)
     {
-//        emit logMessage(QString("Could not parse waveform prefix. Invalid X spacing. If this problem persists, restart program."),LogHandler::Warning);
+//        emit logMessage(QString("Could not parse waveform prefix. Invalid X spacing. If this problem persists, restart program."),QtFTM::LogWarning);
         return Fid(5e-7,probeFreq,QVector<double>(400));
     }
 
     double yMult = prefixFields.at(14).trimmed().toDouble(&ok);
     if(!ok || yMult == 0.0)
     {
-//        emit logMessage(QString("Could not parse waveform prefix. Invalid Y multipier. If this problem persists, restart program."),LogHandler::Warning);
+//        emit logMessage(QString("Could not parse waveform prefix. Invalid Y multipier. If this problem persists, restart program."),QtFTM::LogWarning);
         return Fid(5e-7,probeFreq,QVector<double>(400));
     }
 
     double yOffset = prefixFields.at(14).trimmed().toDouble(&ok);
     if(!ok)
     {
-//        emit logMessage(QString("Could not parse waveform prefix. Invalid Y offset. If this problem persists, restart program."),LogHandler::Warning);
+//        emit logMessage(QString("Could not parse waveform prefix. Invalid Y offset. If this problem persists, restart program."),QtFTM::LogWarning);
         return Fid(5e-7,probeFreq,QVector<double>(400));
     }
 
@@ -72,7 +72,7 @@ Fid Oscilloscope::parseWaveform(const QByteArray d, double probeFreq)
 
     if(dataBlock.size() < numDataBytes)
     {
-//        emit logMessage(QString("Could not parse waveform. Incomplete wave. If this problem persists, restart program."),LogHandler::Warning);
+//        emit logMessage(QString("Could not parse waveform. Incomplete wave. If this problem persists, restart program."),QtFTM::LogWarning);
         return Fid(xIncr*(double)stride,probeFreq,QVector<double>(400));
     }
 
@@ -387,7 +387,7 @@ void Oscilloscope::sendCurveQuery()
     {
         d_waitingForReply = false;
 //        d_socket->write("DCL\n");
-        emit logMessage(QString("Scope didn't reply. Attempting to restart in 30 seconds."),LogHandler::Warning);
+        emit logMessage(QString("Scope didn't reply. Attempting to restart in 30 seconds."),QtFTM::LogWarning);
         emit statusMessage(QString("Scope fell asleep. Will attempt to restart at %1").arg(QDateTime::currentDateTime().addSecs(30).toString()));
 	   QTimer::singleShot(30000,this,&Oscilloscope::wakeTheFUp);
         setActive(false);
@@ -414,7 +414,7 @@ void Oscilloscope::wakeTheFUp()
     //testConnection sets d_waitingForWakeUp to false!
     if(!testConnection())
     {
-        emit logMessage(QString("Scope stopped responding."),LogHandler::Error);
+        emit logMessage(QString("Scope stopped responding."),QtFTM::LogError);
         emit hardwareFailure();
         return;
     }

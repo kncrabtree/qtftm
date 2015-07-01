@@ -231,7 +231,7 @@ bool GpibLanController::setAddress(int a)
             if(!writeCmd(QString("++addr %1\n").arg(a)))
             {
                 emit hardwareFailure();
-                emit logMessage(QString("Could not set %1 address to %2").arg(d_prettyName).arg(a),LogHandler::Error);
+                emit logMessage(QString("Could not set %1 address to %2").arg(d_prettyName).arg(a),QtFTM::LogError);
                 return false;
             }
         }
@@ -243,9 +243,9 @@ bool GpibLanController::setAddress(int a)
         {
             emit hardwareFailure();
             if(!ok)
-                emit logMessage(QString("%1 address was not successfully set to %2. %1 failed to respond.").arg(d_prettyName).arg(a),LogHandler::Error);
+                emit logMessage(QString("%1 address was not successfully set to %2. %1 failed to respond.").arg(d_prettyName).arg(a),QtFTM::LogError);
             else
-                emit logMessage(QString("%1 address was not successfully set to %2. Address is %3").arg(d_prettyName).arg(a).arg(newAddr),LogHandler::Error);
+                emit logMessage(QString("%1 address was not successfully set to %2. Address is %3").arg(d_prettyName).arg(a).arg(newAddr),QtFTM::LogError);
             return false;
         }
         d_currentAddress = a;

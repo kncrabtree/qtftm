@@ -2,7 +2,7 @@
 #define GPIBLANCONTROLLER_H
 
 #include <QObject>
-#include "loghandler.h"
+#include "datastructs.h"
 #include <QtNetwork/QTcpSocket>
 #include <QMutex>
 #include <QMutexLocker>

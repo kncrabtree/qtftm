@@ -277,7 +277,7 @@ void MotorDriver::tune(double freq, int currentAttn, int mode)
         if(itResult.size()<9)
         {
             if(!d_quiet)
-                emit logMessage(QString("Rough tune failed at frequency %1. Check calibration.").arg(freq,0,'f',3),LogHandler::Error);
+                emit logMessage(QString("Rough tune failed at frequency %1. Check calibration.").arg(freq,0,'f',3),QtFTM::LogError);
             emit tuningComplete(false);
             return;
         }
@@ -289,8 +289,8 @@ void MotorDriver::tune(double freq, int currentAttn, int mode)
         else
         {
             emit hardwareFailure();
-            emit logMessage(QString("Could not parse max voltage in intermediate tune response from %1.").arg(d_prettyName),LogHandler::Error);
-            emit logMessage(QString("Response: %1 (Hex: %2)").arg(itResult.at(4)).arg(QString(itResult.at(4).toLatin1().toHex())),LogHandler::Error);
+            emit logMessage(QString("Could not parse max voltage in intermediate tune response from %1.").arg(d_prettyName),QtFTM::LogError);
+            emit logMessage(QString("Response: %1 (Hex: %2)").arg(itResult.at(4)).arg(QString(itResult.at(4).toLatin1().toHex())),QtFTM::LogError);
             emit tuningComplete(false);
             return;
         }
@@ -302,8 +302,8 @@ void MotorDriver::tune(double freq, int currentAttn, int mode)
         else
         {
             emit hardwareFailure();
-            emit logMessage(QString("Could not parse peak width in intermediate tune response from %1.").arg(d_prettyName),LogHandler::Error);
-            emit logMessage(QString("Response: %1 (Hex: %2)").arg(itResult.at(5)).arg(QString(itResult.at(5).toLatin1().toHex())),LogHandler::Error);
+            emit logMessage(QString("Could not parse peak width in intermediate tune response from %1.").arg(d_prettyName),QtFTM::LogError);
+            emit logMessage(QString("Response: %1 (Hex: %2)").arg(itResult.at(5)).arg(QString(itResult.at(5).toLatin1().toHex())),QtFTM::LogError);
             emit tuningComplete(false);
             return;
         }
@@ -314,8 +314,8 @@ void MotorDriver::tune(double freq, int currentAttn, int mode)
         else
         {
             emit hardwareFailure();
-            emit logMessage(QString("Could not parse peak index in intermediate tune response from %1.").arg(d_prettyName),LogHandler::Error);
-            emit logMessage(QString("Response: %1 (Hex: %2)").arg(itResult.at(8)).arg(QString(itResult.at(8).toLatin1().toHex())),LogHandler::Error);
+            emit logMessage(QString("Could not parse peak index in intermediate tune response from %1.").arg(d_prettyName),QtFTM::LogError);
+            emit logMessage(QString("Response: %1 (Hex: %2)").arg(itResult.at(8)).arg(QString(itResult.at(8).toLatin1().toHex())),QtFTM::LogError);
             emit tuningComplete(false);
             return;
         }
@@ -326,8 +326,8 @@ void MotorDriver::tune(double freq, int currentAttn, int mode)
         else
         {
             emit hardwareFailure();
-            emit logMessage(QString("Could not parse peak location in intermediate tune response from %1.").arg(d_prettyName),LogHandler::Error);
-            emit logMessage(QString("Response: %1 (Hex: %2)").arg(itResult.at(6)).arg(QString(itResult.at(6).toLatin1().toHex())),LogHandler::Error);
+            emit logMessage(QString("Could not parse peak location in intermediate tune response from %1.").arg(d_prettyName),QtFTM::LogError);
+            emit logMessage(QString("Response: %1 (Hex: %2)").arg(itResult.at(6)).arg(QString(itResult.at(6).toLatin1().toHex())),QtFTM::LogError);
             emit tuningComplete(false);
             return;
         }
@@ -368,7 +368,7 @@ void MotorDriver::tune(double freq, int currentAttn, int mode)
         {
             //don't abort scan if fine tuning failed... just give a warning.
             if(!d_quiet)
-                emit logMessage(QString("Fine tuning unsuccessful! Frequency: %1 MHz, Mode %2, Position = %3.").arg(freq,0,'f',3).arg(modePair.second).arg(readPos()),LogHandler::Warning);
+                emit logMessage(QString("Fine tuning unsuccessful! Frequency: %1 MHz, Mode %2, Position = %3.").arg(freq,0,'f',3).arg(modePair.second).arg(readPos()),QtFTM::LogWarning);
         }
     }
 
@@ -404,8 +404,8 @@ QStringList MotorDriver::roughTune(int posGuess, bool calibrating, double freq) 
         if(resp.isEmpty() || !resp.startsWith("t:"))
         {
             emit hardwareFailure();
-            emit logMessage(QString("Communication error with %1 while performing intermediate tune.").arg(d_prettyName),LogHandler::Error);
-            emit logMessage(QString("Response: %1 (Hex: %2)").arg(QString(resp)).arg(QString(resp.toHex())),LogHandler::Error);
+            emit logMessage(QString("Communication error with %1 while performing intermediate tune.").arg(d_prettyName),QtFTM::LogError);
+            emit logMessage(QString("Response: %1 (Hex: %2)").arg(QString(resp)).arg(QString(resp.toHex())),QtFTM::LogError);
             return out;
         }
 
@@ -419,7 +419,7 @@ QStringList MotorDriver::roughTune(int posGuess, bool calibrating, double freq) 
 		  if(searchIndex == maxAttempts)
 		  {
               if(!d_quiet)
-                  emit logMessage(QString("Rough tuning failed after %1 attempts! Calibration is probably needed.").arg(maxAttempts),LogHandler::Warning);
+                  emit logMessage(QString("Rough tuning failed after %1 attempts! Calibration is probably needed.").arg(maxAttempts),QtFTM::LogWarning);
 			  ///TODO: Automatically calibrate?
 			  return out;
 		  }
@@ -438,8 +438,8 @@ QStringList MotorDriver::roughTune(int posGuess, bool calibrating, double freq) 
         if(l.size() < 9)
         {
             emit hardwareFailure();
-            emit logMessage(QString("Could not parse intermediate tune response from %1.").arg(d_prettyName),LogHandler::Error);
-            emit logMessage(QString("Response: %1 (Hex: %2)").arg(QString(resp)).arg(QString(resp.toHex())),LogHandler::Error);
+            emit logMessage(QString("Could not parse intermediate tune response from %1.").arg(d_prettyName),QtFTM::LogError);
+            emit logMessage(QString("Response: %1 (Hex: %2)").arg(QString(resp)).arg(QString(resp.toHex())),QtFTM::LogError);
             return out;
         }
 
@@ -452,7 +452,7 @@ QStringList MotorDriver::roughTune(int posGuess, bool calibrating, double freq) 
 
         else if(l.at(l.size()-1).trimmed().endsWith("-1"))
         {
-//            emit logMessage(QString("Guess too high."),LogHandler::Normal);
+//            emit logMessage(QString("Guess too high."),QtFTM::LogNormal);
             //peak was too close to lower edge. Move lower and try again
             resp.clear();
             int newPos = l.at(0).split("=").at(1).trimmed().toInt()-1333;
@@ -461,7 +461,7 @@ QStringList MotorDriver::roughTune(int posGuess, bool calibrating, double freq) 
         }
         else
         {
-//            emit logMessage(QString("Guess too low."),LogHandler::Normal);
+//            emit logMessage(QString("Guess too low."),QtFTM::LogNormal);
             //peak was too close to upper edge. Move higher and try again
             resp.clear();
             int newPos = l.at(0).split("=").at(1).trimmed().toInt()-667;
@@ -473,13 +473,13 @@ QStringList MotorDriver::roughTune(int posGuess, bool calibrating, double freq) 
     if(attempts == maxAttempts)
     {
        if(!calibrating && !d_quiet)
-            emit logMessage(QString("Could not settle on peak in %1 attempts. Calibration is probably needed.").arg(attempts),LogHandler::Warning);
+            emit logMessage(QString("Could not settle on peak in %1 attempts. Calibration is probably needed.").arg(attempts),QtFTM::LogWarning);
         ///TODO: Automatically calibrate?
         return out;
     }
 
     if(searchIndex > 0 && !d_quiet)
-        emit logMessage(QString("Rough tuning required a blind search. Calibration is recommended if this message persists."),LogHandler::Warning);
+        emit logMessage(QString("Rough tuning required a blind search. Calibration is recommended if this message persists."),QtFTM::LogWarning);
 
     return itResult;
 
@@ -512,8 +512,8 @@ QByteArray MotorDriver::intermediateTune()
     if(resp.isEmpty() || !resp.startsWith("t:") || !done)
     {
         emit hardwareFailure();
-        emit logMessage(QString("Communication error with %1 performing intermediate tune.").arg(d_prettyName),LogHandler::Error);
-        emit logMessage(QString("Response: %1 (Hex: %2)").arg(QString(resp)).arg(QString(resp.toHex())),LogHandler::Error);
+        emit logMessage(QString("Communication error with %1 performing intermediate tune.").arg(d_prettyName),QtFTM::LogError);
+        emit logMessage(QString("Response: %1 (Hex: %2)").arg(QString(resp)).arg(QString(resp.toHex())),QtFTM::LogError);
         return QByteArray();
     }
 
@@ -677,7 +677,7 @@ void MotorDriver::calibrate()
     {
         if(!d_sp->waitForReadyRead(30000)) //shouldn't take more than 30 seconds though
         {
-            emit logMessage(QString("Could not find home switch for %1 calibration. This is a serious error, and likely means a switch is broken or the microcontroller is failing.").arg(d_prettyName),LogHandler::Error);
+            emit logMessage(QString("Could not find home switch for %1 calibration. This is a serious error, and likely means a switch is broken or the microcontroller is failing.").arg(d_prettyName),QtFTM::LogError);
             emit tuningComplete(false);
             return;
         }
@@ -700,7 +700,7 @@ void MotorDriver::calibrate()
     if(!done)
     {
         if(!d_quiet)
-            emit logMessage(QString("Could not find correct mode for tuning. Verify that synthesizer is on, tuned to 10000.000 MHz, power set to +10 dBm, and that the attenuation is appropriately set."),LogHandler::Error);
+            emit logMessage(QString("Could not find correct mode for tuning. Verify that synthesizer is on, tuned to 10000.000 MHz, power set to +10 dBm, and that the attenuation is appropriately set."),QtFTM::LogError);
         emit tuningComplete(false);
         return;
     }
@@ -713,8 +713,8 @@ void MotorDriver::calibrate()
     else
     {
         emit hardwareFailure();
-        emit logMessage(QString("Could not parse max voltage in intermediate tune response from %1.").arg(d_prettyName),LogHandler::Error);
-        emit logMessage(QString("Response: %1 (Hex: %2)").arg(itResult.at(4)).arg(QString(itResult.at(4).toLatin1().toHex())),LogHandler::Error);
+        emit logMessage(QString("Could not parse max voltage in intermediate tune response from %1.").arg(d_prettyName),QtFTM::LogError);
+        emit logMessage(QString("Response: %1 (Hex: %2)").arg(itResult.at(4)).arg(QString(itResult.at(4).toLatin1().toHex())),QtFTM::LogError);
         emit tuningComplete(false);
         return;
     }
@@ -726,8 +726,8 @@ void MotorDriver::calibrate()
     else
     {
         emit hardwareFailure();
-        emit logMessage(QString("Could not parse peak width in intermediate tune response from %1.").arg(d_prettyName),LogHandler::Error);
-        emit logMessage(QString("Response: %1 (Hex: %2)").arg(itResult.at(5)).arg(QString(itResult.at(5).toLatin1().toHex())),LogHandler::Error);
+        emit logMessage(QString("Could not parse peak width in intermediate tune response from %1.").arg(d_prettyName),QtFTM::LogError);
+        emit logMessage(QString("Response: %1 (Hex: %2)").arg(itResult.at(5)).arg(QString(itResult.at(5).toLatin1().toHex())),QtFTM::LogError);
         emit tuningComplete(false);
         return;
     }
@@ -738,8 +738,8 @@ void MotorDriver::calibrate()
     else
     {
         emit hardwareFailure();
-        emit logMessage(QString("Could not parse peak index in intermediate tune response from %1.").arg(d_prettyName),LogHandler::Error);
-        emit logMessage(QString("Response: %1 (Hex: %2)").arg(itResult.at(8)).arg(QString(itResult.at(8).toLatin1().toHex())),LogHandler::Error);
+        emit logMessage(QString("Could not parse peak index in intermediate tune response from %1.").arg(d_prettyName),QtFTM::LogError);
+        emit logMessage(QString("Response: %1 (Hex: %2)").arg(itResult.at(8)).arg(QString(itResult.at(8).toLatin1().toHex())),QtFTM::LogError);
         emit tuningComplete(false);
         return;
     }
@@ -750,8 +750,8 @@ void MotorDriver::calibrate()
     else
     {
         emit hardwareFailure();
-        emit logMessage(QString("Could not parse peak location in intermediate tune response from %1.").arg(d_prettyName),LogHandler::Error);
-        emit logMessage(QString("Response: %1 (Hex: %2)").arg(itResult.at(6)).arg(QString(itResult.at(6).toLatin1().toHex())),LogHandler::Error);
+        emit logMessage(QString("Could not parse peak location in intermediate tune response from %1.").arg(d_prettyName),QtFTM::LogError);
+        emit logMessage(QString("Response: %1 (Hex: %2)").arg(itResult.at(6)).arg(QString(itResult.at(6).toLatin1().toHex())),QtFTM::LogError);
         emit tuningComplete(false);
         return;
     }
@@ -788,7 +788,7 @@ void MotorDriver::calibrate()
     {
         //don't abort scan if fine tuning failed... just give a warning.
         if(!d_quiet)
-            emit logMessage(QString("Fine tuning during calibration was unsuccessful! Try again, or peak cavity by hand and issue R command to %1 from terminal.").arg(d_prettyName),LogHandler::Warning);
+            emit logMessage(QString("Fine tuning during calibration was unsuccessful! Try again, or peak cavity by hand and issue R command to %1 from terminal.").arg(d_prettyName),QtFTM::LogWarning);
     }
 
     //reset encoder to 0 at this position
@@ -860,8 +860,8 @@ bool MotorDriver::moveToPosition(int pos)
     if(!done)
     {
         emit hardwareFailure();
-        emit logMessage(QString("Communication error with %1 while moving mirror.").arg(d_prettyName),LogHandler::Error);
-        emit logMessage(QString("Response: %1 (Hex: %2)").arg(QString(resp)).arg(QString(resp.toHex())),LogHandler::Error);
+        emit logMessage(QString("Communication error with %1 while moving mirror.").arg(d_prettyName),QtFTM::LogError);
+        emit logMessage(QString("Response: %1 (Hex: %2)").arg(QString(resp)).arg(QString(resp.toHex())),QtFTM::LogError);
         return false;
     }
 
@@ -876,8 +876,8 @@ bool MotorDriver::stepMotor(int motorSteps)
     if(!resp.startsWith("M:"))
     {
         emit hardwareFailure();
-        emit logMessage(QString("Communication error with %1 while stepping motor.").arg(d_prettyName),LogHandler::Error);
-        emit logMessage(QString("Response: %1 (Hex: %2)").arg(QString(resp)).arg(QString(resp.toHex())),LogHandler::Error);
+        emit logMessage(QString("Communication error with %1 while stepping motor.").arg(d_prettyName),QtFTM::LogError);
+        emit logMessage(QString("Response: %1 (Hex: %2)").arg(QString(resp)).arg(QString(resp.toHex())),QtFTM::LogError);
         return false;
     }
 
@@ -890,8 +890,8 @@ int MotorDriver::readAnalog()
     if(resp.isEmpty() || !resp.startsWith("A:"))
     {
         emit hardwareFailure();
-        emit logMessage(QString("Communication error with %1 while reading analog voltage.").arg(d_prettyName),LogHandler::Error);
-        emit logMessage(QString("Response: %1 (Hex: %2)").arg(QString(resp)).arg(QString(resp.toHex())),LogHandler::Error);
+        emit logMessage(QString("Communication error with %1 while reading analog voltage.").arg(d_prettyName),QtFTM::LogError);
+        emit logMessage(QString("Response: %1 (Hex: %2)").arg(QString(resp)).arg(QString(resp.toHex())),QtFTM::LogError);
         return -1;
     }
 
@@ -901,8 +901,8 @@ int MotorDriver::readAnalog()
     if(!ok)
     {
         emit hardwareFailure();
-        emit logMessage(QString("Could not parse analog voltage response from %1.").arg(d_prettyName),LogHandler::Error);
-        emit logMessage(QString("Response: %1 (Hex: %2)").arg(QString(resp)).arg(QString(resp.toHex())),LogHandler::Error);
+        emit logMessage(QString("Could not parse analog voltage response from %1.").arg(d_prettyName),QtFTM::LogError);
+        emit logMessage(QString("Response: %1 (Hex: %2)").arg(QString(resp)).arg(QString(resp.toHex())),QtFTM::LogError);
         return -1;
     }
 
@@ -917,8 +917,8 @@ int MotorDriver::readPos()
     if(resp.isEmpty() || !resp.startsWith("P:"))
     {
         emit hardwareFailure();
-        emit logMessage(QString("Communication error with %1 while reading position.").arg(d_prettyName),LogHandler::Error);
-        emit logMessage(QString("Response: %1 (Hex: %2)").arg(QString(resp)).arg(QString(resp.toHex())),LogHandler::Error);
+        emit logMessage(QString("Communication error with %1 while reading position.").arg(d_prettyName),QtFTM::LogError);
+        emit logMessage(QString("Response: %1 (Hex: %2)").arg(QString(resp)).arg(QString(resp.toHex())),QtFTM::LogError);
         return -100000000;
     }
 
@@ -928,8 +928,8 @@ int MotorDriver::readPos()
     if(!ok)
     {
         emit hardwareFailure();
-        emit logMessage(QString("Could not parse position response from %1.").arg(d_prettyName),LogHandler::Error);
-        emit logMessage(QString("Response: %1 (Hex: %2)").arg(QString(resp)).arg(QString(resp.toHex())),LogHandler::Error);
+        emit logMessage(QString("Could not parse position response from %1.").arg(d_prettyName),QtFTM::LogError);
+        emit logMessage(QString("Response: %1 (Hex: %2)").arg(QString(resp)).arg(QString(resp.toHex())),QtFTM::LogError);
         return -100000000;
     }
 

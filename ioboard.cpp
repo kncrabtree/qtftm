@@ -93,7 +93,7 @@ void IOBoard::resetCounter()
     {
 	    counterTimer->stop();
 	    emit hardwareFailure();
-	    emit logMessage(QString("Error resetting %1 counter. Error code %2").arg(d_prettyName).arg(error),LogHandler::Error);
+	    emit logMessage(QString("Error resetting %1 counter. Error code %2").arg(d_prettyName).arg(error),QtFTM::LogError);
     }
     d_counterCount = 0;
 }
@@ -107,7 +107,7 @@ quint32 IOBoard::readCounter()
     {
 	    counterTimer->stop();
 	    emit hardwareFailure();
-	    emit logMessage(QString("Error reading %1 counter. Error code %2").arg(d_prettyName).arg(error),LogHandler::Error);
+	    emit logMessage(QString("Error reading %1 counter. Error code %2").arg(d_prettyName).arg(error),QtFTM::LogError);
     }
     return (quint32)counterValues[0];
 }

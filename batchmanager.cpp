@@ -63,7 +63,7 @@ void BatchManager::scanComplete(const Scan s)
         if(d_batchType != BatchManager::SingleScan && d_batchType != BatchManager::Attenuation)
 		{
             emit logMessage(QString("%1 %2 complete. Final scan: %3.").arg(d_prettyName).arg(d_batchNum).arg(s.number()),
-						 LogHandler::Highlight);
+						 QtFTM::LogHighlight);
 		}
 
         writeReport();
@@ -83,7 +83,7 @@ void BatchManager::beginBatch()
         d_batchNum = s.value(d_numKey,1).toInt();
         if(d_batchType != BatchManager::Attenuation)
             emit logMessage(QString("Beginning %1 %2. First scan: %3.").arg(d_prettyName).arg(d_batchNum).arg(firstScanNum),
-                            LogHandler::Highlight);
+                            QtFTM::LogHighlight);
     }
 
     emit titleReady(title());

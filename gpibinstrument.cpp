@@ -41,7 +41,7 @@ bool GpibInstrument::writeCmd(QString cmd)
     if(!d_socket->waitForBytesWritten(1000))
     {
         emit hardwareFailure();
-        emit logMessage(QString("Could not write command to %1. (Command = %2)").arg(d_prettyName).arg(cmd),LogHandler::Error);
+        emit logMessage(QString("Could not write command to %1. (Command = %2)").arg(d_prettyName).arg(cmd),QtFTM::LogError);
         return false;
     }
 
@@ -59,7 +59,7 @@ QByteArray GpibInstrument::queryCmd(QString cmd)
         if(!d_socket->flush())
         {
             emit hardwareFailure();
-            emit logMessage(QString("Could not write query to %1. (query = %2)").arg(d_prettyName).arg(cmd),LogHandler::Error);
+            emit logMessage(QString("Could not write query to %1. (query = %2)").arg(d_prettyName).arg(cmd),QtFTM::LogError);
             return QByteArray();
         }
 
@@ -68,6 +68,6 @@ QByteArray GpibInstrument::queryCmd(QString cmd)
     }
 
     emit hardwareFailure();
-    emit logMessage(QString("%1 did not respond to query. (query = %2)").arg(d_prettyName).arg(cmd),LogHandler::Error);
+    emit logMessage(QString("%1 did not respond to query. (query = %2)").arg(d_prettyName).arg(cmd),QtFTM::LogError);
     return QByteArray();
 }

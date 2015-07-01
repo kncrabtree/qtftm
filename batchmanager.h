@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QFile>
 #include <QDir>
-#include "loghandler.h"
+#include "datastructs.h"
 #include "scan.h"
 #include "nofitter.h"
 #include <QTextStream>
@@ -158,9 +158,9 @@ signals:
 	 \brief Sends messages to be displayed on log tab
 
 	 \param QString Message
-	 \param LogHandler::MessageCode Type of message
+	 \param QtFTM::LogMessageCode Type of message
 	*/
-	void logMessage(const QString, const LogHandler::MessageCode);
+	void logMessage(const QString, const QtFTM::LogMessageCode);
 	/*!
 	 \brief Sends scan to acquisition manager
 
