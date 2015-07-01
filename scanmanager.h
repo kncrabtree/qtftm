@@ -230,6 +230,7 @@ private:
     Scan d_currentScan; /*!< The ongoing or most recently-completed scan */
     Scan d_scanCopyForRetry;
     bool d_paused; /*!< Used to ignore new FIDs during an acquisition */
+    bool d_acquiring;
     bool d_waitingForInitialization; /*!< True for the time between when a scan is sent to HardwareManager for initialization and when it is received in startScan() */
     bool d_connectAcqAverageAfterNextFid;
 

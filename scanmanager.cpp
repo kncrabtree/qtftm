@@ -3,7 +3,8 @@
 #include <QApplication>
 
 ScanManager::ScanManager(QObject *parent) :
-    QObject(parent), d_paused(false), d_waitingForInitialization(false), d_connectAcqAverageAfterNextFid(false)
+    QObject(parent), d_paused(false), d_acquiring(false), d_waitingForInitialization(false),
+    d_connectAcqAverageAfterNextFid(false)
 {
 
 	connect(this,&ScanManager::newFid,this,&ScanManager::peakUpAverage);
@@ -41,18 +42,6 @@ void ScanManager::fidReceived(const QByteArray d)
 
 void ScanManager::prepareScan(Scan s)
 {
-    //Code below has never been hit, and would conflict with retry functionality. I think it can be removed, but leaving it in for testing now
-
-//	//first, check to make sure previous scan is finished. This should never be a problem!
-//	if(d_currentScan.isInitialized() && !d_currentScan.isSaved())
-//	{
-//		//somehow there's a scan running that hasn't been saved.
-//		//For now, abort and save the running scan, and start the new one...
-//		//maybe there's something smarter that can be done?
-//		emit logMessage(QString("New scan started while a scan is already active! The active scan was aborted, and the new scan is starting."),LogHandler::Warning);
-//		abortScan();
-//	}
-
 
     if(d_waitingForInitialization)
 	{
@@ -66,6 +55,7 @@ void ScanManager::prepareScan(Scan s)
 
 	//Start hardware initialization
 	d_waitingForInitialization = true;
+    d_acquiring = true;
 	emit initializeHardwareForScan(s);
 
 }
@@ -98,11 +88,11 @@ void ScanManager::startScan(Scan s)
 	if(d_currentScan.isInitialized())
 	{
 		emit initializationComplete();
-//		connect(this,&ScanManager::newFid,this,&ScanManager::acqAverage);
         d_connectAcqAverageAfterNextFid = true;
 	}
 	else
 	{
+        d_acquiring = false;
 		d_currentScan.abortScan();
 		emit acquisitionComplete(d_currentScan);
 	}
@@ -163,7 +153,9 @@ void ScanManager::acqAverage(const Fid f)
 	emit statusMessage(QString("Acquiring... (%1/%2)").arg(n).arg(d_currentScan.targetShots()));
 
 	//if the scan is complete, stop taking in new FIDs
-	if(d_currentScan.isAcquisitionComplete()) {
+    if(d_currentScan.isAcquisitionComplete())
+    {
+        d_acquiring = false;
 		disconnect(this,&ScanManager::newFid,this,&ScanManager::acqAverage);
 	}
 
@@ -194,7 +186,7 @@ void ScanManager::acqAverage(const Fid f)
 		{
 			emit logMessage(QString("Could not open file for saving scan %1").arg(d_currentScan.number()),LogHandler::Error);
 			emit fatalSaveError();
-		}
+        }
 		emit acquisitionComplete(d_currentScan);
 	}
 
@@ -217,6 +209,7 @@ void ScanManager::abortScan()
 			emit logMessage(QString("Could not open file for saving scan %1").arg(d_currentScan.number()),LogHandler::Error);
 			emit fatalSaveError();
 		}
+        d_acquiring = false;
 		emit acquisitionComplete(d_currentScan);
     }
 }
@@ -229,9 +222,12 @@ void ScanManager::failure()
 
 void ScanManager::retryScan()
 {
-    d_waitingForInitialization = false;
-    d_paused = false;
-    disconnect(this,&ScanManager::newFid,this,&ScanManager::acqAverage);
+    if(d_acquiring)
+    {
+        d_waitingForInitialization = false;
+        d_paused = false;
+        disconnect(this,&ScanManager::newFid,this,&ScanManager::acqAverage);
 
-    prepareScan(d_scanCopyForRetry);
+        prepareScan(d_scanCopyForRetry);
+    }
 }
