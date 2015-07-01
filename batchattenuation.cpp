@@ -141,11 +141,6 @@ Scan BatchAttenuation::prepareNextScan()
     return out;
 }
 
-bool BatchAttenuation::isNextScanCal()
-{
-    return false;
-}
-
 bool BatchAttenuation::isBatchComplete()
 {
     return ((d_scanUpComplete && d_scanDownComplete) || d_aborted);

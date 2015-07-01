@@ -23,7 +23,6 @@ public slots:
 
 protected:
 	Scan prepareNextScan();
-    bool isNextScanCal();
 	bool isBatchComplete();
 	void processScan(Scan s);
 	void writeReport();
@@ -33,7 +32,6 @@ private:
     QVector<QPointF> d_theData;
     QVector<QPointF> d_calData;
     QList<QPair<int,QPair<double,QString> > > d_saveData;
-    bool d_thisScanIsCal;
 
     QList<bool> d_loadCalList;
     int d_loadingIndex;

@@ -4,7 +4,7 @@
 
 BatchDR::BatchDR(Scan ftScan, double start, double stop, double step, int numScansBetween, QList<QPair<double, double> > ranges, bool doCal, AbstractFitter *f) :
     BatchManager(DrScan,false,f), d_template(ftScan), d_start(start), d_stop(stop), d_numScansBetween (0), d_integrationRanges(ranges),
-    d_completedScans(0), d_hasCalibration(doCal), d_thisScanIsCal(false)
+    d_completedScans(0), d_hasCalibration(doCal)
 {
 	d_numKey = QString("drNum");
 	d_prettyName = QString("DR Scan");
@@ -252,11 +252,6 @@ Scan BatchDR::prepareNextScan()
 	next.setPulseConfiguration(c);
 
     return next;
-}
-
-bool BatchDR::isNextScanCal()
-{
-    return d_thisScanIsCal;
 }
 
 bool BatchDR::isBatchComplete()

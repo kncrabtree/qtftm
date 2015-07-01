@@ -19,11 +19,6 @@ void BatchSingle::processScan(Scan s)
     d_completed = true;
 }
 
-bool BatchSingle::isNextScanCal()
-{
-    return false;
-}
-
 bool BatchSingle::isBatchComplete()
 {
 	return d_completed;

@@ -240,7 +240,6 @@ protected:
 	*/
 	virtual Scan prepareNextScan() =0;
 
-    virtual bool isNextScanCal() =0;
 	/*!
 	 \brief Returns whether the batch is complete
 
@@ -254,6 +253,7 @@ protected:
     QList<int> d_loadScanList;
     QList<Scan> d_loadAttnList;
     bool d_loading;
+    bool d_thisScanIsCal;
 
 private:
     void loadBatch();

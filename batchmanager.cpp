@@ -3,7 +3,7 @@
 #include <QApplication>
 
 BatchManager::BatchManager(BatchType b, bool load, AbstractFitter *ftr) :
-	QObject(), d_batchType(b), d_fitter(ftr), d_batchNum(-1), d_loading(load)
+    QObject(), d_batchType(b), d_fitter(ftr), d_batchNum(-1), d_loading(load), d_thisScanIsCal(false)
 {
 }
 
@@ -55,8 +55,7 @@ void BatchManager::scanComplete(const Scan s)
 	{
 		//proceed to next scan
         Scan next = prepareNextScan();
-        bool nextCal = isNextScanCal();
-        emit beginScan(next,nextCal);
+        emit beginScan(next,d_thisScanIsCal);
 	}
 	else
 	{
@@ -92,8 +91,7 @@ void BatchManager::beginBatch()
     if(!d_loading)
     {
         Scan next = prepareNextScan();
-        bool nextCal = isNextScanCal();
-        emit beginScan(next,nextCal);
+        emit beginScan(next,d_thisScanIsCal);
     }
     else
         loadBatch();
