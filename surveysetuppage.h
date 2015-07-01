@@ -15,6 +15,7 @@ public:
     explicit SurveySetupPage(AutoFitWidget *afw, QWidget *parent = nullptr);
 	int nextId() const;
     bool validatePage();
+    void initializePage();
 	
 signals:
     void fitter(AbstractFitter*);

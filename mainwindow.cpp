@@ -331,8 +331,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     synthSettingsChanged();
 	uiState = Idle;
-	updateUiConfig();
     noHardwareMode = false;
+	updateUiConfig();
+
 }
 
 MainWindow::~MainWindow()

@@ -12,6 +12,8 @@ class DrSetupPage : public QWizardPage
 public:
 	explicit DrSetupPage(QWidget *parent = nullptr);
 	int nextId() const;
+    bool validatePage();
+    void initializePage();
 	
 signals:
 	

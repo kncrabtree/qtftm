@@ -130,8 +130,33 @@ int SurveySetupPage::nextId() const
 
 bool SurveySetupPage::validatePage()
 {
+    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+    s.beginGroup(QString("wizard"));
+    s.setValue(QString("surveyStart"),startBox->value());
+    s.setValue(QString("surveyStop"),stopBox->value());
+    s.setValue(QString("surveyStep"),stepBox->value());
+    s.setValue(QString("surveyScansPerCal"),scansPerCalBox->value());
+    s.setValue(QString("surveyCal"),calCheckBox->isChecked());
+    s.endGroup();
+    s.sync();
+
     emit fitter(surAfw->toFitter());
     return true;
+}
+
+void SurveySetupPage::initializePage()
+{
+    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+    s.beginGroup(QString("wizard"));
+
+    startBox->setValue(s.value(QString("surveyStart"),startBox->value()).toDouble());
+    stopBox->setValue(s.value(QString("surveyStop"),stopBox->value()).toDouble());
+    stepBox->setValue(s.value(QString("surveyStep"),stepBox->value()).toDouble());
+    scansPerCalBox->setValue(s.value(QString("surveyScansPerCal"),
+                               scansPerCalBox->value()).toInt());
+    calCheckBox->setChecked(s.value(QString("surveyCal"),calCheckBox->isChecked()).toBool());
+
+    s.endGroup();
 }
 
 void SurveySetupPage::updateLabel()

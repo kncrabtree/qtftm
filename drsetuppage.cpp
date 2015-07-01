@@ -109,7 +109,37 @@ DrSetupPage::DrSetupPage(QWidget *parent) :
 
 int DrSetupPage::nextId() const
 {
-	return BatchWizard::Page_DrScanSetup;
+    return BatchWizard::Page_DrScanSetup;
+}
+
+bool DrSetupPage::validatePage()
+{
+    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+    s.beginGroup(QString("wizard"));
+    s.setValue(QString("drStart"),startBox->value());
+    s.setValue(QString("drStop"),stopBox->value());
+    s.setValue(QString("drStep"),stepBox->value());
+    s.setValue(QString("drTuneSteps"),scansBetweenTuningVoltageReadings->value());
+    s.setValue(QString("drCal"),calCheckBox->isChecked());
+    s.endGroup();
+    s.sync();
+
+    return true;
+}
+
+void DrSetupPage::initializePage()
+{
+    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+    s.beginGroup(QString("wizard"));
+
+    startBox->setValue(s.value(QString("drStart"),startBox->value()).toDouble());
+    stopBox->setValue(s.value(QString("drStop"),stopBox->value()).toDouble());
+    stepBox->setValue(s.value(QString("drStep"),stepBox->value()).toDouble());
+    scansBetweenTuningVoltageReadings->setValue(s.value(QString("drTuneSteps"),
+                               scansBetweenTuningVoltageReadings->value()).toInt());
+    calCheckBox->setChecked(s.value(QString("drCal"),calCheckBox->isChecked()).toBool());
+
+    s.endGroup();
 }
 
 void DrSetupPage::updateLabel()
