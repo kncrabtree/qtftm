@@ -69,6 +69,9 @@ DEFINES += QTFTM_OSCILLOSCOPE=1
 #GPIB Controller. 0 = virtual, 1 = Prologix GPIB-LAN
 DEFINES += QTFTM_GPIBCONTROLLER=1
 
+#Attenuator. 0 = virtual, 1 = Aeroflex Weinschel Attenuator
+DEFINES += QTFTM_ATTENUATOR=1
+
 DISTFILES += \
     Notes.txt
 

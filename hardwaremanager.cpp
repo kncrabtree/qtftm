@@ -47,7 +47,7 @@ void HardwareManager::initializeHardware()
 //    connect(glc,&GpibLanController::numInstruments,this,&HardwareManager::setNumGpibInstruments);
     d_hardwareList.append(qMakePair(gpib,new QThread(this)));
 
-	attn = new Attenuator(this);
+    attn = new AttenuatorHardware();
 	connect(attn,&Attenuator::attnUpdate,this,&HardwareManager::attenUpdate);
     connect(attn,&Attenuator::attenFileParseSuccess,this,&HardwareManager::attnLoadSuccess);
     connect(attn,&Attenuator::taattnUpdate,this,&HardwareManager::taattenUpdate);

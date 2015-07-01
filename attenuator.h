@@ -1,10 +1,10 @@
 #ifndef ATTENUATOR_H
 #define ATTENUATOR_H
 
-#include "tcpinstrument.h"
+#include "hardwareobject.h"
 #include <QFile>
 
-class Attenuator : public TcpInstrument
+class Attenuator : public HardwareObject
 {
 	Q_OBJECT
 public:
@@ -15,15 +15,13 @@ signals:
     void taattnUpdate(int);
     void attenFileParseSuccess(bool);
 
-
 public slots:
-	void initialize();
-	bool testConnection();
+    void initialize();
     void changeAttenFile(QString fileName);
 
     int setTuningAttn(double freq);
-	int setAttn(int a);
-	int readAttn();
+    virtual int setAttn(int a) =0;
+    virtual int readAttn() =0;
     void clearAttenData();
 
 private:
@@ -31,5 +29,17 @@ private:
     bool parseAttenFile(QString fileName);
 	
 };
+
+#ifdef QTFTM_ATTENUATOR
+#if QTFTM_ATTENUATOR == 1
+#include "aeroflexattn.h"
+class AeroflexAttn;
+typedef AeroflexAttn AttenuatorHardware;
+#else
+#include "virtualattenuator.h"
+class VirtualAttenuator;
+typedef VirtualAttenuator GpibControllerHardware;
+#endif
+#endif
 
 #endif // ATTENUATOR_H

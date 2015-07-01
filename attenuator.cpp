@@ -5,49 +5,16 @@
 Attenuator::Attenuator(QObject *parent) :
 	TcpInstrument(QString("attn"), QString("Attenuator"), parent)
 {
-    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
-    s.setValue(QString(d_key).append("/min"),0);
-    s.setValue(QString(d_key).append("/max"),100);
-    s.sync();
+    d_key = QString("attn");
 }
 
 void Attenuator::initialize()
 {
-	TcpInstrument::initialize();
-	testConnection();
-}
-
-bool Attenuator::testConnection()
-{
-    if(!TcpInstrument::testConnection())
-    {
-        emit connected(false,QString("TCP Socket error"));
-        return false;
-    }
-
-    QByteArray resp = queryCmd(QString("*IDN?\n"));
-    if(resp.isEmpty())
-    {
-        emit connected(false,QString("%1 gave a null response to ID query").arg(d_prettyName));
-        return false;
-    }
-    if(!resp.startsWith("Aeroflex Weinschel"))
-    {
-        emit connected(false,QString("%1 response invalid. Received: %2").arg(d_prettyName).arg(QString(resp)));
-        return false;
-    }
-
-    emit logMessage(QString("%1 ID response: %2").arg(d_prettyName).arg(QString(resp)));
-    emit connected();
-    readAttn();
-
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
     QString attenDataFile = s.value(QString("%1/file").arg(d_key),QString("")).toString();
 
     if(!parseAttenFile(attenDataFile))
         emit logMessage(QString("No valid attenuation table. Tuning attenuation will not be set automatically!"),QtFTM::LogError);
-
-    return true;
 }
 
 void Attenuator::changeAttenFile(QString fileName)
@@ -110,39 +77,6 @@ int Attenuator::setTuningAttn(double freq)
     emit taattnUpdate(actual_attn);
     return actual_attn;
 
-}
-
-int Attenuator::setAttn(int a)
-{
-	//write attenuation command
-    //changing attenuation takes some time, so wait for *OPC? to return before reading
-    if(a >=0 && a <= 105)
-        queryCmd(QString("ATTN 1 %1;*OPC?\n").arg(a)).trimmed();
-
-    return readAttn();
-}
-
-int Attenuator::readAttn()
-{
-	//write query
-    QByteArray resp = queryCmd(QString("ATTN? 1\n")).trimmed();
-    if(resp.isEmpty())
-    {
-        emit hardwareFailure();
-        emit logMessage(QString("%1 did not respond to attenuation query.").arg(d_prettyName),QtFTM::LogError);
-        return -1;
-    }
-    bool ok = false;
-    int a = resp.toInt(&ok);
-    if(!ok || a < 0)
-    {
-        emit hardwareFailure();
-        emit logMessage(QString("%1 gave an invalid response to attenuation query (response: %2)").arg(d_prettyName).arg(QString(resp)),QtFTM::LogError);
-        return -1;
-    }
-
-    emit attnUpdate(a);
-    return a;
 }
 
 void Attenuator::clearAttenData()

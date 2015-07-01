@@ -41,7 +41,6 @@ MainWindow::MainWindow(QWidget *parent) :
 	qRegisterMetaType<QList<QVector<QPointF> > >("QList<QVector<QPointF> >");
     qRegisterMetaType<FlowController::FlowChannels>("FlowController::FlowChannels");
     qRegisterMetaType<FlowController::FlowIndex>("FlowController::FlowIndex");
-    qRegisterMetaType<QAbstractSocket::SocketError>("QAbstractSocket::SocketError");
     qRegisterMetaType<FitResult>("FitResult");
 
 	//build UI and make trivial connections
