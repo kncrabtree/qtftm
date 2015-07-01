@@ -1,7 +1,7 @@
 #include "rs232instrument.h"
 
-Rs232Instrument::Rs232Instrument(QString key, QString name, QObject *parent) :
-	HardwareObject(key,name,parent)
+Rs232Instrument::Rs232Instrument(QString key, QString subKey, QObject *parent) :
+    CommunicationProtocol(CommunicationProtocol::Rs232,key,subKey,parent)
 {
 }
 
@@ -15,10 +15,6 @@ Rs232Instrument::~Rs232Instrument()
 
 void Rs232Instrument::initialize()
 {
-	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
-	s.setValue(key().append(QString("/prettyName")),name());
-	s.sync();
-
     d_sp = new QSerialPort(this);
 }
 
@@ -36,13 +32,6 @@ bool Rs232Instrument::testConnection()
     QString id = s.value(QString("%1/id").arg(key()),QString("")).toString();
 
     d_sp->setPortName(id);
-
-//    QList<QSerialPortInfo> l = QSerialPortInfo::availablePorts();
-//    for(int i=0; i<l.size(); i++)
-//    {
-//        if(l.at(i).portName() == id)
-//            d_sp->setPort(l.at(i));
-//    }
 
     if(d_sp->open(QIODevice::ReadWrite))
     {
@@ -62,18 +51,26 @@ bool Rs232Instrument::writeCmd(QString cmd)
     if(!d_sp->isOpen())
     {
         emit hardwareFailure();
-        emit logMessage(QString("Could not write command to %1. Serial port is not open. (Command = %2)").arg(d_prettyName).arg(cmd),QtFTM::LogError);
+        emit logMessage(QString("Could not write command. Serial port is not open. (Command = %1)").arg(cmd),QtFTM::LogError);
         return false;
     }
 
-    int return_value  = d_sp->write(cmd.toLatin1());
-    if(return_value == -1)
-    //if(!d_sp->flush())    // PRaa Oct 2014 - the "flush" test could fail because all the bytes were written during the "write",
-    // so I changed the test to be the return value of the "write" command
+    qint64 ret = p_sp->write(cmd.toLatin1());
+
+    if(ret == -1)
     {
         emit hardwareFailure();
-        emit logMessage(QString("Could not write command to %1. (Command = %2)").arg(d_prettyName).arg(cmd),QtFTM::LogError);
+        emit logMessage(QString("Could not write command. Write failed (Command = %1)").arg(cmd),QtFTM::LogError);
         return false;
+    }
+
+    while (p_sp->bytesToWrite() > 0) {
+        if(!p_sp->waitForBytesWritten(30000))
+        {
+            emit hardwareFailure();
+            emit logMessage(QString("Timed out while waiting for command write to finish. Command = %1").arg(cmd),QtFTM::LogError);
+            return false;
+        }
     }
     return true;
 }
@@ -83,19 +80,17 @@ QByteArray Rs232Instrument::queryCmd(QString cmd)
     if(!d_sp->isOpen())
     {
         emit hardwareFailure();
-        emit logMessage(QString("Could not write query to %1. Serial port is not open. (Query = %2)").arg(d_prettyName).arg(cmd),QtFTM::LogError);
+        emit logMessage(QString("Could not write query. Serial port is not open. (Query = %1)").arg(cmd),QtFTM::LogError);
         return QByteArray();
     }
 
     if(d_sp->bytesAvailable())
         d_sp->readAll();
 
-    int return_value = d_sp->write(cmd.toLatin1());
-    //if(!d_sp->flush())     praa Nov 19 2014
-    if(return_value == -1)
+    if(!writeCmd(cmd))
     {
         emit hardwareFailure();
-        emit logMessage(QString("Could not write query to %1. (query = %2)").arg(d_prettyName).arg(cmd),QtFTM::LogError);
+        emit logMessage(QString("Could not write query. (query = %1)").arg(cmd),QtFTM::LogError);
         return QByteArray();
     }
 
@@ -105,7 +100,7 @@ QByteArray Rs232Instrument::queryCmd(QString cmd)
         if(!d_sp->waitForReadyRead(d_timeOut))
         {
             emit hardwareFailure();
-            emit logMessage(QString("%1 did not respond to query. (query = %2)").arg(d_prettyName).arg(cmd),QtFTM::LogError);
+            emit logMessage(QString("Did not respond to query. (query = %1)").arg(cmd),QtFTM::LogError);
             return QByteArray();
         }
 
@@ -126,7 +121,7 @@ QByteArray Rs232Instrument::queryCmd(QString cmd)
         }
 
         emit hardwareFailure();
-        emit logMessage(QString("%1 timed out while waiting for termination character. (query = %2, partial response = %3)").arg(d_prettyName).arg(cmd).arg(QString(out)),QtFTM::LogError);
+        emit logMessage(QString("Timed out while waiting for termination character. (query = %1, partial response = %2)").arg(cmd).arg(QString(out)),QtFTM::LogError);
         emit logMessage(QString("Hex response: %1").arg(QString(out.toHex())),QtFTM::LogError);
         return out;
     }

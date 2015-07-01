@@ -1,34 +1,33 @@
 #ifndef GPIBINSTRUMENT_H
 #define GPIBINSTRUMENT_H
 
-#include <QTcpSocket>
-#include "hardwareobject.h"
+#include "communicationprotocol.h"
+#include "gpibcontroller.h"
 
-
-class GpibInstrument : public HardwareObject
+class GpibInstrument : public CommunicationProtocol
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	explicit GpibInstrument(QString key, QString name, QTcpSocket *s, QObject *parent);
+    explicit GpibInstrument(QString key, QString subKey, GpibController *c, QObject *parent = nullptr);
+    ~GpibInstrument();
+    void setAddress(int a);
+    int address() const;
 
-	void setAddress(const int a);
-	int address() const { return d_address; }
-	
-signals:
-
-public slots:
-	void initialize();
-    bool testConnection();
+    QIODevice *device() { return nullptr; }
 
 protected:
-	QTcpSocket *d_socket;
-	int d_address;
+    GpibController *p_controller;
+    int d_address;
 
-	bool writeCmd(QString cmd);
-	QByteArray queryCmd(QString cmd);
+    // CommunicationProtocol interface
+public:
+    bool writeCmd(QString cmd);
+    bool writeBinary(QByteArray dat);
+    QByteArray queryCmd(QString cmd);
 
-
-	
+public slots:
+    void initialize();
+    bool testConnection();
 };
 
 #endif // GPIBINSTRUMENT_H

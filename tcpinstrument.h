@@ -1,38 +1,37 @@
 #ifndef TCPINSTRUMENT_H
 #define TCPINSTRUMENT_H
 
-#include "hardwareobject.h"
 #include <QTcpSocket>
 
-class TcpInstrument : public HardwareObject
+#include "communicationprotocol.h"
+
+class TcpInstrument : public CommunicationProtocol
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	explicit TcpInstrument(QString key, QString name, QObject *parent = nullptr);
+    explicit TcpInstrument(QString key, QString subKey, QObject *parent = nullptr);
     ~TcpInstrument();
-	
-signals:
-	
-public slots:
-	virtual void initialize();
-	virtual bool testConnection();
 
-	void socketError(QAbstractSocket::SocketError);
-
-protected:
-	QTcpSocket *d_socket;
-	QString d_ip;
-	int d_port;
-
-	bool writeCmd(QString cmd);
+    bool writeCmd(QString cmd);
+    bool writeBinary(QByteArray dat);
     QByteArray queryCmd(QString cmd);
-    bool connectSocket();
-    void disconnectSocket();
+    QIODevice *device(){ return p_socket; }
+
+public slots:
+    virtual void initialize();
+    virtual bool testConnection();
+    void socketError(QAbstractSocket::SocketError);
 
 
 private:
-	void setSocketConnectionInfo(QString ip, int port);
-	
+    QString d_ip;
+    int d_port;
+    QTcpSocket *p_socket;
+
+    bool connectSocket();
+    void disconnectSocket();
+    void setSocketConnectionInfo(QString ip, int port);
+
 };
 
 #endif // TCPINSTRUMENT_H

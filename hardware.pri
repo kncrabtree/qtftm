@@ -15,7 +15,8 @@ SOURCES += hardwaremanager.cpp \
     u3.cpp \
     synthesizer.cpp \
     pinswitchdrivedelaygenerator.cpp \
-    $$PWD/communicationprotocol.cpp
+    $$PWD/communicationprotocol.cpp \
+    $$PWD/gpibcontroller.cpp
 
 HEADERS += hardwaremanager.h \
     oscilloscope.h \
@@ -34,4 +35,5 @@ HEADERS += hardwaremanager.h \
     ioboard.h \
     synthesizer.h \
     pinswitchdrivedelaygenerator.h \
-    $$PWD/communicationprotocol.h
+    $$PWD/communicationprotocol.h \
+    $$PWD/gpibcontroller.h
