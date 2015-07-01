@@ -496,6 +496,15 @@ void AbstractBatchPlot::toggleCurve(QVariant item, bool hide, int index)
     }
 }
 
+void AbstractBatchPlot::toggleHideBadZones(bool hide)
+{
+    d_hideBadZones = hide;
+    for(int i=0; i<d_badTuneZones.size(); i++)
+        d_badTuneZones[i].zone->setVisible(!hide);
+
+    replot();
+}
+
 void AbstractBatchPlot::addBadZone(BatchManager::BatchPlotMetaData md)
 {
     if(!md.badTune)
@@ -536,6 +545,11 @@ QMenu *AbstractBatchPlot::contextMenu()
         QAction *exportAction = out->addAction(QString("Export XY..."));
         connect(exportAction,&QAction::triggered,this,&AbstractBatchPlot::exportXY);
     }
+
+    QAction *hideAction = out->addAction(QString("Hide bad tune zones"));
+    hideAction->setCheckable(true);
+    hideAction->setChecked(d_hideBadZones);
+    connect(hideAction,&QAction::toggled,this,&AbstractBatchPlot::toggleHideBadZones);
 
     return out;
 }

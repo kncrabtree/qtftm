@@ -70,6 +70,7 @@ public slots:
     void enableReplotting() { d_doNotReplot = false; replot(); }
 
     void toggleCurve(QVariant item, bool hide, int index);
+    void toggleHideBadZones(bool hide);
 
 protected:
     QList<QwtPlotCurve*> d_plotCurves;
