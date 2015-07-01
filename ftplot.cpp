@@ -43,6 +43,9 @@ FtPlot::FtPlot(QWidget *parent) :
 	ftCurve.setPen(p);
 	fidCurve.setPen(p);
 	setFitCurveColor();
+    ftCurve.setRenderHint(QwtPlotItem::RenderAntialiased);
+    fidCurve.setRenderHint(QwtPlotItem::RenderAntialiased);
+    fitCurve.setRenderHint(QwtPlotItem::RenderAntialiased);
 
 	auto doubleVc = static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged);
 
