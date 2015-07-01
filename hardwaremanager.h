@@ -4,7 +4,7 @@
 #include <QObject>
 #include "datastructs.h"
 #include "oscilloscope.h"
-#include "gpiblancontroller.h"
+#include "gpibcontroller.h"
 #include "ftmsynthesizer.h"
 #include "drsynthesizer.h"
 #include "flowcontroller.h"
@@ -629,7 +629,7 @@ public slots:
 
 private:
 	Oscilloscope *scope;
-	GpibLanController *glc;
+    GpibController *gpib;
 	Attenuator *attn;
 	MotorDriver *md;
     PinSwitchDriveDelayGenerator *pin;

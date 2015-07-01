@@ -21,8 +21,6 @@ DPO3012::~DPO3012()
 
 void DPO3012::initialize()
 {
-    TcpInstrument::initialize();
-
     p_comm->setReadOptions(1000,true,QByteArray("\n\r"));
     p_comm->initialize();
     p_socket = dynamic_cast<QTcpSocket*>(p_comm->device());

@@ -1,6 +1,5 @@
 SOURCES += hardwaremanager.cpp \
     oscilloscope.cpp \
-    gpiblancontroller.cpp \
     gpibinstrument.cpp \
     ftmsynthesizer.cpp \
     drsynthesizer.cpp \
@@ -20,7 +19,6 @@ SOURCES += hardwaremanager.cpp \
 
 HEADERS += hardwaremanager.h \
     oscilloscope.h \
-    gpiblancontroller.h \
     gpibinstrument.h \
     ftmsynthesizer.h \
     drsynthesizer.h \

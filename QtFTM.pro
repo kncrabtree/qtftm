@@ -66,6 +66,9 @@ DEFINES += QTFTM_FTM1
 #Oscilloscope. 0 = virtual, 1 = DPO3012
 DEFINES += QTFTM_OSCILLOSCOPE=1
 
+#GPIB Controller. 0 = virtual, 1 = Prologix GPIB-LAN
+DEFINES += QTFTM_GPIBCONTROLLER=1
+
 DISTFILES += \
     Notes.txt
 

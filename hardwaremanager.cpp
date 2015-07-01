@@ -33,19 +33,19 @@ void HardwareManager::initializeHardware()
     connect(scope,&Oscilloscope::statusMessage,this,&HardwareManager::statusMessage);
     d_hardwareList.append(qMakePair(scope,new QThread(this)));
 
-	glc = new GpibLanController();
-	connect(glc,&GpibLanController::ftmSynthFreq,this,&HardwareManager::ftmSynthUpdate);
-	connect(glc,&GpibLanController::probeFreqUpdate,this,&HardwareManager::probeFreqUpdate);
-    connect(glc,&GpibLanController::rangeChanged,this,&HardwareManager::synthRangeChanged);
-    connect(this,&HardwareManager::ftmSynthChangeBandFromUi,glc,&GpibLanController::ftmSynthChangeBandFromUi);
-#ifndef CONFIG_NODRSYNTH
-	connect(glc,&GpibLanController::drSynthFreq,this,&HardwareManager::drSynthFreqUpdate);
-	connect(glc,&GpibLanController::drSynthPower,this,&HardwareManager::drSynthPwrUpdate);
-    connect(this,&HardwareManager::drSynthChangeBandFromUi,glc,&GpibLanController::drSynthChangeBandFromUi);
-#endif
-	connect(glc,&GpibLanController::testComplete,this,&HardwareManager::testComplete);
-    connect(glc,&GpibLanController::numInstruments,this,&HardwareManager::setNumGpibInstruments);
-    d_hardwareList.append(qMakePair(glc,new QThread(this)));
+    gpib = new GpibControllerHardware();
+//	connect(glc,&GpibLanController::ftmSynthFreq,this,&HardwareManager::ftmSynthUpdate);
+//	connect(glc,&GpibLanController::probeFreqUpdate,this,&HardwareManager::probeFreqUpdate);
+//    connect(glc,&GpibLanController::rangeChanged,this,&HardwareManager::synthRangeChanged);
+//    connect(this,&HardwareManager::ftmSynthChangeBandFromUi,glc,&GpibLanController::ftmSynthChangeBandFromUi);
+//#ifndef CONFIG_NODRSYNTH
+//	connect(glc,&GpibLanController::drSynthFreq,this,&HardwareManager::drSynthFreqUpdate);
+//	connect(glc,&GpibLanController::drSynthPower,this,&HardwareManager::drSynthPwrUpdate);
+//    connect(this,&HardwareManager::drSynthChangeBandFromUi,glc,&GpibLanController::drSynthChangeBandFromUi);
+//#endif
+//	connect(glc,&GpibLanController::testComplete,this,&HardwareManager::testComplete);
+//    connect(glc,&GpibLanController::numInstruments,this,&HardwareManager::setNumGpibInstruments);
+    d_hardwareList.append(qMakePair(gpib,new QThread(this)));
 
 	attn = new Attenuator(this);
 	connect(attn,&Attenuator::attnUpdate,this,&HardwareManager::attenUpdate);
@@ -62,9 +62,9 @@ void HardwareManager::initializeHardware()
 
     md = new MotorDriver();
     connect(md,&MotorDriver::posUpdate,this,&HardwareManager::mirrorPosUpdate);
-    connect(md,&MotorDriver::deltaF,glc,&GpibLanController::ftmDeltaFreq,Qt::BlockingQueuedConnection);
+    connect(md,&MotorDriver::deltaF,gpib,&GpibLanController::ftmDeltaFreq,Qt::BlockingQueuedConnection);
     connect(md,&MotorDriver::tuningComplete,this,&HardwareManager::cavityTuneComplete);
-    connect(glc,&GpibLanController::ftmSynthFreq,md,&MotorDriver::cavityFreqChanged);
+    connect(gpib,&GpibLanController::ftmSynthFreq,md,&MotorDriver::cavityFreqChanged);
     connect(md,&MotorDriver::canTuneUp,this,&HardwareManager::canTuneUp);
     connect(md,&MotorDriver::canTuneDown,this,&HardwareManager::canTuneDown);
     connect(md,&MotorDriver::modeChanged,this,&HardwareManager::modeChanged);
@@ -73,7 +73,7 @@ void HardwareManager::initializeHardware()
 
     iob = new IOBoard();
     connect(iob,&IOBoard::triggered,scope,&Oscilloscope::sendCurveQuery);
-    connect(glc,&GpibLanController::ftmSynthBandChanged,iob,&IOBoard::ftmSynthBand,Qt::BlockingQueuedConnection);
+    connect(gpib,&GpibLanController::ftmSynthBandChanged,iob,&IOBoard::ftmSynthBand,Qt::BlockingQueuedConnection);
     connect(iob,&IOBoard::magnetUpdate,this,&HardwareManager::magnetUpdate);
     connect(this,&HardwareManager::setMagnetFromUI,iob,&IOBoard::setMagnet);
     d_hardwareList.append(qMakePair(iob,new QThread(this)));
@@ -212,7 +212,7 @@ void HardwareManager::connectionResult(HardwareObject *obj, bool success, QStrin
 void HardwareManager::testObjectConnection(QString type, QString key)
 {
 	if(type == QString("gpib"))
-		QMetaObject::invokeMethod(glc,"testObjectConnection",Q_ARG(QString,key));
+        QMetaObject::invokeMethod(gpib,"testObjectConnection",Q_ARG(QString,key));
 	else
 	{
 		HardwareObject *obj = nullptr;
@@ -251,18 +251,18 @@ void HardwareManager::hardwareFailure(HardwareObject *obj)
 
 void HardwareManager::setFtmCavityFreqFromUI(double f)
 {
-	QMetaObject::invokeMethod(glc,"setFtmCavityFreqFromUI",Q_ARG(double,f));
+    QMetaObject::invokeMethod(gpib,"setFtmCavityFreqFromUI",Q_ARG(double,f));
 }
 
 #ifndef CONFIG_NODRSYNTH
 void HardwareManager::setDrSynthFreqFromUI(double f)
 {
-	QMetaObject::invokeMethod(glc,"setDrSynthFreq",Q_ARG(double,f));
+    QMetaObject::invokeMethod(gpib,"setDrSynthFreq",Q_ARG(double,f));
 }
 
 void HardwareManager::setDrSynthPwrFromUI(double p)
 {
-	QMetaObject::invokeMethod(glc,"setDrSynthPower",Q_ARG(double,p));
+    QMetaObject::invokeMethod(gpib,"setDrSynthPower",Q_ARG(double,p));
 }
 #endif
 
@@ -320,21 +320,21 @@ QList<PulseGenerator::PulseChannelConfiguration> HardwareManager::setPulse(QList
 double HardwareManager::goToFtmSynthProbeFreq()
 {
 	double out = 0.0;
-	QMetaObject::invokeMethod(glc,"goToFtmProbeFreq",Qt::BlockingQueuedConnection,Q_RETURN_ARG(double,out));
+    QMetaObject::invokeMethod(gpib,"goToFtmProbeFreq",Qt::BlockingQueuedConnection,Q_RETURN_ARG(double,out));
 	return out;
 }
 
 bool HardwareManager::goToFtmSynthCavityFreq()
 {
 	bool success = false;
-	QMetaObject::invokeMethod(glc,"goToFtmCavityFreq",Qt::BlockingQueuedConnection,Q_RETURN_ARG(bool,success));
+    QMetaObject::invokeMethod(gpib,"goToFtmCavityFreq",Qt::BlockingQueuedConnection,Q_RETURN_ARG(bool,success));
 	return success;
 }
 
 bool HardwareManager::setFtmSynthCavityFreq(double d)
 {
     bool success = false;
-    QMetaObject::invokeMethod(glc,"setFtmCavityFreq",Qt::BlockingQueuedConnection,Q_RETURN_ARG(bool,success),Q_ARG(double,d));
+    QMetaObject::invokeMethod(gpib,"setFtmCavityFreq",Qt::BlockingQueuedConnection,Q_RETURN_ARG(bool,success),Q_ARG(double,d));
     return success;
 }
 
@@ -377,14 +377,14 @@ int HardwareManager::readCalVoltage()
 double HardwareManager::setDrSynthFreq(double f)
 {
 	double out = 0.0;
-	QMetaObject::invokeMethod(glc,"setDrSynthFreq",Qt::BlockingQueuedConnection,Q_RETURN_ARG(double,out),Q_ARG(double,f));
+    QMetaObject::invokeMethod(gpib,"setDrSynthFreq",Qt::BlockingQueuedConnection,Q_RETURN_ARG(double,out),Q_ARG(double,f));
 	return out;
 }
 
 double HardwareManager::setDrSynthPwr(double p)
 {
 	double out = 0.0;
-	QMetaObject::invokeMethod(glc,"setDrSynthPower",Qt::BlockingQueuedConnection,Q_RETURN_ARG(double,out),Q_ARG(double,p));
+    QMetaObject::invokeMethod(gpib,"setDrSynthPower",Qt::BlockingQueuedConnection,Q_RETURN_ARG(double,out),Q_ARG(double,p));
     return out;
 }
 #endif
