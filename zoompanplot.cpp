@@ -374,7 +374,7 @@ QMenu *ZoomPanPlot::contextMenu()
     QMenu *menu = new QMenu();
     menu->setAttribute(Qt::WA_DeleteOnClose);
 
-    QAction *asAction = menu->addAction(QString("Autoscale"));
+    QAction *asAction = menu->addAction(QString("Autoscale (Ctrl+Click)"));
     connect(asAction,&QAction::triggered,this,&ZoomPanPlot::autoScale);
 
     if(!itemList().isEmpty())
