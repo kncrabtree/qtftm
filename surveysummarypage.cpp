@@ -15,6 +15,11 @@ SurveySummaryPage::SurveySummaryPage(QWidget *parent) :
 
 	vl->addWidget(label,0,Qt::AlignCenter);
 
+    sleepCheckBox = new QCheckBox(QString("Sleep when batch is complete"),this);
+    sleepCheckBox->setToolTip(QString("If checked, the instrument will be put into sleep mode when the acquisition is complete.\nThis will stop pulses from being generated, and will turn off the gas flow controllers."));
+    sleepCheckBox->setChecked(false);
+    vl->addWidget(sleepCheckBox,0,Qt::AlignCenter);
+
 	setLayout(vl);
 }
 
@@ -98,7 +103,7 @@ bool SurveySummaryPage::validatePage()
 	else //create survey object without cal
         bs = new BatchSurvey(surveyTemplate,step,stop,false,Scan(),0,wiz->fitter());
 
-
+    emit sleepWhenComplete(sleepCheckBox->isChecked());
 	emit batchSurvey(bs);
 
 	return true;

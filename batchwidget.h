@@ -21,6 +21,7 @@ public:
 
 	bool isEmpty();
 	QList<QPair<Scan,bool> > getList() const { return btm.getList(); }
+    bool sleep() const { return sleepCheckBox->isChecked(); }
 
 public slots:
 	void updateLabel();
@@ -51,6 +52,7 @@ private:
 	QString writeScan(Scan thisScan, Scan ref = Scan());
 
 	QLabel *timeLabel;
+    QCheckBox *sleepCheckBox;
 };
 
 #endif // BATCHWIDGET_H

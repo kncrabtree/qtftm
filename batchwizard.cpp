@@ -21,7 +21,6 @@ BatchWizard::BatchWizard(SingleScanWidget *w, AutoFitWidget *a, QWidget *parent)
 
 	//make pages and connections, if necessary
 	StartPage *sp = new StartPage(this);
-	connect(sp,&StartPage::sleepOnComplete,this,&BatchWizard::setSleep);
 
     SurveySetupPage *sSetP = new SurveySetupPage(afw,this);
     connect(sSetP,&SurveySetupPage::fitter,this,&BatchWizard::setFitter);
@@ -34,6 +33,7 @@ BatchWizard::BatchWizard(SingleScanWidget *w, AutoFitWidget *a, QWidget *parent)
 
 	SurveySummaryPage *ssump = new SurveySummaryPage(this);
 	connect(ssump,&SurveySummaryPage::batchSurvey,this,&BatchWizard::setBatchManager);
+    connect(ssump,&SurveySummaryPage::sleepWhenComplete,this,&BatchWizard::setSleep);
 
 	DrScanSetupPage *dsp = new DrScanSetupPage(ssw,a,this);
 	connect(dsp,&DrScanSetupPage::drScan,this,&BatchWizard::setDrScan);
@@ -45,12 +45,14 @@ BatchWizard::BatchWizard(SingleScanWidget *w, AutoFitWidget *a, QWidget *parent)
 
 	DrSummaryPage *dsump = new DrSummaryPage(this);
 	connect(dsump,&DrSummaryPage::batchDr,this,&BatchWizard::setBatchManager);
+    connect(dsump,&DrSummaryPage::sleepWhenComplete,this,&BatchWizard::setSleep);
 
     BatchProcessingPage *bpp = new BatchProcessingPage(afw,this);
     connect(bpp,&BatchProcessingPage::fitter,this,&BatchWizard::setFitter);
 
 	BatchSetupPage *bsp = new BatchSetupPage(ssw,this);
 	connect(bsp,&BatchSetupPage::batchManager,this,&BatchWizard::setBatchManager);
+    connect(bsp,&BatchSetupPage::sleepWhenComplete,this,&BatchWizard::setSleep);
 
 	//insert pages into wizard
 	setPage(Page_Start, sp);

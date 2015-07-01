@@ -28,6 +28,8 @@ bool BatchSetupPage::validatePage()
 	if(scanList.isEmpty())
 		return false;
 
+    emit sleepWhenComplete(bw->sleep());
+
     BatchWizard *wiz = qobject_cast<BatchWizard*>(wizard());
     AbstractFitter *ftr = wiz->fitter();
 

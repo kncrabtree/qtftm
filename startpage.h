@@ -12,17 +12,13 @@ public:
 	explicit StartPage(QWidget *parent = nullptr);
 	int nextId() const;
 	bool validatePage();
-	
-signals:
-	void sleepOnComplete(bool);
-	
+		
 public slots:
 
 private:
 	QRadioButton *surveyButton;
 	QRadioButton *drButton;
 	QRadioButton *batchButton;
-	QCheckBox *sleepCheckBox;
 	
 };
 

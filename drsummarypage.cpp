@@ -13,6 +13,11 @@ DrSummaryPage::DrSummaryPage(QWidget *parent) :
 
 	vl->addWidget(label,0,Qt::AlignCenter);
 
+    sleepCheckBox = new QCheckBox(QString("Sleep when batch is complete"),this);
+    sleepCheckBox->setToolTip(QString("If checked, the instrument will be put into sleep mode when the acquisition is complete.\nThis will stop pulses from being generated, and will turn off the gas flow controllers."));
+    sleepCheckBox->setChecked(false);
+    vl->addWidget(sleepCheckBox,0,Qt::AlignCenter);
+
 	setLayout(vl);
 }
 
@@ -116,6 +121,8 @@ bool DrSummaryPage::validatePage()
 	fitter->setExp(exp);
 	fitter->setRemoveDC(rDC);
 	fitter->setAutoPad(padFid);
+
+    emit sleepWhenComplete(sleepCheckBox->isChecked());
 
 	//make BatchDR
     bdr = new BatchDR(s,start,stop,step,numScansBetween,r,hasCal,fitter);

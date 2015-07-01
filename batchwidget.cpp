@@ -68,7 +68,12 @@ BatchWidget::BatchWidget(SingleScanWidget *ssw, QWidget *parent) :
 	//make the label for the estimated time
 	timeLabel = new QLabel(this);
 	timeLabel->setAlignment(Qt::AlignCenter);
-	ui->rightLayout->addWidget(timeLabel,0,Qt::AlignCenter);
+    ui->rightLayout->addWidget(timeLabel,0,Qt::AlignCenter);
+
+    sleepCheckBox = new QCheckBox(QString("Sleep when batch is complete"),this);
+    sleepCheckBox->setToolTip(QString("If checked, the instrument will be put into sleep mode when the acquisition is complete.\nThis will stop pulses from being generated, and will turn off the gas flow controllers."));
+    sleepCheckBox->setChecked(false);
+    ui->rightLayout->addWidget(sleepCheckBox,0,Qt::AlignCenter);
 
 	//show a time estimate
 	updateLabel();

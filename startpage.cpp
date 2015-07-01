@@ -29,10 +29,6 @@ StartPage::StartPage(QWidget *parent) :
 	QGroupBox *miscBox = new QGroupBox(QString("Miscellaneous Settings"),this);
 	QVBoxLayout *mbl = new QVBoxLayout(miscBox);
 
-	sleepCheckBox = new QCheckBox(QString("Sleep when batch is complete"),this);
-	sleepCheckBox->setToolTip(QString("If checked, the instrument will be put into sleep mode when the acquisition is complete.\nThis will stop pulses from being generated, and will turn off the gas flow controllers."));
-	sleepCheckBox->setChecked(false);
-	mbl->addWidget(sleepCheckBox);
 
 	miscBox->setLayout(mbl);
 	vl->addWidget(miscBox);
@@ -60,6 +56,5 @@ int StartPage::nextId() const
 
 bool StartPage::validatePage()
 {
-	emit sleepOnComplete(sleepCheckBox->isChecked());
 	return true;
 }

@@ -17,10 +17,12 @@ public:
 	
 signals:
 	void batchSurvey(BatchManager*);
+    void sleepWhenComplete(bool);
 
 
 private:
 	QLabel *label;
+    QCheckBox *sleepCheckBox;
 	
 };
 

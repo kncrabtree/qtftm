@@ -16,6 +16,7 @@ public:
 	
 signals:
 	void batchManager(BatchManager *bm);
+    void sleepWhenComplete(bool);
 	
 public slots:
 
