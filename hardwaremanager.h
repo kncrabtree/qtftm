@@ -148,14 +148,24 @@ signals:
      * \param FlowController::FlowIndex Which channel changed (pressure; ch 1-4)
      * \param double The new value
      */
-    void flowUpdated(FlowController::FlowIndex,double);
+    void flowUpdate(int,double);
+
+    void pressureUpdate(double);
 
     /*!
      * \brief Emitted when a setpoint changes
      * \param FlowController::FlowIndex Which channel changed (pressure; ch 1-4)
      * \param double The new value
      */
-    void flowSetPointUpdated(FlowController::FlowIndex,double);
+    void flowSetpointUpdate(int,double);
+
+    void pressureSetpointUpdate(double);
+
+    void setFlowSetpoint(int i, double val);
+
+    void setPressureSetpoint(double);
+
+    void setGasName(int, QString);
 
     /*!
 	\brief Emitted to indicate whether the flow controller PID loop is active
@@ -375,13 +385,6 @@ public slots:
     void changeAttnFile(QString fileName);
 
     /*!
-     * \brief Sets a flow controller set point from UI
-     * \param i Channel (pressure, ch 1-4)
-     * \param val New setpoint
-     */
-    void setFlowSetPoint(FlowController::FlowIndex i, double val);
-
-    /*!
      * \brief Sets a single setting for a pulse generator channel
      * \param ch Channel number
      * \param s Setting to change
@@ -515,7 +518,7 @@ public slots:
      * \brief Reads all gas flows and the pressure from flow controller
      * \return Structure containing readings
      */
-    FlowController::FlowChannels readFlows();
+    const FlowConfig readFlowConfig();
 
     /*!
      * \brief Starts the cavity tuning process for a scan, if needed

@@ -1,6 +1,8 @@
 #ifndef DATASTRUCTS_H
 #define DATASTRUCTS_H
 
+#include <QString>
+
 namespace QtFTM {
 
 enum LogMessageCode {
@@ -28,6 +30,19 @@ enum ScopeResolution {
     Res_2kHz,
     Res_5kHz,
     Res_10kHz
+};
+
+enum FlowSetting {
+    FlowSettingEnabled,
+    FlowSettingSetpoint,
+    FlowSettingFlow,
+    FlowSettingName
+};
+
+struct FlowChannelConfig {
+    bool enabled;
+    double setpoint;
+    QString name;
 };
 
 }

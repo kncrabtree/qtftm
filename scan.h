@@ -5,6 +5,7 @@
 #include <QString>
 #include <QList>
 #include "pulsegenerator.h"
+#include "flowconfig.h"
 #include "fid.h"
 #include <QStringList>
 #include <QDateTime>
@@ -270,6 +271,8 @@ public:
 	void setDrPower(const double p);
 
     void setDipoleMoment(const double a);
+
+    void setFlowConfig(const FlowConfig c);
 	/*!
 	 \brief
 

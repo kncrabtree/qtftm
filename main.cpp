@@ -90,6 +90,20 @@ int main(int argc, char *argv[])
     signal(SIGPIPE,SIG_IGN);
 #endif
 
+    //register custom types with meta object system
+    qRegisterMetaType<QVector<QPointF> >("QVector<QPointF>");
+    qRegisterMetaType<Fid>("Fid");
+    qRegisterMetaType<QtFTM::LogMessageCode>("QtFTM::LogMessageCode");
+    qRegisterMetaType<Scan>("Scan");
+    qRegisterMetaType<PulseGenerator::PulseChannelConfiguration>("PulseGenerator::PulseChannelConfiguration");
+    qRegisterMetaType<PulseGenerator::Setting>("PulseGenerator::Setting");
+    qRegisterMetaType<QList<PulseGenerator::PulseChannelConfiguration> >("QList<PulseGenerator::PulseChannelConfiguration>");
+    qRegisterMetaType<BatchManager::BatchPlotMetaData>("BatchManager::BatchPlotMetaData");
+    qRegisterMetaType<QList<QVector<QPointF> > >("QList<QVector<QPointF> >");
+    qRegisterMetaType<FlowConfig>("FlowConfig");
+    qRegisterMetaType<FitResult>("FitResult");
+    qRegisterMetaType<QtFTM::FlowSetting>("QtFTM::FlowSetting");
+
 	MainWindow w;
 	w.show();
 	

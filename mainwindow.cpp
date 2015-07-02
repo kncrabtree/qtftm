@@ -29,19 +29,6 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent), ui(new Ui::MainWindow), hardwareConnected(false)
 {
-	//register custom types with meta object system
-	qRegisterMetaType<QVector<QPointF> >("QVector<QPointF>");
-	qRegisterMetaType<Fid>("Fid");
-	qRegisterMetaType<QtFTM::LogMessageCode>("QtFTM::LogMessageCode");
-	qRegisterMetaType<Scan>("Scan");
-	qRegisterMetaType<PulseGenerator::PulseChannelConfiguration>("PulseGenerator::PulseChannelConfiguration");
-	qRegisterMetaType<PulseGenerator::Setting>("PulseGenerator::Setting");
-	qRegisterMetaType<QList<PulseGenerator::PulseChannelConfiguration> >("QList<PulseGenerator::PulseChannelConfiguration>");
-	qRegisterMetaType<BatchManager::BatchPlotMetaData>("BatchManager::BatchPlotMetaData");
-	qRegisterMetaType<QList<QVector<QPointF> > >("QList<QVector<QPointF> >");
-    qRegisterMetaType<FlowController::FlowChannels>("FlowController::FlowChannels");
-    qRegisterMetaType<FlowController::FlowIndex>("FlowController::FlowIndex");
-    qRegisterMetaType<FitResult>("FitResult");
 
 	//build UI and make trivial connections
 	ui->setupUi(this);
@@ -85,10 +72,15 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->menuResolution->addActions(resGroup->actions());
 
     //recall gas names
-    ui->g1lineEdit->setText(s.value(QString("gas1Name"),QString("")).toString());
-    ui->g2lineEdit->setText(s.value(QString("gas2Name"),QString("")).toString());
-    ui->g3lineEdit->setText(s.value(QString("gas3Name"),QString("")).toString());
-    ui->g4lineEdit->setText(s.value(QString("gas4Name"),QString("")).toString());
+    d_gasBoxes.append(ui->g1lineEdit);
+    d_gasBoxes.append(ui->g2lineEdit);
+    d_gasBoxes.append(ui->g3lineEdit);
+    d_gasBoxes.append(ui->g4lineEdit);
+
+    d_gasSetpointBoxes.append(ui->g1setPointBox);
+    d_gasSetpointBoxes.append(ui->g2setPointBox);
+    d_gasSetpointBoxes.append(ui->g3setPointBox);
+    d_gasSetpointBoxes.append(ui->g4setPointBox);
 
     //apply ranges to synth control boxes
     synthSettingsChanged();
@@ -134,11 +126,8 @@ MainWindow::MainWindow(QWidget *parent) :
     auto doubleVc = static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged);
     auto intVc = static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged);
 
-    connect(ui->g1setPointBox,doubleVc,[=](double d){ setFlowSetPoint(FlowController::Flow1,d); });
-    connect(ui->g2setPointBox,doubleVc,[=](double d){ setFlowSetPoint(FlowController::Flow2,d); });
-    connect(ui->g3setPointBox,doubleVc,[=](double d){ setFlowSetPoint(FlowController::Flow3,d); });
-    connect(ui->g4setPointBox,doubleVc,[=](double d){ setFlowSetPoint(FlowController::Flow4,d); });
-    connect(ui->pressureSetPointBox,doubleVc,[=](double d){ setFlowSetPoint(FlowController::Pressure,d); });
+    for(int i=0; i<d_gasSetpointBoxes.size(); i++)
+        connect(d_gasSetpointBoxes.at(i),doubleVc,[=](double d){ emit setFlowSetpoint(i,d);});
 	connect(ui->actionPause,&QAction::triggered,this,&MainWindow::pauseAcq);
 	connect(ui->actionResume,&QAction::triggered,this,&MainWindow::resumeAcq);
 	connect(ui->actionPrint_Scan,&QAction::triggered,ui->analysisWidget,&AnalysisWidget::print);
@@ -165,10 +154,16 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(res5kHzAction,&QAction::triggered,[=](){ resolutionChanged(QtFTM::Res_5kHz); });
     connect(res10kHzAction,&QAction::triggered,[=](){ resolutionChanged(QtFTM::Res_10kHz); });
     connect(ui->saveLogButton,&QAbstractButton::clicked,this,&MainWindow::saveLogCallback);
-    connect(ui->g1lineEdit,&QLineEdit::editingFinished,this,&MainWindow::gasNamesChanged);
-    connect(ui->g2lineEdit,&QLineEdit::editingFinished,this,&MainWindow::gasNamesChanged);
-    connect(ui->g3lineEdit,&QLineEdit::editingFinished,this,&MainWindow::gasNamesChanged);
-    connect(ui->g4lineEdit,&QLineEdit::editingFinished,this,&MainWindow::gasNamesChanged);
+    for(int i=0; i<d_gasBoxes.size();i++)
+    {
+        connect(d_gasBoxes.at(i),&QLineEdit::editingFinished,[=](){
+            QString name = d_gasBoxes.at(i)->text();
+            QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+            s.setValue(QString("gas%1Name"),name);
+            emit changeGasName(i,name);
+            s.sync();
+        });
+    }
 
 	//prepare status bar
 	statusLabel = new QLabel();
@@ -215,9 +210,15 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(hwm,&HardwareManager::attenUpdate,this,&MainWindow::setcvUpdate);
     connect(ui->magnetOnOffButton,&QAbstractButton::clicked,hwm,&HardwareManager::setMagnetFromUI);
     connect(hwm,&HardwareManager::magnetUpdate,this,&MainWindow::magnetUpdate);
-    connect(hwm,&HardwareManager::flowUpdated,this,&MainWindow::flowControllerUpdate);
-    connect(hwm,&HardwareManager::flowSetPointUpdated,this,&MainWindow::flowSetPointUpdated);
+    connect(hwm,&HardwareManager::flowUpdate,this,&MainWindow::flowControllerUpdate);
+    connect(hwm,&HardwareManager::pressureUpdate,this,&MainWindow::pressureUpdate);
+    connect(hwm,&HardwareManager::flowSetpointUpdate,this,&MainWindow::flowSetpointUpdate);
+    connect(hwm,&HardwareManager::pressureSetpointUpdate,this,&MainWindow::pressureSetpointUpdate);
     connect(hwm,&HardwareManager::pressureControlMode,this,&MainWindow::pressureControlMode);
+    connect(this,&MainWindow::changeGasName,hwm,&HardwareManager::setGasName);
+    connect(this,&MainWindow::setFlowSetpoint,hwm,&HardwareManager::setFlowSetpoint);
+    connect(ui->pressureSetPointBox,doubleVc,hwm,&HardwareManager::setPressureSetpoint);
+
     connect(ui->pressureControlButton,&QAbstractButton::clicked,hwm,&HardwareManager::setPressureControlMode);
     connect(ui->pressureControlButton,&QAbstractButton::clicked,[=](bool b){
 	    if(b)
@@ -329,6 +330,15 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif
 
     synthSettingsChanged();
+
+    for(int i=0; i<d_gasBoxes.size(); i++)
+    {
+        QString name = s.value(QString("gas%1Name").arg(i+1),QString("")).toString();
+        d_gasBoxes[i]->setText(name);
+        emit changeGasName(i,name);
+    }
+
+
 	uiState = Idle;
     noHardwareMode = false;
 	updateUiConfig();
@@ -599,53 +609,50 @@ void MainWindow::mirrorPosUpdate(int pos)
         mirrorProgress->setValue(pos);
 }
 
-void MainWindow::flowControllerUpdate(FlowController::FlowIndex i, double d)
+void MainWindow::flowControllerUpdate(int i, double d)
 {
-    switch(i)
+    switch(i+1)
     {
-    case FlowController::Pressure:
-        ui->pDoubleSpinBox->setValue(d);
-        break;
-    case FlowController::Flow1:
+    case 1:
         ui->g1DoubleSpinBox->setValue(d);
         break;
-    case FlowController::Flow2:
+    case 2:
         ui->g2DoubleSpinBox->setValue(d);
         break;
-    case FlowController::Flow3:
+    case 3:
         ui->g3DoubleSpinBox->setValue(d);
         break;
-    case FlowController::Flow4:
+    case 4:
         ui->g4DoubleSpinBox->setValue(d);
         break;
     }
 }
 
-void MainWindow::flowSetPointUpdated(FlowController::FlowIndex i, double d)
+void MainWindow::pressureUpdate(double p)
 {
-    switch(i)
+    ui->pDoubleSpinBox->setValue(p);
+}
+
+void MainWindow::flowSetpointUpdate(int i, double d)
+{
+    switch(i+1)
     {
-    case FlowController::Pressure:
-        ui->pressureSetPointBox->blockSignals(true);
-        ui->pressureSetPointBox->setValue(d);
-        ui->pressureSetPointBox->blockSignals(false);
-        break;
-    case FlowController::Flow1:
+    case 1:
         ui->g1setPointBox->blockSignals(true);
         ui->g1setPointBox->setValue(d);
         ui->g1setPointBox->blockSignals(false);
         break;
-    case FlowController::Flow2:
+    case 2:
         ui->g2setPointBox->blockSignals(true);
         ui->g2setPointBox->setValue(d);
         ui->g2setPointBox->blockSignals(false);
         break;
-    case FlowController::Flow3:
+    case 3:
         ui->g3setPointBox->blockSignals(true);
         ui->g3setPointBox->setValue(d);
         ui->g3setPointBox->blockSignals(false);
         break;
-    case FlowController::Flow4:
+    case 4:
         ui->g4setPointBox->blockSignals(true);
         ui->g4setPointBox->setValue(d);
         ui->g4setPointBox->blockSignals(false);
@@ -653,9 +660,11 @@ void MainWindow::flowSetPointUpdated(FlowController::FlowIndex i, double d)
     }
 }
 
-void MainWindow::setFlowSetPoint(FlowController::FlowIndex i, double d)
+void MainWindow::pressureSetpointUpdate(double d)
 {
-	QMetaObject::invokeMethod(hwm,"setFlowSetPoint",Q_ARG(FlowController::FlowIndex,i),Q_ARG(double,d));
+    ui->pressureSetPointBox->blockSignals(true);
+    ui->pressureSetPointBox->setValue(d);
+    ui->pressureSetPointBox->blockSignals(false);
 }
 
 void MainWindow::pressureControlMode(bool on)
@@ -839,16 +848,6 @@ void MainWindow::batchScanCallback()
 
 	delete ssw;
 	delete aw;
-}
-
-void MainWindow::gasNamesChanged()
-{
-    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
-    s.setValue(QString("gas1Name"),ui->g1lineEdit->text());
-    s.setValue(QString("gas2Name"),ui->g2lineEdit->text());
-    s.setValue(QString("gas3Name"),ui->g3lineEdit->text());
-    s.setValue(QString("gas4Name"),ui->g4lineEdit->text());
-    s.sync();
 }
 
 void MainWindow::sleep(bool b)

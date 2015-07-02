@@ -1,81 +1,74 @@
 #ifndef FLOWCONTROLLER_H
 #define FLOWCONTROLLER_H
 
-#include "rs232instrument.h"
+#include "hardwareobject.h"
+
 #include <QTimer>
 
-class FlowController : public Rs232Instrument
+#include "flowconfig.h"
+
+class FlowController : public HardwareObject
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-    explicit FlowController(QObject *parent = nullptr);
+    FlowController(QObject *parent = nullptr);
+    ~FlowController();
 
-    struct FlowChannels {
-        double pressure;
-        double flow1;
-        double flow2;
-        double flow3;
-        double flow4;
-        int pRange;
-        int fRange1;
-        int fRange2;
-        int fRange3;
-        int fRange4;
-        double gcf1;
-        double gcf2;
-        double gcf3;
-        double gcf4;
+    FlowConfig config() const { return d_config; }
 
-        FlowChannels() : pressure(0.0), flow1(0.0), flow2(0.0), flow3(0.0), flow4(0.0),
-            pRange(0), fRange1(0), fRange2(0), fRange3(0), fRange4(0),
-            gcf1(1.0), gcf2(1.0), gcf3(1.0), gcf4(1.0) {}
-        FlowChannels(const FlowChannels &other) : pressure(other.pressure), flow1(other.flow1),
-            flow2(other.flow2), flow3(other.flow3), flow4(other.flow4),
-            pRange(other.pRange), fRange1(other.fRange1), fRange2(other.fRange2), fRange3(other.fRange3),
-            fRange4(other.fRange4), gcf1(other.gcf1), gcf2(other.gcf2), gcf3(other.gcf3), gcf4(other.gcf4) {}
-
-    };
-
-    enum FlowIndex {
-        Pressure,
-        Flow1,
-        Flow2,
-        Flow3,
-        Flow4
-    };
-	
 signals:
-    void flowUpdated(FlowController::FlowIndex, double);
-    void setPointUpdated(FlowController::FlowIndex, double);
+    void channelNameUpdate(int,QString);
+    void flowUpdate(int,double);
+    void pressureUpdate(double);
+    void flowSetpointUpdate(int,double);
+    void pressureSetpointUpdate(double);
     void pressureControlMode(bool);
-	
+
 public slots:
-    void initialize();
-	bool testConnection();
-    void sleep(bool b);
-    void updateFlows();
-    void setSetPoint(FlowController::FlowIndex i, double val);
-    void setPressureControl(bool on);
-    void readPressureControlStatus();
+    virtual double setFlowSetpoint(const int ch, const double val) =0;
+    virtual double setPressureSetpoint(const double val) =0;
+    virtual void setChannelName(const int ch, const QString name);
 
-    FlowController::FlowChannels readFlows() const { return FlowChannels(d_flows); }
+    virtual double readFlowSetpoint(const int ch) =0;
+    virtual double readPressureSetpoint() =0;
+    virtual double readFlow(const int ch) =0;
+    virtual double readPressure() =0;
 
-private:
-    bool d_connected;
-    QList<double> d_gasRangeList;
-    QList<double> d_pressureRangeList;
-    FlowChannels d_flows;
+    virtual void setPressureControlMode(bool enabled) =0;
+    virtual bool readPressureControlMode() =0;
 
-    FlowIndex d_index;
-    QTimer *flowTimer;
+    void updateInterval();
+    virtual void readNext();
 
-    void pressureQuery();
-    void flowQuery(int ch);
-    void queryPressureSetPoint();
-    void queryFlowSetPoint(int ch);
-    void setPressureSetPoint(double val);
-    void setFlowSetPoint(int ch, double val);
-	
+    // HardwareObject interface
+    void readTimeData();
+
+protected:
+    FlowConfig d_config;
+    QTimer *p_readTimer;
+    int d_nextRead;
+
+    void readAll();
+
+
 };
+
+#ifdef QTFTM_FLOWCONTROLLER
+#if QTFTM_FLOWCONTROLLER == 1
+#include "mks647c.h"
+class MKS647C;
+typedef MKS647C FlowControllerHardware;
+
+#define QTFTM_FLOW_NUMCHANNELS 4
+#else
+#include "virtualflowcontroller.h"
+class VirtualFlowController;
+typedef VirtualFlowController FlowControllerHardware;
+
+#define QTFTM_FLOW_NUMCHANNELS 4
+#endif
+#else
+#define QTFTM_FLOW_NUMCHANNELS 0
+#endif
 
 #endif // FLOWCONTROLLER_H

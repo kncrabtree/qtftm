@@ -22,7 +22,7 @@ public:
        scopeDelayTime(-1), dipoleMoment(0.0), magnet(false) {}
 	ScanData(const ScanData &other) :
 		QSharedData(other), number(other.number), ts(other.ts), ftFreq(other.ftFreq), ftAtten(other.ftAtten), drFreq(other.drFreq),
-        drPower(other.drPower), pressure(other.pressure), gasNames(other.gasNames), gasFlows(other.gasFlows), repRate(other.repRate),
+        drPower(other.drPower), flowConfig(other.flowConfig), repRate(other.repRate),
 		pulseConfig(other.pulseConfig), targetShots(other.targetShots), completedShots(other.completedShots),
         fid(other.fid), initialized(other.initialized), saved(other.saved), aborted(other.aborted), dummy(other.dummy),
         skipTune(other.skipTune), tuningVoltage(other.tuningVoltage), tuningVoltageTakenWithScan(other.tuningVoltageTakenWithScan),
@@ -39,9 +39,7 @@ public:
 	double drFreq;
 	double drPower;
 
-	double pressure;
-	QStringList gasNames;
-	QList<double> gasFlows;
+    FlowConfig flowConfig;
 
     double repRate;
 	QList<PulseGenerator::PulseChannelConfiguration> pulseConfig;
@@ -154,12 +152,16 @@ double Scan::drPower() const
 
 double Scan::pressure() const
 {
-	return data->pressure;
+    return data->flowConfig.pressure();
 }
 
 QStringList Scan::gasNames() const
 {
-	return data->gasNames;
+    QStringList out;
+    for(int i=0; i<data->flowConfig.size(); i++)
+        out.append(data->flowConfig.setting(i,QtFTM::FlowSettingName).toString());
+
+    return out;
 }
 
 QList<double> Scan::gasFlows() const
@@ -303,6 +305,11 @@ void Scan::setScopeDelayTime (const int v)
 void Scan::setDipoleMoment( const double v)
 {
     data->dipoleMoment = v;
+}
+
+void Scan::setFlowConfig(const FlowConfig c)
+{
+    data->flowConfig = c;
 }
 
 void Scan::setDrPower(const double p)
@@ -472,14 +479,7 @@ QString Scan::scanHeader() const
 	t << QString("#FID spacing\t") << fid().spacing() << QString("\ts\n");
 	t << QString("#FID points\t") << fid().size() << QString("\t\n");
     t << QString("#Rep rate\t") << repRate() << QString("\tHz\n");
-	t << QString("#Pressure\t") << pressure() << QString("\tkTorr\n");
-	for(int i=0; i<gasFlows().size(); i++)
-	{
-		t << QString("#Gas %1 name\t").arg(i+1);
-		if(i < gasNames().size())
-			t << gasNames().at(i);
-		t << QString("\t\n#Gas %1 flow\t").arg(i+1) << gasFlows().at(i) << QString("\tsccm\n");
-	}
+    t << data->flowConfig.headerString();
 
 	for(int i=0; i<pulseConfiguration().size(); i++)
 	{

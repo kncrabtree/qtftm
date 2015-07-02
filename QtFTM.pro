@@ -78,6 +78,9 @@ DEFINES += QTFTM_PDG=1
 #Motor driver. 0 = virtual, 1 = Antonucci
 DEFINES += QTFTM_MOTORDRIVER=1
 
+#flow controller. 0 = virtua, 1 = MKS 647C
+DEFINES += QTFTM_FLOWCONTROLLER=1
+
 DISTFILES += \
     Notes.txt
 

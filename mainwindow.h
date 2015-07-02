@@ -58,9 +58,10 @@ public slots:
     void updateScopeDelayOnUI(int a);
     void updateProtectionDelayOnUI(int a);
     void mirrorPosUpdate(int pos);
-    void flowControllerUpdate(FlowController::FlowIndex i ,double d);
-    void flowSetPointUpdated(FlowController::FlowIndex i, double d);
-    void setFlowSetPoint(FlowController::FlowIndex i, double d);
+    void flowControllerUpdate(int i ,double d);
+    void pressureUpdate(double p);
+    void flowSetpointUpdate(int i, double d);
+    void pressureSetpointUpdate(double d);
     void pressureControlMode(bool on);
 	void fatalSaveError();
 
@@ -72,7 +73,6 @@ public slots:
 
 	void singleScanCallback();
 	void batchScanCallback();
-    void gasNamesChanged();
 	void sleep(bool b);
 	void hardwareStatusChanged(bool success);
 	void launchCommunicationDialog();
@@ -96,6 +96,10 @@ public slots:
     void attnTablePrepComplete(bool success);
     void attnTableBatchComplete(bool aborted);
 
+signals:
+    void changeGasName(int, QString);
+    void setFlowSetpoint(int i, double d);
+
 private:
 	Ui::MainWindow *ui;
 	QThread *acquisitionThread;
@@ -113,6 +117,8 @@ private:
 	QList<QDoubleSpinBox*> d_widthBoxes;
 	QList<QPushButton*> d_onOffButtons;
 	QList<Led*> d_leds;
+    QList<QLineEdit*> d_gasBoxes;
+    QList<QDoubleSpinBox*> d_gasSetpointBoxes;
 
     QAction *res1kHzAction;
     QAction *res2kHzAction;

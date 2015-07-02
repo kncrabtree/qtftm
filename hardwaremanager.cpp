@@ -79,11 +79,16 @@ void HardwareManager::initializeHardware()
     d_hardwareList.append(qMakePair(iob,new QThread(this)));
 
 
-    fc = new FlowController();
-    connect(fc,&FlowController::flowUpdated,this,&HardwareManager::flowUpdated);
-    connect(fc,&FlowController::setPointUpdated,this,&HardwareManager::flowSetPointUpdated);
+    fc = new FlowControllerHardware();
+    connect(fc,&FlowController::flowUpdate,this,&HardwareManager::flowUpdate);
+    connect(fc,&FlowController::pressureUpdate,this,&HardwareManager::pressureUpdate);
+    connect(fc,&FlowController::flowSetpointUpdate,this,&HardwareManager::flowSetpointUpdate);
+    connect(fc,&FlowController::pressureSetpointUpdate,this,&HardwareManager::pressureSetpointUpdate);
     connect(fc,&FlowController::pressureControlMode,this,&HardwareManager::pressureControlMode);
-    connect(this,&HardwareManager::setPressureControlMode,fc,&FlowController::setPressureControl);
+    connect(this,&HardwareManager::setPressureControlMode,fc,&FlowController::setPressureControlMode);
+    connect(this,&HardwareManager::setGasName,fc,&FlowController::setChannelName);
+    connect(this,&HardwareManager::setFlowSetpoint,&FlowController::setFlowSetpoint);
+    connect(this,&HardwareManager::setPressureSetpoint,&FlowController::setPressureSetpoint);
     d_hardwareList.append(qMakePair(fc,new QThread(this)));
 
     pGen = new PulseGenerator();
@@ -277,11 +282,6 @@ void HardwareManager::changeAttnFile(QString fileName)
     attn->changeAttenFile(fileName);
 }
 
-void HardwareManager::setFlowSetPoint(FlowController::FlowIndex i, double val)
-{
-    QMetaObject::invokeMethod(fc,"setSetPoint",Q_ARG(FlowController::FlowIndex,i),Q_ARG(double,val));
-}
-
 void HardwareManager::setPulse(const int ch, const PulseGenerator::Setting s, const QVariant x)
 {
     QMetaObject::invokeMethod(pGen,"setChannelSetting",Q_ARG(int,ch),Q_ARG(PulseGenerator::Setting,s),Q_ARG(QVariant,x));
@@ -418,12 +418,16 @@ void HardwareManager::pauseScope(bool pause)
     QMetaObject::invokeMethod(scope,"setActive",Qt::BlockingQueuedConnection,Q_ARG(bool,!pause));
 }
 
-FlowController::FlowChannels HardwareManager::readFlows()
+const FlowConfig HardwareManager::readFlowConfig()
 {
-    FlowController::FlowChannels out;
-    QMetaObject::invokeMethod(fc,"readFlows",Qt::BlockingQueuedConnection,
-                              Q_RETURN_ARG(FlowController::FlowChannels,out));
-    return out;
+    if(fc->thread() == thread())
+        return fc->config();
+    else
+    {
+        FlowConfig out;
+        QMetaObject::invokeMethod(fc,"config",Qt::BlockingQueuedConnection,Q_RETURN_ARG(FlowConfig,out));
+        return out;
+    }
 }
 
 void HardwareManager::prepareForScan(Scan s)
@@ -599,15 +603,8 @@ void HardwareManager::finishPreparation(bool tuneSuccess)
     d_currentScan.setMagnet(mag);
 
     //read flows and pressure
-    FlowController::FlowChannels fc = readFlows();
-    d_currentScan.setPressure(fc.pressure);
-
-    QList<double> flows;
-    flows.append(fc.flow1);
-    flows.append(fc.flow2);
-    flows.append(fc.flow3);
-    flows.append(fc.flow4);
-    d_currentScan.setGasFlows(flows);
+    FlowConfig c = readFlowConfig();
+    d_currentScan.setFlowConfig(c);
 
     d_currentScan.initializationComplete();
     emit scanInitialized(d_currentScan);
