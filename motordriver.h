@@ -1,7 +1,7 @@
 #ifndef MOTORDRIVER_H
 #define MOTORDRIVER_H
 
-#include "rs232instrument.h"
+#include "hardwareobject.h"
 #include <QPair>
 #include <QDateTime>
 #include <QStringList>
@@ -29,7 +29,7 @@
 #define MD_CALTUNEMODE 46
 #endif
 
-class MotorDriver : public Rs232Instrument
+class MotorDriver : public HardwareObject
 {
 	Q_OBJECT
 public:
@@ -50,25 +50,17 @@ signals:
     void voltageChanged(int);
 	
 public slots:
-    void initialize();
-	bool testConnection();
     bool canSkipTune(double freq);
     int calcNextMode(double freq, bool above);
     void cavityFreqChanged(double freq);
 
-    void tune(double freq, int currentAttn, int mode = -1);
-    QStringList roughTune(int posGuess, bool calibrating = false, double freq = -1); // let roughTune know freq so it can change if F in top region Mar 20 PRAA
-    QByteArray intermediateTune();
-    bool fineTune(int targetVoltage, int width, double freq, int currentMode, int currentAttn);
-
-    void calibrate();
     int lastTuneVoltage() const;
     int lastTuneAttenuation() const;
     int lastCalVoltage() const;
     void shutUp(bool quiet) { d_quiet = quiet; }
     void measureVoltageNoTune();
 
-private:
+protected:
     double d_lastTuneFreq;
     int d_lastTuneAtten;
     int d_lastTuneVoltage;
@@ -78,12 +70,23 @@ private:
     QDateTime d_lastTuneTime;
     bool d_quiet;
 
-    bool moveToPosition(int pos);
-    bool stepMotor(int motorSteps);
-    int readAnalog();
-    int readPos();
-    int waitForSlope();
+    virtual bool moveToPosition(int pos) =0;
+    virtual bool stepMotor(int motorSteps) =0;
+    virtual int readAnalog() =0;
+    virtual int readPos() =0;
 
 };
+
+#ifdef QTFTM_MOTORDRIVER
+#if QTFTM_MOTORDRIVER == 1
+#include "antonuccimotordriver.h"
+class AntonucciMotorDriver;
+typedef AntonucciMotorDriver MotorDriverHardware;
+#else
+#include "virtualftmwscope.h"
+class VirtualMotorDriver;
+typedef VirtualMotorDriver MotorDriverHardware;
+#endif
+#endif
 
 #endif // MOTORDRIVER_H

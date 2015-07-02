@@ -60,11 +60,11 @@ void HardwareManager::initializeHardware()
     connect(this,&HardwareManager::setScopeDelayFromUI,pin,&PinSwitchDriveDelayGenerator::setScopeDelay);
     d_hardwareList.append(qMakePair(pin,new QThread(this)));
 
-    md = new MotorDriver();
+    md = new MotorDriverHardware();
     connect(md,&MotorDriver::posUpdate,this,&HardwareManager::mirrorPosUpdate);
-    connect(md,&MotorDriver::deltaF,gpib,&GpibLanController::ftmDeltaFreq,Qt::BlockingQueuedConnection);
+//    connect(md,&MotorDriver::deltaF,gpib,&GpibLanController::ftmDeltaFreq,Qt::BlockingQueuedConnection);
     connect(md,&MotorDriver::tuningComplete,this,&HardwareManager::cavityTuneComplete);
-    connect(gpib,&GpibLanController::ftmSynthFreq,md,&MotorDriver::cavityFreqChanged);
+//    connect(gpib,&GpibLanController::ftmSynthFreq,md,&MotorDriver::cavityFreqChanged);
     connect(md,&MotorDriver::canTuneUp,this,&HardwareManager::canTuneUp);
     connect(md,&MotorDriver::canTuneDown,this,&HardwareManager::canTuneDown);
     connect(md,&MotorDriver::modeChanged,this,&HardwareManager::modeChanged);
@@ -73,7 +73,7 @@ void HardwareManager::initializeHardware()
 
     iob = new IOBoard();
     connect(iob,&IOBoard::triggered,scope,&Oscilloscope::sendCurveQuery);
-    connect(gpib,&GpibLanController::ftmSynthBandChanged,iob,&IOBoard::ftmSynthBand,Qt::BlockingQueuedConnection);
+//    connect(gpib,&GpibLanController::ftmSynthBandChanged,iob,&IOBoard::ftmSynthBand,Qt::BlockingQueuedConnection);
     connect(iob,&IOBoard::magnetUpdate,this,&HardwareManager::magnetUpdate);
     connect(this,&HardwareManager::setMagnetFromUI,iob,&IOBoard::setMagnet);
     d_hardwareList.append(qMakePair(iob,new QThread(this)));
