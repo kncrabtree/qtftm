@@ -58,17 +58,11 @@ protected:
 #include "mks647c.h"
 class MKS647C;
 typedef MKS647C FlowControllerHardware;
-
-#define QTFTM_FLOW_NUMCHANNELS 4
 #else
 #include "virtualflowcontroller.h"
 class VirtualFlowController;
 typedef VirtualFlowController FlowControllerHardware;
-
-#define QTFTM_FLOW_NUMCHANNELS 4
 #endif
-#else
-#define QTFTM_FLOW_NUMCHANNELS 0
 #endif
 
 #endif // FLOWCONTROLLER_H

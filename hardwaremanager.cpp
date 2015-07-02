@@ -95,8 +95,8 @@ void HardwareManager::initializeHardware()
     connect(fc,&FlowController::pressureControlMode,this,&HardwareManager::pressureControlMode);
     connect(this,&HardwareManager::setPressureControlMode,fc,&FlowController::setPressureControlMode);
     connect(this,&HardwareManager::setGasName,fc,&FlowController::setChannelName);
-    connect(this,&HardwareManager::setFlowSetpoint,&FlowController::setFlowSetpoint);
-    connect(this,&HardwareManager::setPressureSetpoint,&FlowController::setPressureSetpoint);
+    connect(this,&HardwareManager::setFlowSetpoint,fc,&FlowController::setFlowSetpoint);
+    connect(this,&HardwareManager::setPressureSetpoint,fc,&FlowController::setPressureSetpoint);
     d_hardwareList.append(qMakePair(fc,new QThread(this)));
 
     pGen = new PulseGenerator();
