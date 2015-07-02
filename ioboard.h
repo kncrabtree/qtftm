@@ -1,7 +1,7 @@
 #ifndef IOBOARD_H
 #define IOBOARD_H
 #include "hardwareobject.h"
-#include "u3.h"
+
 #include <QTimer>
 
 class IOBoard : public HardwareObject
@@ -15,33 +15,26 @@ signals:
     void magnetUpdate(bool);
     
 public slots:
-    void initialize();
-    bool testConnection();
-    void configure();
+    virtual long setCwMode(bool cw) =0;
+    virtual void ftmSynthBand(int band) =0;
+    virtual long setMagnet(bool mag) =0;
+    virtual void checkForTrigger() =0;
 
-    long cwMode(bool cw);
-    void ftmSynthBand(int band);
-    long setMagnet(bool mag);
-    void checkCounter();
-
-private:
-    HANDLE d_handle;
-    u3CalibrationInfo d_calInfo;
-
-    void resetCounter();
-    quint32 readCounter();
-    void closeConnection();
-    quint32 d_counterCount;
-    QTimer *counterTimer;
-
-    bool d_blockTriggering;
-
-    int d_serialNo;
-    int d_cwLine;
-    int d_highBandLine;
-    int d_magnetLine;
-    int d_counterPinOffset;
+protected:
+    QTimer *p_readTimer;
     
 };
+
+#ifdef QTFTM_IOBOARD
+#if QTFTM_IOBOARD == 1
+#include "labjacku3.h"
+class LabjackU3;
+typedef LabjackU3 IOBoardHardware;
+#else
+#include "virtualioboard.h"
+class VirtualIOBoard;
+typedef VirtualIOBoard IOBoardHardware;
+#endif
+#endif
 
 #endif // IOBOARD_H

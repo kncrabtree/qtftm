@@ -83,7 +83,7 @@ protected:
 class AntonucciMotorDriver;
 typedef AntonucciMotorDriver MotorDriverHardware;
 #else
-#include "virtualftmwscope.h"
+#include "virtualmotordriver.h"
 class VirtualMotorDriver;
 typedef VirtualMotorDriver MotorDriverHardware;
 #endif

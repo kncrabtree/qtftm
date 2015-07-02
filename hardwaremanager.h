@@ -504,7 +504,6 @@ public slots:
 
     int setMagnetMode(bool mag);
 
-    void configureIOBoard();
     void applyPGenSettings();
 
     /*!

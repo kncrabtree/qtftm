@@ -81,6 +81,9 @@ DEFINES += QTFTM_MOTORDRIVER=1
 #flow controller. 0 = virtua, 1 = MKS 647C
 DEFINES += QTFTM_FLOWCONTROLLER=1
 
+#IO Board. 0 = virtual, 1 = LabJack U3
+DEFINES += QTFTM_IOBOARD=1
+
 DISTFILES += \
     Notes.txt
 

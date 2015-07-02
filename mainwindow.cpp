@@ -929,8 +929,7 @@ void MainWindow::launchIOBoardSettings()
     connect(&d,&IOBoardConfigDialog::testConnection,hwm,&HardwareManager::testObjectConnection);
     connect(hwm,&HardwareManager::testComplete,&d,&IOBoardConfigDialog::testComplete);
 
-    if(d.exec() == QDialog::Accepted)
-        QMetaObject::invokeMethod(hwm,"configureIOBoard");
+    d.exec();
 }
 
 void MainWindow::launchPulseGeneratorSettings()

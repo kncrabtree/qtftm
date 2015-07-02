@@ -71,7 +71,7 @@ void HardwareManager::initializeHardware()
     connect(md,&MotorDriver::voltageChanged,this,&HardwareManager::tuningVoltageChanged);
     d_hardwareList.append(qMakePair(md,new QThread(this)));
 
-    iob = new IOBoard();
+    iob = new IOBoardHardware();
     connect(iob,&IOBoard::triggered,scope,&Oscilloscope::sendCurveQuery);
 //    connect(gpib,&GpibLanController::ftmSynthBandChanged,iob,&IOBoard::ftmSynthBand,Qt::BlockingQueuedConnection);
     connect(iob,&IOBoard::magnetUpdate,this,&HardwareManager::magnetUpdate);
@@ -392,7 +392,7 @@ double HardwareManager::setDrSynthPwr(double p)
 int HardwareManager::setCwMode(bool cw)
 {
     long out = -1;
-    QMetaObject::invokeMethod(iob,"cwMode",Qt::BlockingQueuedConnection,Q_RETURN_ARG(long,out),Q_ARG(bool,cw));
+    QMetaObject::invokeMethod(iob,"setCwMode",Qt::BlockingQueuedConnection,Q_RETURN_ARG(long,out),Q_ARG(bool,cw));
     return (int)out;
 }
 
@@ -401,11 +401,6 @@ int HardwareManager::setMagnetMode(bool mag)
 	long out = -1;
 	QMetaObject::invokeMethod(iob,"setMagnet",Qt::BlockingQueuedConnection,Q_RETURN_ARG(long,out),Q_ARG(bool,mag));
 	return out;
-}
-
-void HardwareManager::configureIOBoard()
-{
-    QMetaObject::invokeMethod(iob,"configure");
 }
 
 void HardwareManager::applyPGenSettings()
