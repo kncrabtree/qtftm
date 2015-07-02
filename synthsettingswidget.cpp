@@ -38,14 +38,19 @@ SynthSettingsWidget::~SynthSettingsWidget()
 void SynthSettingsWidget::loadSettings()
 {
 	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
-	s.beginGroup(d_synthName);
+    s.beginGroup(d_key);
+
+    d_subKey = s.value(QString("subKey"),QString("virtual")).toString();
+
+    s.beginGroup(d_subKey);
 
 	ui->numBandsSpinBox->setValue(s.value(QString("numBands"),1).toInt());
     ui->autoSwitchCheckBox->setChecked(s.value(QString("autoSwitch"),false).toBool());
     ui->bandComboBox->setCurrentIndex(s.value(QString("currentBand"),0).toInt());
 	s.endGroup();
+    s.endGroup();
 
-    if(d_synthName == QString("drSynth"))
+    if(d_key == QString("drSynth"))
     {
         ui->autoSwitchCheckBox->setChecked(false);
         ui->autoSwitchCheckBox->setEnabled(false);
@@ -58,7 +63,8 @@ void SynthSettingsWidget::loadSettings()
 void SynthSettingsWidget::saveSettings()
 {
 	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
-	s.beginGroup(d_synthName);
+    s.beginGroup(d_key);
+    s.beginGroup(d_subKey);
 
 	s.setValue(QString("numBands"),ui->numBandsSpinBox->value());
 	s.setValue(QString("autoSwitch"),ui->autoSwitchCheckBox->isChecked());
@@ -95,6 +101,7 @@ void SynthSettingsWidget::saveSettings()
 
 	}
 	s.endGroup();
+    s.endGroup();
 
 	s.sync();
 
@@ -147,7 +154,8 @@ void SynthSettingsWidget::loadBandInfo()
 	d_lastBand = band;
 
 	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
-	s.beginGroup(d_synthName);
+    s.beginGroup(d_key);
+    s.beginGroup(d_subKey);
 	s.beginReadArray(QString("bands"));
 
 	ui->minDoubleSpinBox->setEnabled(true);
@@ -187,6 +195,7 @@ void SynthSettingsWidget::loadBandInfo()
 
 	s.endArray();
 	s.endGroup();
+    s.endGroup();
 
 	blockSignals(false);
 
@@ -195,7 +204,8 @@ void SynthSettingsWidget::loadBandInfo()
 void SynthSettingsWidget::saveBandSettings(int band)
 {
 	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
-	s.beginGroup(d_synthName);
+    s.beginGroup(d_key);
+    s.beginGroup(d_subKey);
     s.beginWriteArray(QString("bands"));
 
 //	for(int i=0;i<ui->numBandsSpinBox->value();i++)
@@ -209,6 +219,7 @@ void SynthSettingsWidget::saveBandSettings(int band)
 //	}
 	s.endArray();
 	s.endGroup();
+    s.endGroup();
 	s.sync();
 
 }

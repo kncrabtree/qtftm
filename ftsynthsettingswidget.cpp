@@ -4,7 +4,7 @@ FtSynthSettingsWidget::FtSynthSettingsWidget(QWidget *parent) :
      SynthSettingsWidget(parent)
 {
 	d_title = QString("FTM Stynthesizer Settings");
-	d_synthName = QString("ftmSynth");
+	d_key = QString("ftmSynth");
 
 	loadSettings();
 }

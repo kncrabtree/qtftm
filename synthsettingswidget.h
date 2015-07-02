@@ -20,7 +20,8 @@ protected:
 	Ui::SynthSettingsWidget *ui;
 	bool d_bandInfoChanged;
 	int d_lastBand;
-	QString d_synthName;
+    QString d_key;
+    QString d_subKey;
 
 public slots:
 	void loadSettings();
