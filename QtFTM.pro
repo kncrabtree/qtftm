@@ -78,11 +78,17 @@ DEFINES += QTFTM_PDG=1
 #Motor driver. 0 = virtual, 1 = Antonucci
 DEFINES += QTFTM_MOTORDRIVER=1
 
-#flow controller. 0 = virtua, 1 = MKS 647C
+#flow controller. 0 = virtual, 1 = MKS 647C
 DEFINES += QTFTM_FLOWCONTROLLER=1
 
 #IO Board. 0 = virtual, 1 = LabJack U3
 DEFINES += QTFTM_IOBOARD=1
+
+#FTM Synth. 0 = virtual, 1 = HP8673, 2 = HP8340
+DEFINES += QTFTM_FTMSYNTH=1
+
+#DR Synth. 0 = virtual, 1 = HP8673, 2 = HP8340
+DEFINES += QTFTM_DRSYNTH=1
 
 DISTFILES += \
     Notes.txt

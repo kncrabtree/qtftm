@@ -15,8 +15,11 @@ HardwareManager::~HardwareManager()
         QPair<HardwareObject*,QThread*> p = d_hardwareList.takeFirst();
         if(p.second != nullptr)
         {
-            p.second->quit();
-            p.second->wait();
+            if(p.second->isRunning())
+            {
+                p.second->quit();
+                p.second->wait();
+            }
         }
         else
             p.first->deleteLater();
@@ -34,18 +37,25 @@ void HardwareManager::initializeHardware()
     d_hardwareList.append(qMakePair(scope,new QThread(this)));
 
     gpib = new GpibControllerHardware();
-//	connect(glc,&GpibLanController::ftmSynthFreq,this,&HardwareManager::ftmSynthUpdate);
-//	connect(glc,&GpibLanController::probeFreqUpdate,this,&HardwareManager::probeFreqUpdate);
-//    connect(glc,&GpibLanController::rangeChanged,this,&HardwareManager::synthRangeChanged);
-//    connect(this,&HardwareManager::ftmSynthChangeBandFromUi,glc,&GpibLanController::ftmSynthChangeBandFromUi);
-//#ifndef CONFIG_NODRSYNTH
-//	connect(glc,&GpibLanController::drSynthFreq,this,&HardwareManager::drSynthFreqUpdate);
-//	connect(glc,&GpibLanController::drSynthPower,this,&HardwareManager::drSynthPwrUpdate);
-//    connect(this,&HardwareManager::drSynthChangeBandFromUi,glc,&GpibLanController::drSynthChangeBandFromUi);
-//#endif
-//	connect(glc,&GpibLanController::testComplete,this,&HardwareManager::testComplete);
-//    connect(glc,&GpibLanController::numInstruments,this,&HardwareManager::setNumGpibInstruments);
-    d_hardwareList.append(qMakePair(gpib,new QThread(this)));
+    QThread *gpibThread = new QThread(this);
+    d_hardwareList.append(qMakePair(gpib,gpibThread));
+
+    p_ftmSynth = new FtmSynthHardware(gpib);
+    connect(p_ftmSynth,&FtmSynthesizer::newCavityFreq,this,&HardwareManager::ftmSynthUpdate);
+    connect(p_ftmSynth,&FtmSynthesizer::newProbeFreq,this,&HardwareManager::probeFreqUpdate);
+    connect(p_ftmSynth,&FtmSynthesizer::rangeChanged,this,&HardwareManager::synthRangeChanged);
+    connect(this,&HardwareManager::ftmSynthChangeBandFromUi,p_ftmSynth,&FtmSynthesizer::updateBandFromUi);
+    connect(this,&HardwareManager::setFtmCavityFreqFromUI,p_ftmSynth,&FtmSynthesizer::setCavityFreqFromUI);
+    d_hardwareList.append(qMakePair(p_ftmSynth,gpibThread));
+
+    p_drSynth = new DrSynthHardware(gpib);
+    connect(p_drSynth,&DrSynthesizer::frequencyUpdate,this,&HardwareManager::drSynthFreqUpdate);
+    connect(p_drSynth,&DrSynthesizer::powerUpdate,this,&HardwareManager::drSynthPwrUpdate);
+    connect(p_drSynth,&DrSynthesizer::rangeChanged,this,&HardwareManager::synthRangeChanged);
+    connect(this,&HardwareManager::drSynthChangeBandFromUi,p_drSynth,&DrSynthesizer::updateBandFromUi);
+    connect(this,&HardwareManager::setDrSynthFreqFromUI,p_drSynth,&DrSynthesizer::setFreq);
+    connect(this,&HardwareManager::setDrSynthPwrFromUI,p_drSynth,&DrSynthesizer::setPower);
+    d_hardwareList.append(qMakePair(p_drSynth,gpibThread));
 
     attn = new AttenuatorHardware();
 	connect(attn,&Attenuator::attnUpdate,this,&HardwareManager::attenUpdate);
@@ -62,9 +72,8 @@ void HardwareManager::initializeHardware()
 
     md = new MotorDriverHardware();
     connect(md,&MotorDriver::posUpdate,this,&HardwareManager::mirrorPosUpdate);
-//    connect(md,&MotorDriver::deltaF,gpib,&GpibLanController::ftmDeltaFreq,Qt::BlockingQueuedConnection);
     connect(md,&MotorDriver::tuningComplete,this,&HardwareManager::cavityTuneComplete);
-//    connect(gpib,&GpibLanController::ftmSynthFreq,md,&MotorDriver::cavityFreqChanged);
+    connect(p_ftmSynth,&FtmSynthesizer::newCavityFreq,md,&MotorDriver::cavityFreqChanged);
     connect(md,&MotorDriver::canTuneUp,this,&HardwareManager::canTuneUp);
     connect(md,&MotorDriver::canTuneDown,this,&HardwareManager::canTuneDown);
     connect(md,&MotorDriver::modeChanged,this,&HardwareManager::modeChanged);
@@ -73,7 +82,6 @@ void HardwareManager::initializeHardware()
 
     iob = new IOBoardHardware();
     connect(iob,&IOBoard::triggered,scope,&Oscilloscope::sendCurveQuery);
-//    connect(gpib,&GpibLanController::ftmSynthBandChanged,iob,&IOBoard::ftmSynthBand,Qt::BlockingQueuedConnection);
     connect(iob,&IOBoard::magnetUpdate,this,&HardwareManager::magnetUpdate);
     connect(this,&HardwareManager::setMagnetFromUI,iob,&IOBoard::setMagnet);
     d_hardwareList.append(qMakePair(iob,new QThread(this)));
@@ -163,11 +171,22 @@ void HardwareManager::initializeHardware()
         {
             connect(thread,&QThread::started,obj,&HardwareObject::initialize);
             connect(thread,&QThread::finished,obj,&HardwareObject::deleteLater);
-            obj->moveToThread(thread);
+            if(obj->parent() != nullptr)
+                obj->moveToThread(thread);
         }
         else
             obj->initialize();
     }
+
+    //final connections that might be blocking depending on threading
+    if(p_ftmSynth->thread() != iob->thread())
+        connect(p_ftmSynth,&FtmSynthesizer::triggerBandChange,iob,&IOBoard::ftmSynthBand,Qt::BlockingQueuedConnection);
+    else
+        connect(p_ftmSynth,&FtmSynthesizer::triggerBandChange,iob,&IOBoard::ftmSynthBand);
+    if(p_ftmSynth->thread() != md->thread())
+        connect(md,&MotorDriver::deltaF,p_ftmSynth,&FtmSynthesizer::goToCavityDeltaFreq,Qt::BlockingQueuedConnection);
+    else
+        connect(md,&MotorDriver::deltaF,p_ftmSynth,&FtmSynthesizer::goToCavityDeltaFreq);
 
     //now, start all threads
     for(int i=0;i<d_hardwareList.size();i++)
@@ -253,23 +272,6 @@ void HardwareManager::hardwareFailure(HardwareObject *obj)
 
 	checkStatus();
 }
-
-void HardwareManager::setFtmCavityFreqFromUI(double f)
-{
-    QMetaObject::invokeMethod(gpib,"setFtmCavityFreqFromUI",Q_ARG(double,f));
-}
-
-#ifndef CONFIG_NODRSYNTH
-void HardwareManager::setDrSynthFreqFromUI(double f)
-{
-    QMetaObject::invokeMethod(gpib,"setDrSynthFreq",Q_ARG(double,f));
-}
-
-void HardwareManager::setDrSynthPwrFromUI(double p)
-{
-    QMetaObject::invokeMethod(gpib,"setDrSynthPower",Q_ARG(double,p));
-}
-#endif
 
 void HardwareManager::setAttnFromUI(int a)
 {

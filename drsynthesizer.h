@@ -7,26 +7,27 @@ class DrSynthesizer : public Synthesizer
 {
 	Q_OBJECT
 public:
-	explicit DrSynthesizer(QTcpSocket *s, QObject *parent = nullptr);
-	
-signals:
-	void newFreq(double);
-	void newPower(double);
+    explicit DrSynthesizer(QObject *parent = nullptr);
 	
 public slots:
-	bool testConnection();
-	double setFreq(double f);	
-
-	double setPower(double p);
-	double readPower();
-
-private:
-    double d_freq;
-    double d_power;
-
-protected:
-    double readFreq();
+    virtual void initialize();
 	
 };
+
+#ifdef QTFTM_DRSYNTH
+#if QTFTM_DRSYNTH == 1
+#include "hp8673dr.h"
+class HP8673DR;
+typedef HP8673DR DrSynthHardware;
+#elif QTFTM_DRSYNTH == 2
+#include "hp8640dr.h"
+class HP8640DR;
+typedef HP8640DR DrSynthHardware;
+#else
+#include "virtualdrsynth.h"
+class VirtualDrSynth;
+typedef VirtualDrSynth DrSynthHardware;
+#endif
+#endif
 
 #endif // DRSYNTHESIZER_H

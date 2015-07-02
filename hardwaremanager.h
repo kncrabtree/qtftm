@@ -294,6 +294,25 @@ signals:
     */
     void attnTablePrepComplete(bool);
 
+    //UI Control callbacks
+    /*!
+     * \brief Invoked to set cavity frequency when user changes it in the control box
+     * \param f New frequency
+     */
+    void setFtmCavityFreqFromUI(double f);
+
+    /*!
+     * \brief Invoked to set DR frequency from UI control box
+     * \param f New DR frequency
+     */
+    void setDrSynthFreqFromUI(double f);
+
+    /*!
+     * \brief Invoked to set DR synth power from UI control box
+     * \param p New power
+     */
+    void setDrSynthPwrFromUI(double p);
+
 
     /*!
      * \brief Sets protection delay from UI control box
@@ -352,26 +371,6 @@ public slots:
      * \param i Number of instruments
      */
     void setNumGpibInstruments(int i){ d_numGpib = i; }
-
-	//UI Control callbacks
-    /*!
-     * \brief Invoked to set cavity frequency when user changes it in the control box
-     * \param f New frequency
-     */
-	void setFtmCavityFreqFromUI(double f);
-#ifndef CONFIG_NODRSYNTH
-    /*!
-     * \brief Invoked to set DR frequency from UI control box
-     * \param f New DR frequency
-     */
-	void setDrSynthFreqFromUI(double f);
-
-    /*!
-     * \brief Invoked to set DR synth power from UI control box
-     * \param p New power
-     */
-	void setDrSynthPwrFromUI(double p);
-#endif
 
     /*!
      * \brief Sets attenuation from UI control box
@@ -638,6 +637,8 @@ private:
     IOBoard *iob;
     FlowController *fc;
     PulseGenerator *pGen;
+    FtmSynthesizer *p_ftmSynth;
+    DrSynthesizer *p_drSynth;
 
     Scan d_currentScan;
     bool d_waitingForScanTune;
