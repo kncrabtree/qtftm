@@ -9,7 +9,8 @@ SOURCES += fid.cpp \
     lorentziandopplerlmsfitter.cpp \
     nofitter.cpp \
     fitresult.cpp \
-    $$PWD/flowconfig.cpp
+    $$PWD/flowconfig.cpp \
+    $$PWD/pulsegenconfig.cpp
 
 HEADERS += fid.h \
     ftworker.h \
@@ -23,4 +24,5 @@ HEADERS += fid.h \
     nofitter.h \
     fitresult.h \
     $$PWD/datastructs.h \
-    $$PWD/flowconfig.h
+    $$PWD/flowconfig.h \
+    $$PWD/pulsegenconfig.h

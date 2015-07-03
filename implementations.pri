@@ -9,7 +9,8 @@ HEADERS += \
     $$PWD/hp8340ftm.h \
     $$PWD/hp8340dr.h \
     $$PWD/hp8673ftm.h \
-    $$PWD/hp8673dr.h
+    $$PWD/hp8673dr.h \
+    $$PWD/qc9518.h
 
 SOURCES += \
     $$PWD/dpo3012.cpp \
@@ -22,4 +23,5 @@ SOURCES += \
     $$PWD/hp8340ftm.cpp \
     $$PWD/hp8340dr.cpp \
     $$PWD/hp8673ftm.cpp \
-    $$PWD/hp8673dr.cpp
+    $$PWD/hp8673dr.cpp \
+    $$PWD/qc9518.cpp

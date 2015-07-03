@@ -79,8 +79,6 @@ public slots:
 	void launchFtSettings();
 	void launchDrSettings();
     void launchIOBoardSettings();
-    void launchPulseGeneratorSettings();
-    void applyPulseNames();
     void resolutionChanged(QtFTM::ScopeResolution res);
     void tuningComplete();
     void tuneCavityCallback();
@@ -113,9 +111,6 @@ private:
 	LogHandler *lh;
 
 	QList<PulseGenerator::PulseChannelConfiguration> readPulseConfig();
-	QList<QDoubleSpinBox*> d_delayBoxes;
-	QList<QDoubleSpinBox*> d_widthBoxes;
-	QList<QPushButton*> d_onOffButtons;
 	QList<Led*> d_leds;
     QList<QLineEdit*> d_gasBoxes;
     QList<QDoubleSpinBox*> d_gasSetpointBoxes;

@@ -4,8 +4,7 @@ SOURCES += settingsdialog.cpp \
     synthsettingswidget.cpp \
     ftsynthsettingswidget.cpp \
     drsynthsettingswidget.cpp \
-    ioboardconfigdialog.cpp \
-    pulsegeneratorsettingsdialog.cpp
+    ioboardconfigdialog.cpp
 
 HEADERS += settingsdialog.h \
 	communicationdialog.h \
@@ -13,11 +12,9 @@ HEADERS += settingsdialog.h \
     synthsettingswidget.h \
     ftsynthsettingswidget.h \
     drsynthsettingswidget.h \
-    ioboardconfigdialog.h \
-    pulsegeneratorsettingsdialog.h
+    ioboardconfigdialog.h
 
 FORMS += \
 	communicationdialog.ui \
     synthsettingswidget.ui \
-    ioboardconfigdialog.ui \
-    pulsegeneratorsettingsdialog.ui
+    ioboardconfigdialog.ui

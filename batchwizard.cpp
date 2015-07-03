@@ -101,8 +101,8 @@ void BatchWizard::prepareDr(Scan s)
 	//make sure the scan is set to dummy
 	setup.setDummy();
 	//turn off DR pulse; don't need it for now
-	QList<PulseGenerator::PulseChannelConfiguration> config = setup.pulseConfiguration();
-	config[3].enabled = false;
+    PulseGenConfig config = setup.pulseConfiguration();
+    config.setDrEnabled(false);
 	setup.setPulseConfiguration(config);
 
 	emit setupDr(setup);

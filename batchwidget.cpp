@@ -590,7 +590,7 @@ Scan BatchWidget::parseLine(Scan defaultScan, QString line)
 	bool parseSuccess = false;
 
 	//make a copy of the pulse configuration. it will be set again at the end, whether or not it has changed
-	QList<PulseGenerator::PulseChannelConfiguration> pConfig = defaultScan.pulseConfiguration();
+    PulseGenConfig pConfig = defaultScan.pulseConfiguration();
 
 	//split the line on whitespace characters, and iterate over it
 	QStringList items = line.split(QRegExp(QString("\\s+")),QString::SkipEmptyParts);
@@ -617,12 +617,14 @@ Scan BatchWidget::parseLine(Scan defaultScan, QString line)
 			if(success)
 			{
 				s.beginGroup(QString("ftmSynth"));
-				if(d >= s.value(QString("min"),5000.0).toDouble() && d <= s.value(QString("max"),43000.0).toDouble())
+                s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
+                if(d >= s.value(QString("min"),5000.0).toDouble() && d <= s.value(QString("max"),43000.0).toDouble())
 				{
 					parseSuccess = true;
 					out.setFtFreq(d);
 				}
 				s.endGroup();
+                s.endGroup();
 			}
 		}
 		else if(key.startsWith(QString("s"),Qt::CaseInsensitive)) //shots
@@ -642,12 +644,14 @@ Scan BatchWidget::parseLine(Scan defaultScan, QString line)
 			if(success)
 			{
                 s.beginGroup(QString("attn"));
+                s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
 				if(attn >= s.value(QString("min"),0).toInt() && attn <= s.value(QString("max"),70).toInt())
 				{
 					parseSuccess = true;
 					out.setAttenuation(attn);
 				}
 				s.endGroup();
+                s.endGroup();
 			}
 		}
 		else if(key.startsWith(QString("drf"),Qt::CaseInsensitive)) //dr frequency
@@ -657,12 +661,14 @@ Scan BatchWidget::parseLine(Scan defaultScan, QString line)
 			if(success)
 			{
 				s.beginGroup(QString("drSynth"));
-				if(f >= s.value(QString("min"),1000.0).toDouble() && f <= s.value(QString("max"),1000000.0).toDouble())
+                s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
+                if(f >= s.value(QString("min"),1000.0).toDouble() && f <= s.value(QString("max"),1000000.0).toDouble())
 				{
 					parseSuccess = true;
 					out.setDrFreq(f);
 				}
 				s.endGroup();
+                s.endGroup();
 			}
 		}
 		else if(key.startsWith(QString("drp"),Qt::CaseInsensitive)) //dr power
@@ -672,12 +678,14 @@ Scan BatchWidget::parseLine(Scan defaultScan, QString line)
 			if(success)
 			{
 				s.beginGroup(QString("drSynth"));
+                s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
                 if(p >= s.value(QString("minPower"),-70.0).toDouble() && p <= s.value(QString("maxPower"),17.0).toDouble())
 				{
 					parseSuccess = true;
 					out.setDrPower(p);
 				}
 				s.endGroup();
+                s.endGroup();
 			}
 		}
 		else if(key.startsWith(QString("p"),Qt::CaseInsensitive)) //pulse configuration
@@ -691,6 +699,7 @@ Scan BatchWidget::parseLine(Scan defaultScan, QString line)
 				if(chSuccess && ch >= 0 && ch < pConfig.size()) //channel selected
 				{
 					s.beginGroup(QString("pulseGenerator"));
+                    s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
 					if(subkeys.at(2).startsWith(QString("w"))) //width
 					{
 						bool success = false;
@@ -701,7 +710,7 @@ Scan BatchWidget::parseLine(Scan defaultScan, QString line)
                                     && w <= s.value(QString("maxWidth"),100000.0).toDouble())
 							{
 								parseSuccess = true;
-								pConfig[ch].width = w;
+                                pConfig.set(ch,QtFTM::PulseWidth,w);
 							}
 						}
 					}
@@ -715,7 +724,7 @@ Scan BatchWidget::parseLine(Scan defaultScan, QString line)
 									&& delay <= s.value(QString("maxDelay"),100000.0).toDouble())
 							{
 								parseSuccess = true;
-								pConfig[ch].delay = delay;
+                                pConfig.set(ch,QtFTM::PulseDelay,delay);
 							}
 						}
 					}
@@ -727,25 +736,29 @@ Scan BatchWidget::parseLine(Scan defaultScan, QString line)
 						{
 							parseSuccess = true;
 							if(level == 0)
-								pConfig[ch].active = PulseGenerator::ActiveHigh;
+                                pConfig.set(ch,QtFTM::PulseLevel,
+                                            QVariant::fromValue(QtFTM::PulseLevelActiveHigh));
 							else
-								pConfig[ch].active = PulseGenerator::ActiveLow;
+                                pConfig.set(ch,QtFTM::PulseLevel,
+                                            QVariant::fromValue(QtFTM::PulseLevelActiveLow));
 						}
 						else
 						{
 							if(val.contains(QString("high"),Qt::CaseInsensitive))
 							{
 								parseSuccess = true;
-								pConfig[ch].active = PulseGenerator::ActiveHigh;
+                                pConfig.set(ch,QtFTM::PulseLevel,
+                                            QVariant::fromValue(QtFTM::PulseLevelActiveHigh));
 							}
 							else if(val.contains(QString("low"),Qt::CaseInsensitive))
 							{
 								parseSuccess = true;
-								pConfig[ch].active = PulseGenerator::ActiveLow;
+                                pConfig.set(ch,QtFTM::PulseLevel,
+                                            QVariant::fromValue(QtFTM::PulseLevelActiveLow));
 							}
 						}
 					}
-					if(subkeys.at(2).startsWith(QString("e")) && ch != 0 && ch != 2) //enabled; can't disable gas or mw!
+                    if(subkeys.at(2).startsWith(QString("e")) && ch != QTFTM_PGEN_GASCHANNEL && ch != QTFTM_PGEN_MWCHANNEL) //enabled; can't disable gas or mw!
 					{
 						bool success = false;
 						int enabled = val.toInt(&success);
@@ -753,9 +766,9 @@ Scan BatchWidget::parseLine(Scan defaultScan, QString line)
 						{
 							parseSuccess = true;
 							if(enabled == 0)
-								pConfig[ch].enabled = false;
+                                pConfig.set(ch,QtFTM::PulseEnabled,false);
 							else
-								pConfig[ch].enabled = true;
+                                pConfig.set(ch,QtFTM::PulseEnabled,true);
 						}
 						else
 						{
@@ -764,18 +777,19 @@ Scan BatchWidget::parseLine(Scan defaultScan, QString line)
 									val.contains(QString("true"),Qt::CaseInsensitive))
 							{
 								parseSuccess = true;
-								pConfig[ch].enabled = true;
+                                pConfig.set(ch,QtFTM::PulseEnabled,true);
 							}
 							else if(val.contains(QString("no"),Qt::CaseInsensitive) ||
 								   val.contains(QString("off"),Qt::CaseInsensitive) ||
 								   val.contains(QString("false"),Qt::CaseInsensitive))
 							{
 								parseSuccess = true;
-								pConfig[ch].enabled = false;
+                                pConfig.set(ch,QtFTM::PulseEnabled,false);
 							}
 						}
 					}
 					s.endGroup();
+                    s.endGroup();
 				}
 			}
 		}
@@ -787,11 +801,13 @@ Scan BatchWidget::parseLine(Scan defaultScan, QString line)
             if(success)
             {
                 s.beginGroup(QString("pdg"));
+                s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
                 if(delayp >= s.value(QString("minProt"),1).toInt() && delayp <= s.value(QString("maxProt"),100).toInt())
                 {
                     parseSuccess = true;
                     out.setProtectionDelayTime(delayp);
                 }
+                s.endGroup();
                 s.endGroup();
             }
         }
@@ -803,11 +819,13 @@ Scan BatchWidget::parseLine(Scan defaultScan, QString line)
             if(success)
             {
                 s.beginGroup(QString("pdg"));
+                s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
                 if(delays >= s.value(QString("minScope"),0).toInt() && delays <= s.value(QString("maxScope"),100).toInt())
                 {
                     parseSuccess = true;
                     out.setScopeDelayTime(delays);
                 }
+                s.endGroup();
                 s.endGroup();
             }
         }

@@ -2023,7 +2023,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>19</height>
+     <height>18</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuAcquisition">
@@ -2070,7 +2070,6 @@
     <addaction name="actionFT_Synth"/>
     <addaction name="actionDR_Synth"/>
     <addaction name="actionIO_Board"/>
-    <addaction name="actionPulse_Generator"/>
     <addaction name="menuResolution"/>
     <addaction name="menuMotor_Driver"/>
     <addaction name="menuAttenuator"/>
@@ -2349,14 +2348,6 @@
    </property>
    <property name="toolTip">
     <string>Configure IO Board Settings</string>
-   </property>
-  </action>
-  <action name="actionPulse_Generator">
-   <property name="text">
-    <string>Pulse Generator</string>
-   </property>
-   <property name="toolTip">
-    <string>Configure settings for pulse generator</string>
    </property>
   </action>
  </widget>

@@ -16,7 +16,6 @@
 #include "ftsynthsettingswidget.h"
 #include "drsynthsettingswidget.h"
 #include "ioboardconfigdialog.h"
-#include "pulsegeneratorsettingsdialog.h"
 #include <QMessageBox>
 #include <QFileDialog>
 #include "loadbatchdialog.h"
@@ -84,36 +83,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //apply ranges to synth control boxes
     synthSettingsChanged();
-
-    applyPulseNames();
-
-    d_delayBoxes.append(ui->gasDelayBox);
-    d_delayBoxes.append(ui->dcDelayBox);
-    d_delayBoxes.append(ui->mwDelayBox);
-    d_delayBoxes.append(ui->drDelayBox);
-   d_delayBoxes.append(ui->protDelayBox);
-    d_delayBoxes.append(ui->aux2DelayBox);
-    d_delayBoxes.append(ui->aux3DelayBox);
-    d_delayBoxes.append(ui->aux4DelayBox);
-
-    d_widthBoxes.append(ui->gasWidthBox);
-    d_widthBoxes.append(ui->dcWidthBox);
-    d_widthBoxes.append(ui->mwWidthBox);
-    d_widthBoxes.append(ui->drWidthBox);
-   d_widthBoxes.append(ui->protWidthBox);
-    d_widthBoxes.append(ui->aux2WidthBox);
-    d_widthBoxes.append(ui->aux3WidthBox);
-    d_widthBoxes.append(ui->aux4WidthBox);
-
-    d_onOffButtons.append(nullptr);
-    d_onOffButtons.append(ui->dcPulseOnButton);
-    d_onOffButtons.append(nullptr);
-    d_onOffButtons.append(ui->drPulseOnButton);
-   d_onOffButtons.append(ui->aux1PulseOnButton);
-    d_onOffButtons.append(ui->aux2PulseOnButton);
-    d_onOffButtons.append(ui->aux3PulseOnButton);
-    d_onOffButtons.append(ui->aux4PulseOnButton);
-
     d_leds.append(ui->gasLed);
     d_leds.append(ui->dcLed);
     d_leds.append(ui->mwLed);
@@ -137,7 +106,6 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(ui->actionFT_Synth,&QAction::triggered,this,&MainWindow::launchFtSettings);
 	connect(ui->actionDR_Synth,&QAction::triggered,this,&MainWindow::launchDrSettings);
     connect(ui->actionIO_Board,&QAction::triggered,this,&MainWindow::launchIOBoardSettings);
-    connect(ui->actionPulse_Generator,&QAction::triggered,this,&MainWindow::launchPulseGeneratorSettings);
     connect(ui->actionView_Batch,&QAction::triggered,this,&MainWindow::viewBatchCallback);
     connect(ui->actionChange_Tuning_File,&QAction::triggered,this,&MainWindow::changeAttnFileCallback);
     connect(ui->actionGenerate_Tuning_Table,&QAction::triggered,this,&MainWindow::genAttnTableCallback);
@@ -227,6 +195,7 @@ MainWindow::MainWindow(QWidget *parent) :
 		    ui->pressureControlButton->setText(QString("Off"));
     });
 
+    //update for pulse config widget!
     for(int i=0;i<8;i++)
     {
 	    connect(d_delayBoxes.at(i),doubleVc,[=](double d){ pGenSet(i,PulseGenerator::Delay,d); });
@@ -248,6 +217,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(hwm,&HardwareManager::pGenAll,ui->pulsePlot,&PulsePlot::pConfigAll);
 	connect(hwm,&HardwareManager::pGenChannelAll,ui->pulsePlot,&PulsePlot::pConfigSingle);
 	connect(hwm,&HardwareManager::pGenChannelSetting,ui->pulsePlot,&PulsePlot::pConfigSetting);
+    //end pulse config widget stuff
     connect(hwm,&HardwareManager::mirrorPosUpdate,this,&MainWindow::mirrorPosUpdate);
     connect(hwm,&HardwareManager::tuningComplete,this,&MainWindow::tuningComplete);
     connect(ui->actionTune_Cavity,&QAction::triggered,this,&MainWindow::tuneCavityCallback);
@@ -930,32 +900,6 @@ void MainWindow::launchIOBoardSettings()
     connect(hwm,&HardwareManager::testComplete,&d,&IOBoardConfigDialog::testComplete);
 
     d.exec();
-}
-
-void MainWindow::launchPulseGeneratorSettings()
-{
-    PulseGeneratorSettingsDialog d(this);
-
-    if(d.exec() == QDialog::Accepted)
-    {
-        QMetaObject::invokeMethod(hwm,"applyPGenSettings");
-        applyPulseNames();
-    }
-}
-
-void MainWindow::applyPulseNames()
-{
-    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
-    s.beginGroup(QString("pulseGenerator"));
-    ui->chELabel->setText(s.value(QString("chEName"),QString("Aux1")).toString());
-    ui->chFLabel->setText(s.value(QString("chFName"),QString("Aux2")).toString());
-    ui->chGLabel->setText(s.value(QString("chGName"),QString("Aux3")).toString());
-    ui->chHLabel->setText(s.value(QString("chHName"),QString("Aux4")).toString());
-    ui->chELedLabel->setText(s.value(QString("chEName"),QString("Aux1")).toString());
-    ui->chFLedLabel->setText(s.value(QString("chFName"),QString("Aux2")).toString());
-    ui->chGLedLabel->setText(s.value(QString("chGName"),QString("Aux3")).toString());
-    ui->chHLedLabel->setText(s.value(QString("chHName"),QString("Aux4")).toString());
-    s.endGroup();
 }
 
 void MainWindow::resolutionChanged(QtFTM::ScopeResolution res)

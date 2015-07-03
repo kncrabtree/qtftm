@@ -1,34 +1,38 @@
 #ifndef PULSEPLOT_H
 #define PULSEPLOT_H
 
-#include <qwt6/qwt_plot.h>
+#include "zoompanplot.h"
+
 #include <QList>
-#include <qwt6/qwt_plot_curve.h>
-#include <qwt6/qwt_plot_marker.h>
-#include "pulsegenerator.h"
 
-class PulsePlot : public QwtPlot
+#include "pulsegenconfig.h"
+
+class QwtPlotCurve;
+class QwtPlotMarker;
+
+class PulsePlot : public ZoomPanPlot
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	explicit PulsePlot(QWidget *parent = nullptr);
-	
-signals:
-	
-public slots:
-	void pConfigAll(const QList<PulseGenerator::PulseChannelConfiguration> l);
-	void pConfigSingle(const PulseGenerator::PulseChannelConfiguration c);
-	void pConfigSetting(const int ch, const PulseGenerator::Setting s, const QVariant val);
+    PulsePlot(QWidget *parent = 0);
+    ~PulsePlot();
 
-	void replot();
+    PulseGenConfig config();
+
+public slots:
+    void newConfig(const PulseGenConfig c);
+    void newSetting(int index, QtFTM::PulseSetting s, QVariant val);
+    void newRepRate(double d);
+
+    // ZoomPanPlot interface
+protected:
+    void filterData();
+    void replot();
 
 private:
-	QList<QPair<QwtPlotCurve*,QwtPlotMarker*> > plotItems;
-	QList<PulseGenerator::PulseChannelConfiguration> pConfig;
+    PulseGenConfig d_config;
+    QList<QPair<QwtPlotCurve*,QwtPlotMarker*>> d_plotItems;
 
-	int numChannels;
-
-	
 };
 
 #endif // PULSEPLOT_H

@@ -4,7 +4,7 @@
 #include <QSharedDataPointer>
 #include <QString>
 #include <QList>
-#include "pulsegenerator.h"
+#include "pulsegenconfig.h"
 #include "flowconfig.h"
 #include "fid.h"
 #include <QStringList>
@@ -149,7 +149,7 @@ public:
 
 	 \return QList<PulseGenerator::PulseChannelConfiguration>
 	*/
-	QList<PulseGenerator::PulseChannelConfiguration> pulseConfiguration() const;
+    PulseGenConfig pulseConfiguration() const;
 	/*!
 	 \brief
 
@@ -304,7 +304,7 @@ public:
 
 	 \param p
 	*/
-	void setPulseConfiguration(const QList<PulseGenerator::PulseChannelConfiguration> p);
+    void setPulseConfiguration(const PulseGenConfig p);
 	/*!
 	 \brief
 

@@ -16,7 +16,8 @@ SOURCES += mainwindow.cpp \
     $$PWD/surveyplot.cpp \
     $$PWD/drplot.cpp \
     $$PWD/batchscanplot.cpp \
-    $$PWD/batchattnplot.cpp
+    $$PWD/batchattnplot.cpp \
+    $$PWD/pulseconfigwidget.cpp
 
 HEADERS += mainwindow.h \
     settingsdialog.h \
@@ -37,7 +38,8 @@ HEADERS += mainwindow.h \
     $$PWD/surveyplot.h \
     $$PWD/drplot.h \
     $$PWD/batchscanplot.h \
-    $$PWD/batchattnplot.h
+    $$PWD/batchattnplot.h \
+    $$PWD/pulseconfigwidget.h
 
 
 FORMS    += mainwindow.ui \
@@ -47,7 +49,8 @@ FORMS    += mainwindow.ui \
     loadbatchdialog.ui \
     batchviewwidget.ui \
     autofitwidget.ui \
-    peaklistwidget.ui
+    peaklistwidget.ui \
+    $$PWD/pulseconfigwidget.ui
 
 OTHER_FILES += \
     led.qml

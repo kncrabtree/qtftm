@@ -45,6 +45,17 @@ struct FlowChannelConfig {
     QString name;
 };
 
+struct PulseChannelConfig {
+    int channel;
+    QString channelName;
+    bool enabled;
+    double delay;
+    double width;
+    PulseActiveLevel level;
+
+    PulseChannelConfig() : channel(-1), enabled(false), delay(-1.0), width(-1.0), level(PulseLevelActiveHigh) {}
+};
+
 }
 
 #endif // DATASTRUCTS_H

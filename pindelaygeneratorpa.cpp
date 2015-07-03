@@ -11,6 +11,21 @@ PinDelayGeneratorPA::PinDelayGeneratorPA(QObject *parent) :
     p_comm = new Rs232Instrument(d_key,d_subKey,this);
     connect(p_comm,&CommunicationProtocol::logMessage,this,&PinDelayGeneratorPA::logMessage);
     connect(p_comm,&CommunicationProtocol::hardwareFailure,this,&PinDelayGeneratorPA::hardwareFailure);
+
+    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+    s.beginGroup(d_key);
+    s.beginGroup(d_subKey);
+    int minProt = s.value(QString("minProt"),1).toInt();
+    int maxProt = s.value(QString("maxProt"),100).toInt();
+    int minScope = s.value(QString("minScope"),0).toInt();
+    int maxScope = s.value(QString("maxScope"),100).toInt();
+    s.setValue(QString("minProt"),minProt);
+    s.setValue(QString("maxProt"),maxProt);
+    s.setValue(QString("minScope"),minScope);
+    s.setValue(QString("maxScope"),maxScope);
+    s.endGroup();
+    s.endGroup();
+    s.sync();
 }
 
 

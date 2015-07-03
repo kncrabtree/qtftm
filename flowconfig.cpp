@@ -123,8 +123,8 @@ QString FlowConfig::headerString() const
     out.append(QString("#Pressure\t%1\tkTorr\n").arg(pressure());
     for(int i=0;i<data->configList.size(); i++)
     {
-        out.append(QString("Gas %1 name\t%2\t\n").arg(i).arg(data->configList.at(i).name));
-        out.append(QString("Gas %1 flow\t%2\tsccm\n").arg(i).arg(setting(i,QtFTM::FlowSettingFlow).toDouble()));
+        out.append(QString("Gas %1 name\t%2\t\n").arg(i+1).arg(data->configList.at(i).name));
+        out.append(QString("Gas %1 flow\t%2\tsccm\n").arg(i+1).arg(setting(i,QtFTM::FlowSettingFlow).toDouble()));
     }
 
     return out;

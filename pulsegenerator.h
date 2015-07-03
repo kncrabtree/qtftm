@@ -1,67 +1,65 @@
 #ifndef PULSEGENERATOR_H
 #define PULSEGENERATOR_H
 
-#include "rs232instrument.h"
+#include "hardwareobject.h"
 
-/*!
- * \brief The PulseGenerator class
- *
- * All commands sent to the 9518 must be terminated with CRLF (0x0d 0x0a).
- * The instrument responds to commands with 0x0d 0x0a, and to queries with [answer] 0x0d 0x0a, so queryCmd should be used in place of writeCmd
- */
-class PulseGenerator : public Rs232Instrument
+#include "pulsegenconfig.h"
+
+class PulseGenerator : public HardwareObject
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-    explicit PulseGenerator(QObject *parent = nullptr);
+    PulseGenerator(QObject *parent = nullptr);
+    ~PulseGenerator();
 
-	enum ActiveLevel { ActiveHigh, ActiveLow };
-	enum Setting { Delay, Width, Enabled, Active, Name };
+    struct PulseChannelConfiguration {
+        int channel;
+        QString channelName;
+        bool enabled;
+        double delay;
+        double width;
+//        ActiveLevel active;
 
-	struct PulseChannelConfiguration {
-		int channel;
-		QString channelName;
-		bool enabled;
-		double delay;
-		double width;
-		ActiveLevel active;
+//        PulseChannelConfiguration()
+//            : channel(-1), channelName(QString()), enabled(false), delay(0.0), width(0.0), active(ActiveHigh) {}
+//        explicit PulseChannelConfiguration(int ch, QString n, bool en, double d, double w, ActiveLevel a)
+//            : channel(ch), channelName(n), enabled(en), delay(d), width(w), active(a) {}
 
-		PulseChannelConfiguration()
-			: channel(-1), channelName(QString()), enabled(false), delay(0.0), width(0.0), active(ActiveHigh) {}
-		explicit PulseChannelConfiguration(int ch, QString n, bool en, double d, double w, ActiveLevel a)
-			: channel(ch), channelName(n), enabled(en), delay(d), width(w), active(a) {}
+    };
 
-	};
+public slots:
+    PulseGenConfig config() const { return d_config; }
+    virtual QVariant read(const int index, const QtFTM::PulseSetting s) =0;
+    virtual double readRepRate() =0;
+
+    virtual QtFTM::PulseChannelConfig read(const int index);
+
+    virtual bool set(const int index, const QtFTM::PulseSetting s, const QVariant val) =0;
+    virtual bool setChannel(const int index, const QtFTM::PulseChannelConfig cc);
+    virtual bool setAll(const PulseGenConfig cc);
+
+    virtual bool setRepRate(double d) =0;
 
 signals:
-	void newChannelSetting(int,PulseGenerator::Setting,QVariant);
-	void newChannelSettingAll(PulseGenerator::PulseChannelConfiguration);
-	void newSettings(QList<PulseGenerator::PulseChannelConfiguration>);
-	
-public slots:
-    void initialize();
-	bool testConnection();
-    void sleep(bool b);
+    void settingUpdate(int,QtFTM::PulseSetting,QVariant);
+    void configUpdate(const PulseGenConfig);
+    void repRateUpdate(double);
 
-	QVariant setChannelSetting(const int ch, const PulseGenerator::Setting s, const QVariant val);
-	PulseGenerator::PulseChannelConfiguration setChannelAll(const int ch, const double delay, const double width, const bool enabled, const ActiveLevel a);
-	PulseGenerator::PulseChannelConfiguration setChannelAll(const PulseGenerator::PulseChannelConfiguration p);
-	QList<PulseGenerator::PulseChannelConfiguration> setAll(const QList<PulseGenerator::PulseChannelConfiguration> l);
-
-	QVariant readChannelSetting(const int ch, const PulseGenerator::Setting s);
-	PulseGenerator::PulseChannelConfiguration readChannelAll(const int ch);
-	QList<PulseGenerator::PulseChannelConfiguration> readAll();
-
-    //returns the current configuration so that it can be reset afterwards
-    QList<PulseGenerator::PulseChannelConfiguration> configureForTuning();
-
-    void applySettings();
-    void setRepRate(double rr);
-
-private:
-	QList<PulseGenerator::PulseChannelConfiguration> pulseConfig;
-    bool pGenWriteCmd(QString cmd);
-	
+protected:
+    PulseGenConfig d_config;
+    virtual void readAll();
 };
+
+#ifdef QTFTM_PGEN
+#if QTFTM_PGEN==1
+#include "qc9518.h"
+class QC9518;
+typedef QC9518 PulseGeneratorHardware;
+#else
+#include "virtualpulsegenerator.h"
+class VirtualPulseGenerator;
+typedef VirtualPulseGenerator PulseGeneratorHardware;
+#endif
+#endif
 
 #endif // PULSEGENERATOR_H

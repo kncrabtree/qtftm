@@ -16,7 +16,6 @@
 class ScanData : public QSharedData {
 public:
 	ScanData() : number(-1), ts(QDateTime::currentDateTime()), ftFreq(-1.0), ftAtten(-1), drFreq(-1.0), drPower(-100.0), pressure(-1.0),
-        gasNames(QStringList()), gasFlows(QList<double>()), repRate(0.0), pulseConfig(QList<PulseGenerator::PulseChannelConfiguration>()),
 	   targetShots(0), completedShots(0), fid(Fid()), initialized(false), saved(false), aborted(false), dummy(false), skipTune(false),
        tuningVoltage(-1), tuningVoltageTakenWithScan(true), scansSinceTuningVoltageTaken(0), cavityVoltage(-1), protectionDelayTime (-1),
        scopeDelayTime(-1), dipoleMoment(0.0), magnet(false) {}
@@ -40,9 +39,7 @@ public:
 	double drPower;
 
     FlowConfig flowConfig;
-
-    double repRate;
-	QList<PulseGenerator::PulseChannelConfiguration> pulseConfig;
+    PulseGenConfig pulseConfig;
 
 	int targetShots;
 	int completedShots;
@@ -70,14 +67,6 @@ public:
 
 Scan::Scan() : data(new ScanData)
 {
-    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
-    QStringList gasNames;
-    gasNames.append(s.value(QString("gas1Name"),QString("")).toString());
-    gasNames.append(s.value(QString("gas2Name"),QString("")).toString());
-    gasNames.append(s.value(QString("gas3Name"),QString("")).toString());
-    gasNames.append(s.value(QString("gas4Name"),QString("")).toString());
-    setGasNames(gasNames);
-    setRepRate(s.value(QString("pulseGenerator/repRate"),6.0).toDouble());
 }
 
 Scan::Scan(int num) : data(new ScanData)
@@ -174,7 +163,7 @@ double Scan::repRate() const
     return data->repRate;
 }
 
-QList<PulseGenerator::PulseChannelConfiguration> Scan::pulseConfiguration() const
+PulseGenConfig Scan::pulseConfiguration() const
 {
 	return data->pulseConfig;
 }
@@ -342,7 +331,7 @@ void Scan::setRepRate(const double rr)
     data->repRate = rr;
 }
 
-void Scan::setPulseConfiguration(const QList<PulseGenerator::PulseChannelConfiguration> p)
+void Scan::setPulseConfiguration(const PulseGenConfig p)
 {
 	data->pulseConfig = p;
 }
@@ -590,61 +579,57 @@ void Scan::parseFileLine(QString s)
 	else if(key.startsWith(QString("#FID spacing")))
 		data->fid.setSpacing(val.toDouble());
     else if(key.startsWith(QString("#Rep rate")))
-        data->repRate = val.toDouble();
+        data->pulseConfig.setRepRate(val.toDouble());
 	else if(key.startsWith(QString("#Gas")))
 	{
+        int ch = key.split(QChar(0x20)).at(1).toInt()-1;
 		if(key.endsWith(QString("name")))
-			data->gasNames.append(val);
+            data->flowConfig.set(ch,QtFTM::FlowSettingName,append(val));
 		else if(key.endsWith(QString("flow")))
-			data->gasFlows.append(val.toDouble());
+            data->flowConfig.set(ch,QtFTM::FlowSettingFlow,val.toDouble());
 	}
 	else if(key.startsWith(QString("#Pulse ch")))
 	{
-		int ch = key.split(QChar(0x20)).at(2).toInt();
+        int ch = key.split(QChar(0x20)).at(2).toInt()-1;
 		if(key.endsWith(QString("name")))
 		{
-			if(ch-1 >= data->pulseConfig.size())
-			{
-				data->pulseConfig.append(PulseGenerator::PulseChannelConfiguration());
-				data->pulseConfig[ch-1].channel = ch;
-			}
-			data->pulseConfig[ch-1].channelName = val;
+            if(ch >= data->pulseConfig.size())
+                data->pulseConfig.add(QString(""),false,0.0,1.0,QtFTM::PulseLevelActiveHigh);
+            else
+                data->pulseConfig.set(ch,QtFTM::PulseName,val);
 		}
 		else if(key.endsWith(QString("level")))
 		{
-			if(ch-1 >= data->pulseConfig.size())
-			{
-				data->pulseConfig.append(PulseGenerator::PulseChannelConfiguration());
-				data->pulseConfig[ch-1].channel = ch;
-			}
-			data->pulseConfig[ch-1].active = (PulseGenerator::ActiveLevel)val.toInt();
+            if(ch >= data->pulseConfig.size())
+                data->pulseConfig.add(QString(""),false,0.0,1.0,QtFTM::PulseLevelActiveHigh);
+            else
+            {
+                if(val.contains(QString("High"),Qt::CaseInsensitive))
+                    data->pulseConfig.set(ch,QtFTM::PulseActiveLevel,QtFTM::PulseLevelActiveHigh);
+                else
+                    data->pulseConfig.set(ch,QtFTM::PulseActiveLevel,QtFTM::PulseLevelActiveLow);
+            }
 		}
 		else if(key.endsWith(QString("enabled")))
 		{
-			if(ch-1 >= data->pulseConfig.size())
-			{
-				data->pulseConfig.append(PulseGenerator::PulseChannelConfiguration());
-				data->pulseConfig[ch-1].channel = ch;
-			}
-			data->pulseConfig[ch-1].enabled = (bool)val.toInt();
+            if(ch >= data->pulseConfig.size())
+                data->pulseConfig.add(QString(""),false,0.0,1.0,QtFTM::PulseLevelActiveHigh);
+            else
+                data->pulseConfig.set(ch,QtFTM::PulseEnabled,static_cast<bool>(val.toInt()));
 		}
 		else if(key.endsWith(QString("delay")))
 		{
-			if(ch-1 >= data->pulseConfig.size())
-			{
-				data->pulseConfig.append(PulseGenerator::PulseChannelConfiguration());
-				data->pulseConfig[ch-1].channel = ch;
-			}
-			data->pulseConfig[ch-1].delay = val.toDouble();
+            if(ch >= data->pulseConfig.size())
+                data->pulseConfig.add(QString(""),false,0.0,1.0,QtFTM::PulseLevelActiveHigh);
+            else
+                data->pulseConfig.set(ch,QtFTM::PulseDelay,val.toDouble());
 		}
 		else if(key.endsWith(QString("width")))
 		{
-			if(ch-1 >= data->pulseConfig.size())
-			{
-				data->pulseConfig.append(PulseGenerator::PulseChannelConfiguration());
-				data->pulseConfig[ch-1].channel = ch;
-			}
-			data->pulseConfig[ch-1].width = val.toDouble();
+            if(ch >= data->pulseConfig.size())
+                data->pulseConfig.add(QString(""),false,0.0,1.0,QtFTM::PulseLevelActiveHigh);
+            else
+                data->pulseConfig.set(ch,QtFTM::PulseWidth,val.toDouble());
 		}
 	}
 }
