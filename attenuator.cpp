@@ -14,7 +14,7 @@ void Attenuator::initialize()
     QString attenDataFile = s.value(QString("%1/file").arg(d_key),QString("")).toString();
 
     if(!parseAttenFile(attenDataFile))
-        emit logMessage(QString("No valid attenuation table. Tuning attenuation will not be set automatically!"),QtFTM::LogError);
+	   emit logMessage(QString("No valid attenuation table. Tuning attenuation will not be set automatically!"),QtFTM::LogWarning);
 }
 
 void Attenuator::changeAttenFile(QString fileName)

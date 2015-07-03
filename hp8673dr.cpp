@@ -6,7 +6,7 @@ HP8673DR::HP8673DR(QObject *parent) :
     DrSynthesizer(parent)
 {
     d_subKey = QString("hp8340");
-    d_prettyName = QString("HP8340 FTM Synthesizer");
+    d_prettyName = QString("HP8340 DR Synthesizer");
 
     p_comm = new GpibInstrument(d_key,d_subKey,static_cast<GpibController*>(parent),this);
     connect(p_comm,&CommunicationProtocol::logMessage,this,&HP8673DR::logMessage);

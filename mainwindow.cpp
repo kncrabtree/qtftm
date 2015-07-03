@@ -26,7 +26,7 @@
 #include "lorentziandopplerlmsfitter.h"
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent), ui(new Ui::MainWindow), hardwareConnected(false)
+    QMainWindow(parent), ui(new Ui::MainWindow), d_hardwareConnected(false)
 {
 
 	//build UI and make trivial connections
@@ -290,7 +290,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
 
-	uiState = Idle;
+	d_uiState = Idle;
     noHardwareMode = false;
 	updateUiConfig();
 
@@ -319,27 +319,27 @@ void MainWindow::updateProgressBars()
 
 void MainWindow::updateUiConfig()
 {
-    if(hardwareConnected || noHardwareMode)
+    if(d_hardwareConnected || noHardwareMode)
 	{
-        ui->actionStart_Single->setDisabled(uiState & (Acquiring|Tuning) || uiState & Asleep);
-        ui->actionStart_Batch->setDisabled(uiState & (Acquiring|Tuning)  || uiState & Asleep);
-        ui->actionPause->setEnabled((uiState & Acquiring) && !(uiState & Paused) && !(uiState & Asleep));
-        ui->actionResume->setEnabled((uiState & Acquiring) && (uiState & Paused) && !(uiState & Asleep));
-        ui->actionAbort->setEnabled(uiState & Acquiring && !(uiState & Asleep));
-        ui->actionSleep_Mode->setDisabled(uiState & (Acquiring|Tuning));
-        ui->actionCommunication->setDisabled(uiState & (Acquiring|Tuning));
-        ui->actionFT_Synth->setDisabled(uiState & (Acquiring|Tuning));
-        ui->actionDR_Synth->setDisabled(uiState & (Acquiring|Tuning));
-        ui->actionIO_Board->setDisabled(uiState & (Acquiring|Tuning));
+	   ui->actionStart_Single->setDisabled(d_uiState & (Acquiring|Tuning) || d_uiState & Asleep);
+	   ui->actionStart_Batch->setDisabled(d_uiState & (Acquiring|Tuning)  || d_uiState & Asleep);
+	   ui->actionPause->setEnabled((d_uiState & Acquiring) && !(d_uiState & Paused) && !(d_uiState & Asleep));
+	   ui->actionResume->setEnabled((d_uiState & Acquiring) && (d_uiState & Paused) && !(d_uiState & Asleep));
+	   ui->actionAbort->setEnabled(d_uiState & Acquiring && !(d_uiState & Asleep));
+	   ui->actionSleep_Mode->setDisabled(d_uiState & (Acquiring|Tuning));
+	   ui->actionCommunication->setDisabled(d_uiState & (Acquiring|Tuning));
+	   ui->actionFT_Synth->setDisabled(d_uiState & (Acquiring|Tuning));
+	   ui->actionDR_Synth->setDisabled(d_uiState & (Acquiring|Tuning));
+	   ui->actionIO_Board->setDisabled(d_uiState & (Acquiring|Tuning));
         ui->actionView_Batch->setEnabled(true); //old batch scans can now be loaded at any time
-        ui->actionChange_Tuning_File->setDisabled(uiState & (Acquiring|Tuning));
-        ui->actionGenerate_Tuning_Table->setDisabled(uiState & (Acquiring|Tuning) || uiState & Asleep);
-        ui->synthControlGroup->setDisabled(uiState & (Acquiring|Tuning) || uiState & Asleep);
-        ui->environmentControlBox->setDisabled(uiState & (Acquiring|Tuning) || uiState & Asleep);
-        ui->gasControlGroup->setDisabled(uiState & (Acquiring|Tuning) || uiState & Asleep);
-	   ui->pulseConfigWidget->setDisabled(uiState & (Acquiring|Tuning) || uiState & Asleep);
-        ui->menuResolution->setDisabled(uiState & (Acquiring|Tuning) || uiState & Asleep);
-        ui->menuMotor_Driver->setDisabled(uiState & (Acquiring|Tuning) || uiState & Asleep);
+	   ui->actionChange_Tuning_File->setDisabled(d_uiState & (Acquiring|Tuning));
+	   ui->actionGenerate_Tuning_Table->setDisabled(d_uiState & (Acquiring|Tuning) || d_uiState & Asleep);
+	   ui->synthControlGroup->setDisabled(d_uiState & (Acquiring|Tuning) || d_uiState & Asleep);
+	   ui->environmentControlBox->setDisabled(d_uiState & (Acquiring|Tuning) || d_uiState & Asleep);
+	   ui->gasControlGroup->setDisabled(d_uiState & (Acquiring|Tuning) || d_uiState & Asleep);
+	   ui->pulseConfigWidget->setDisabled(d_uiState & (Acquiring|Tuning) || d_uiState & Asleep);
+	   ui->menuResolution->setDisabled(d_uiState & (Acquiring|Tuning) || d_uiState & Asleep);
+	   ui->menuMotor_Driver->setDisabled(d_uiState & (Acquiring|Tuning) || d_uiState & Asleep);
 	}
 	else
 	{
@@ -392,7 +392,7 @@ void MainWindow::scanStarting(Scan s, bool isCal)
 void MainWindow::batchComplete(bool aborted)
 {
 	ui->actionPrint_Summary->setEnabled(true);
-    uiState = Idle;
+    d_uiState = Idle;
 	updateUiConfig();
 	if(aborted)
 		statusLabel->setText(QString("Acquisition aborted"));
@@ -404,13 +404,13 @@ void MainWindow::batchComplete(bool aborted)
 
 void MainWindow::pauseAcq()
 {
-	uiState |= Paused;
+	d_uiState |= Paused;
 	updateUiConfig();
 }
 
 void MainWindow::resumeAcq()
 {
-	uiState ^= Paused;
+	d_uiState ^= Paused;
     updateUiConfig();
 }
 
@@ -664,7 +664,7 @@ void MainWindow::singleScanCallback()
 	bm->moveToThread(batchThread);
 	batchThread->start();
 
-	uiState = Acquiring;
+	d_uiState = Acquiring;
 	updateUiConfig();
 
 }
@@ -710,7 +710,7 @@ void MainWindow::batchScanCallback()
 	bm->moveToThread(batchThread);
 	batchThread->start();
 
-	uiState = Acquiring;
+	d_uiState = Acquiring;
 	updateUiConfig();
 
 	ssw->deleteLater();
@@ -729,9 +729,9 @@ void MainWindow::sleep(bool b)
 	}
 
 	if(b)
-		uiState = Asleep;
+		d_uiState = Asleep;
 	else
-		uiState = Idle;
+		d_uiState = Idle;
 
 	QMetaObject::invokeMethod(hwm,"sleep",Q_ARG(bool,b));
 	updateUiConfig();
@@ -743,18 +743,18 @@ void MainWindow::sleep(bool b)
 void MainWindow::hardwareStatusChanged(bool success)
 {
     //show an error if we go from connected to disconnected
-    if((hardwareConnected && !success) || (!hardwareConnected && !success))
+    if((d_hardwareConnected && !success) || (!d_hardwareConnected && !success))
     {
 		statusLabel->setText(QString("A hardware error occurred. See log for details."));
         ui->tabWidget->setCurrentIndex(ui->tabWidget->count()-1);
     }
-    else if(!hardwareConnected && success)
+    else if(!d_hardwareConnected && success)
     {
         statusLabel->setText(QString("Initialization complete."));
         setHardwareRanges();
     }
 
-    hardwareConnected = success;
+    d_hardwareConnected = success;
 	updateUiConfig();
 }
 
@@ -811,8 +811,8 @@ void MainWindow::resolutionChanged(QtFTM::ScopeResolution res)
 
 void MainWindow::tuningComplete()
 {
-    if(uiState & Tuning)
-        uiState ^= Tuning;
+    if(d_uiState & Tuning)
+	   d_uiState ^= Tuning;
 
     if(mirrorProgress->minimum() == 0)
     {
@@ -825,7 +825,7 @@ void MainWindow::tuningComplete()
 void MainWindow::tuneCavityCallback()
 {
     double freq = ui->ftmControlDoubleSpinBox->value();
-    uiState |= Tuning;
+    d_uiState |= Tuning;
     updateUiConfig();
     QMetaObject::invokeMethod(hwm,"tuneCavity",Q_ARG(double,freq));
 }
@@ -848,7 +848,7 @@ void MainWindow::calibrateCavityCallback()
     if(ret == QMessageBox::Yes)
     {
         mirrorProgress->setRange(0,0);
-        uiState |= Tuning;
+	   d_uiState |= Tuning;
         updateUiConfig();
         QMetaObject::invokeMethod(hwm,"calibrateCavity");
     }
@@ -862,9 +862,9 @@ void MainWindow::modeChanged(int mode)
 
 void MainWindow::tuneUpCallback()
 {
-    if(uiState==Idle)
+    if(d_uiState==Idle)
     {
-        uiState |= Tuning;
+	   d_uiState |= Tuning;
         updateUiConfig();
         QMetaObject::invokeMethod(hwm,"changeCavityMode",Q_ARG(double,ui->ftmControlDoubleSpinBox->value()),Q_ARG(bool,true));
     }
@@ -872,9 +872,9 @@ void MainWindow::tuneUpCallback()
 
 void MainWindow::tuneDownCallback()
 {
-    if(uiState==Idle)
+    if(d_uiState==Idle)
     {
-        uiState |= Tuning;
+	   d_uiState |= Tuning;
         updateUiConfig();
         QMetaObject::invokeMethod(hwm,"changeCavityMode",Q_ARG(double,ui->ftmControlDoubleSpinBox->value()),Q_ARG(bool,false));
     }
@@ -944,7 +944,7 @@ void MainWindow::attnFileSuccess(bool success)
 
 void MainWindow::genAttnTableCallback()
 {
-    uiState = Tuning;
+    d_uiState = Tuning;
     updateUiConfig();
 
     //make a simple dialog
@@ -1001,7 +1001,7 @@ void MainWindow::attnTablePrepComplete(bool success)
     else
     {
         statusLabel->setText(QString("A problem occurred while preparing to generate attenuation table. See log for details."));
-        uiState = Idle;
+	   d_uiState = Idle;
         updateUiConfig();
         return;
     }
@@ -1067,7 +1067,7 @@ void MainWindow::attnTablePrepComplete(bool success)
     if(d.exec() != QDialog::Accepted)
     {
         statusLabel->setText(QString("Attenuation table generation canceled."));
-        uiState = Idle;
+	   d_uiState = Idle;
         updateUiConfig();
         return;
     }
@@ -1116,7 +1116,7 @@ void MainWindow::attnTablePrepComplete(bool success)
 
     ui->analysisWidget->plot()->clearRanges();
 
-    uiState = Acquiring;
+    d_uiState = Acquiring;
     updateUiConfig();
 
     bm->moveToThread(batchThread);
@@ -1135,7 +1135,7 @@ void MainWindow::attnTableBatchComplete(bool aborted)
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
     QString attenFile = s.value(QString("attn/file"),QString("")).toString();
     QMetaObject::invokeMethod(hwm,"changeAttnFile",Q_ARG(QString,attenFile));
-    uiState = Idle;
+    d_uiState = Idle;
     ui->actionPrint_Summary->setEnabled(true);
     updateUiConfig();
 

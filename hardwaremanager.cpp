@@ -114,8 +114,12 @@ void HardwareManager::initializeHardware()
 	s.beginWriteArray("instruments");
 	for(int i=0;i<d_hardwareList.size();i++)
 	{
+		HardwareObject *obj = d_hardwareList.at(i).first;
 		s.setArrayIndex(i);
-        s.setValue(QString("key"),d_hardwareList.at(i).first->key());
+		s.setValue(QString("key"),obj->key());
+		s.setValue(QString("subKey"),obj->subKey());
+		s.setValue(QString("prettyName"),obj->name());
+		s.setValue(QString("critical"),obj->isCritical());
 	}
 	s.endArray();
 	s.endGroup();
@@ -127,10 +131,11 @@ void HardwareManager::initializeHardware()
 	int index=0;
 	for(int i=0;i<d_hardwareList.size();i++)
 	{
-        if(QString(d_hardwareList.at(i).first->metaObject()->superClass()->className()) == QString("TcpInstrument"))
+	   if(d_hardwareList.at(i).first->type() == CommunicationProtocol::Tcp)
 		{
 			s.setArrayIndex(index);
-            s.setValue(QString("key"),d_hardwareList.at(i).first->key());
+			s.setValue(QString("key"),d_hardwareList.at(i).first->key());
+			s.setValue(QString("subKey"),d_hardwareList.at(i).first->subKey());
 			index++;
 		}
 	}
@@ -144,15 +149,35 @@ void HardwareManager::initializeHardware()
 	index=0;
 	for(int i=0;i<d_hardwareList.size();i++)
 	{
-        if(QString(d_hardwareList.at(i).first->metaObject()->superClass()->className()) == QString("Rs232Instrument"))
+	   if(d_hardwareList.at(i).first->type() == CommunicationProtocol::Rs232)
+		{
+		   s.setArrayIndex(index);
+		   s.setValue(QString("key"),d_hardwareList.at(i).first->key());
+		   s.setValue(QString("subKey"),d_hardwareList.at(i).first->subKey());
+		   index++;
+		}
+	}
+	s.endArray();
+	s.endGroup();
+
+	//now an array for all GPIB instruments
+	s.beginGroup(QString("gpib"));
+	s.remove("");
+	s.beginWriteArray("instruments");
+	index=0;
+	for(int i=0;i<d_hardwareList.size();i++)
+	{
+		if(d_hardwareList.at(i).first->type() == CommunicationProtocol::Gpib)
 		{
 			s.setArrayIndex(index);
-            s.setValue(QString("key"),d_hardwareList.at(i).first->key());
+			s.setValue(QString("key"),d_hardwareList.at(i).first->key());
+			s.setValue(QString("subKey"),d_hardwareList.at(i).first->subKey());
 			index++;
 		}
 	}
 	s.endArray();
 	s.endGroup();
+
     s.sync();
 
     for(int i=0; i<d_hardwareList.size();i++)
@@ -160,8 +185,10 @@ void HardwareManager::initializeHardware()
         QThread *thread = d_hardwareList.at(i).second;
         HardwareObject *obj = d_hardwareList.at(i).first;
 
-        s.setValue(QString("%1/prettyName").arg(obj->key()),obj->name());
-        s.setValue(QString("%1/connected").arg(obj->key()),false);
+	   s.setValue(QString("%1/prettyName").arg(obj->key()),obj->name());
+	   s.setValue(QString("%1/subKey").arg(obj->key()),obj->subKey());
+	   s.setValue(QString("%1/connected").arg(obj->key()),false);
+	   s.setValue(QString("%1/critical").arg(obj->key()),obj->isCritical());
 
         connect(obj,&HardwareObject::logMessage,[=](QString msg, QtFTM::LogMessageCode mc){
             emit logMessage(QString("%1: %2").arg(obj->name()).arg(msg),mc);
@@ -206,29 +233,27 @@ void HardwareManager::initializeHardware()
 
 void HardwareManager::connectionResult(HardwareObject *obj, bool success, QString msg)
 {
-    //NOTE: flow controller failure is not a critical error. Allow program to operate even if flow controller does not connect.
-	if(d_status.contains(obj->key()))
-    {
-        if(obj == fc)
-            d_status[obj->key()] = true;
-        else
-            d_status[obj->key()] = success;
-    }
-	else
-    {
-        if(obj == fc)
-            d_status.insert(obj->key(),true);
-        else
-            d_status.insert(obj->key(),success);
-    }
-
 	if(success)
-		emit logMessage(obj->name().append(QString(" connected successfully.")));
+		emit logMessage(obj->name().append(QString(": Connected successfully.")));
 	else
 	{
-		emit logMessage(obj->name().append(QString(" connection failed!")),QtFTM::LogError);
-		emit logMessage(msg,QtFTM::LogError);
+		emit logMessage(obj->name().append(QString(": Connection failed!")),QtFTM::LogError);
+		if(!msg.isEmpty())
+			emit logMessage(QString("%1: %2").arg(obj->name()).arg(msg),QtFTM::LogError);
 	}
+
+	bool ok = success;
+	if(!obj->isCritical())
+		ok = true;
+
+	if(d_status.contains(obj->key()))
+		d_status[obj->key()] = ok;
+	else
+		d_status.insert(obj->key(),ok);
+
+	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+	s.setValue(QString("%1/connected").arg(obj->key()),success);
+	s.sync();
 
 	emit testComplete(obj->name(),success,msg);
 	checkStatus();
@@ -236,21 +261,18 @@ void HardwareManager::connectionResult(HardwareObject *obj, bool success, QStrin
 
 void HardwareManager::testObjectConnection(QString type, QString key)
 {
-	if(type == QString("gpib"))
-        QMetaObject::invokeMethod(gpib,"testObjectConnection",Q_ARG(QString,key));
-	else
+	Q_UNUSED(type)
+	HardwareObject *obj = nullptr;
+	for(int i=0; i<d_hardwareList.size();i++)
 	{
-		HardwareObject *obj = nullptr;
-		for(int i=0; i<d_hardwareList.size();i++)
-		{
-            if(d_hardwareList.at(i).first->key() == key)
-                obj = d_hardwareList.at(i).first;
-		}
-		if(!obj)
-			emit testComplete(key,false,QString("Device not found!"));
-		else
-			QMetaObject::invokeMethod(obj,"testConnection");
+	    if(d_hardwareList.at(i).first->key() == key)
+		   obj = d_hardwareList.at(i).first;
 	}
+	if(obj == nullptr)
+	    emit testComplete(key,false,QString("Device not found!"));
+	else
+	    QMetaObject::invokeMethod(obj,"testConnection");
+
 }
 
 void HardwareManager::hardwareFailure(HardwareObject *obj)
@@ -264,7 +286,9 @@ void HardwareManager::hardwareFailure(HardwareObject *obj)
 
     if(!success)
     {
-        d_status[obj->key()] = false;
+	    if(obj->isCritical())
+		    d_status[obj->key()] = false;
+
         if(!d_firstInitialization)
             emit failure();
     }
@@ -870,33 +894,16 @@ void HardwareManager::restoreSettingsAfterAttnPrep(bool success)
 
 void HardwareManager::checkStatus()
 {
-    //if numGpib is less than 0, the GPIB-LAN controller hasn't been initialized, so not everything is connected
-    if(d_numGpib<0)
-    {
-//        emit allHardwareConnected(false);
-        return;
-    }
-
-    //gotta wait until all instruments have responded
-    if(d_status.size() < d_hardwareList.size() + d_numGpib)
-    {
-//        emit allHardwareConnected(false);
-        return;
-    }
+	//gotta wait until all instruments have responded
+	if(d_status.size() < d_hardwareList.size())
+	    return;
 
 	bool success = true;
 	foreach (bool b, d_status)
 	{
-		if(!b)
-			success = false;
+	    if(!b)
+		   success = false;
 	}
-
-    if(success && d_firstInitialization)
-    {
-        //make sure nothing is asleep
-        sleep(false);
-        d_firstInitialization = false;
-    }
 
 	emit allHardwareConnected(success);
 }

@@ -113,8 +113,8 @@ private:
     QAction *res5kHzAction;
     QAction *res10kHzAction;
 
-	State uiState;
-	bool hardwareConnected;
+	State d_uiState;
+	bool d_hardwareConnected;
     bool noHardwareMode;
 
     void makeBatchConnections(BatchManager *bm, bool sleep = false);

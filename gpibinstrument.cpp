@@ -37,7 +37,6 @@ QByteArray GpibInstrument::queryCmd(QString cmd)
 
 void GpibInstrument::initialize()
 {
-    testConnection();
 }
 
 bool GpibInstrument::testConnection()
@@ -45,5 +44,5 @@ bool GpibInstrument::testConnection()
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
     d_address = s.value(QString("%1/address").arg(key()),1).toInt();
 
-    return true;
+    return p_controller->testConnection();
 }
