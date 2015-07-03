@@ -234,7 +234,12 @@ void HardwareManager::initializeHardware()
 void HardwareManager::connectionResult(HardwareObject *obj, bool success, QString msg)
 {
 	if(success)
+	{
 		emit logMessage(obj->name().append(QString(": Connected successfully.")));
+		if(obj->type() == CommunicationProtocol::Virtual)
+			emit logMessage(QString("%1 is a virtual instrument. Be cautious about taking real measurements!")
+						 .arg(obj->name()),QtFTM::LogWarning);
+	}
 	else
 	{
 		emit logMessage(obj->name().append(QString(": Connection failed!")),QtFTM::LogError);

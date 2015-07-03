@@ -16,7 +16,8 @@ SOURCES += hardwaremanager.cpp \
     pinswitchdrivedelaygenerator.cpp \
     $$PWD/communicationprotocol.cpp \
     $$PWD/gpibcontroller.cpp \
-    $$PWD/custominstrument.cpp
+    $$PWD/custominstrument.cpp \
+    $$PWD/virtualinstrument.cpp
 
 HEADERS += hardwaremanager.h \
     oscilloscope.h \
@@ -36,4 +37,5 @@ HEADERS += hardwaremanager.h \
     pinswitchdrivedelaygenerator.h \
     $$PWD/communicationprotocol.h \
     $$PWD/gpibcontroller.h \
-    $$PWD/custominstrument.h
+    $$PWD/custominstrument.h \
+    $$PWD/virtualinstrument.h
