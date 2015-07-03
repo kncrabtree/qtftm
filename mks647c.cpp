@@ -122,7 +122,7 @@ double MKS647C::setFlowSetpoint(const int ch, const double val)
     else
         emit logMessage(QString("Flow setpoint (%1) invalid for current range. Converted value = %2 (valid range: 0-1100)").arg(val).arg(sp),QtFTM::LogWarning);
 
-    queryFlowSetPoint(ch);
+    return readFlowSetpoint(ch);
 }
 
 double MKS647C::setPressureSetpoint(const double val)
@@ -148,7 +148,7 @@ double MKS647C::readFlowSetpoint(const int ch)
     {
         emit hardwareFailure();
         emit logMessage(QString("No response to flow range query for channel %1.").arg(ch+1),QtFTM::LogError);
-        return;
+	   return -1.0;
     }
     //we don't actually care about the range right now...
 
@@ -159,7 +159,7 @@ double MKS647C::readFlowSetpoint(const int ch)
     {
         emit hardwareFailure();
         emit logMessage(QString("No response to setpoint query for ch+1annel %1.").arg(ch+1),QtFTM::LogError);
-        return;
+	   return -1.0;
     }
 
     bool ok = false;
@@ -168,7 +168,7 @@ double MKS647C::readFlowSetpoint(const int ch)
     {
         emit hardwareFailure();
         emit logMessage(QString("Could not read setpointfor channel %1. Response: %2").arg(ch+1).arg(QString(resp)),QtFTM::LogError);
-        return;
+	   return -1.0;
     }
 
     if(resp.toInt() == 0)
@@ -192,7 +192,7 @@ double MKS647C::readPressureSetpoint()
     {
         emit hardwareFailure();
         emit logMessage(QString("No response to pressure range query."),QtFTM::LogError);
-        return;
+	   return -1.0;
     }
     //we don't care about the pressure range....
 
@@ -203,7 +203,7 @@ double MKS647C::readPressureSetpoint()
     {
         emit hardwareFailure();
         emit logMessage(QString("No response to pressure query."),QtFTM::LogError);
-        return;
+	   return -1.0;
     }
 
     bool ok = false;
@@ -212,7 +212,7 @@ double MKS647C::readPressureSetpoint()
     {
         emit hardwareFailure();
         emit logMessage(QString("Could not read pressure. Response: %1").arg(QString(resp)),QtFTM::LogError);
-        return;
+	   return -1.0;
     }
 
     //pressure is in units of 0.1% of full scale
@@ -234,7 +234,7 @@ double MKS647C::readFlow(const int ch)
     {
         emit hardwareFailure();
         emit logMessage(QString("No response to flow range query for channel %1.").arg(ch+1),QtFTM::LogError);
-        return;
+	   return -1.0;
     }
 
     bool ok = false;
@@ -244,7 +244,7 @@ double MKS647C::readFlow(const int ch)
         emit hardwareFailure();
         emit logMessage(QString("Could not read flow range for channel %1. Response: %2")
                         .arg(ch+1).arg(QString(resp)),QtFTM::LogError);
-        return;
+	   return -1.0;
     }
 
 
@@ -256,7 +256,7 @@ double MKS647C::readFlow(const int ch)
     {
         emit hardwareFailure();
         emit logMessage(QString("No response to correction factor query for channel %1.").arg(ch+1),QtFTM::LogError);
-        return;
+	   return -1.0;
     }
 
     ok = false;
@@ -266,7 +266,7 @@ double MKS647C::readFlow(const int ch)
         emit hardwareFailure();
         emit logMessage(QString("Could not read correction factor for channel %1. Response: %2")
                         .arg(ch+1).arg(QString(resp)),QtFTM::LogError);
-        return;
+	   return -1.0;
     }
 
     //now read flow
@@ -275,7 +275,7 @@ double MKS647C::readFlow(const int ch)
     {
         emit hardwareFailure();
         emit logMessage(QString("No response to flow query for channel %1.").arg(ch+1),QtFTM::LogError);
-        return;
+	   return -1.0;
     }
 
     ok = false;
@@ -285,7 +285,7 @@ double MKS647C::readFlow(const int ch)
         emit hardwareFailure();
         emit logMessage(QString("Could not read flow for channel %1. Response: %2")
                         .arg(ch+1).arg(QString(resp)),QtFTM::LogError);
-        return;
+	   return -1.0;
     }
 
     //convert readings into flow in sccm. f is in 0.1% of full scale, and gcf is fractional
@@ -312,7 +312,7 @@ double MKS647C::readPressure()
     {
         emit hardwareFailure();
         emit logMessage(QString("No response to pressure range query."),QtFTM::LogError);
-        return;
+	   return -1.0;
     }
 
     bool ok = false;
@@ -321,7 +321,7 @@ double MKS647C::readPressure()
     {
         emit hardwareFailure();
         emit logMessage(QString("Could not read pressure gauge range. Response: %1").arg(QString(resp)),QtFTM::LogError);
-        return;
+	   return -1.0;
     }
 
     //now read pressure
@@ -331,7 +331,7 @@ double MKS647C::readPressure()
     {
         emit hardwareFailure();
         emit logMessage(QString("No response to pressure query."),QtFTM::LogError);
-        return;
+	   return -1.0;
     }
 
     ok = false;
@@ -340,7 +340,7 @@ double MKS647C::readPressure()
     {
         emit hardwareFailure();
         emit logMessage(QString("Could not read pressure. Response: %1").arg(QString(resp)),QtFTM::LogError);
-        return;
+	   return -1.0;
     }
 
     //pressure is in units of 0.1% of full scale
@@ -359,7 +359,7 @@ void MKS647C::setPressureControlMode(bool enabled)
         p_comm->writeCmd(QString("PM0;\r\n"));
 
     //now, query state
-    readPressureControlStatus();
+    readPressureControlMode();
 }
 
 bool MKS647C::readPressureControlMode()
@@ -370,8 +370,7 @@ bool MKS647C::readPressureControlMode()
     {
         emit hardwareFailure();
         emit logMessage(QString("No response to pressure control mode query."),QtFTM::LogError);
-        //d_connected = false;
-        return;
+	   return false;
     }
 
     bool ok = false;
@@ -380,7 +379,7 @@ bool MKS647C::readPressureControlMode()
     {
         emit hardwareFailure();
         emit logMessage(QString("Could not parse pressure control mode response. Response: %1").arg(QString(resp)),QtFTM::LogError);
-        return;
+	   return false;
     }
 
     if(i)
@@ -396,7 +395,7 @@ void MKS647C::sleep(bool b)
 {
     if(b)
     {
-        setPressureControl(false);
+	   setPressureControlMode(false);
         p_comm->writeCmd(QString("OF0;\r\n"));
     }
     else
@@ -405,7 +404,7 @@ void MKS647C::sleep(bool b)
     HardwareObject::sleep(b);
 }
 
-QByteArray MKS647C::mksQueryCmd(QByteArray cmd, int respLength)
+QByteArray MKS647C::mksQueryCmd(QString cmd, int respLength)
 {
     QByteArray resp = p_comm->queryCmd(cmd).trimmed();
     if(resp.length() != respLength)

@@ -58,6 +58,50 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
+        <widget class="QLabel" name="label_6">
+         <property name="text">
+          <string>Prot</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="protDelayBox">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>100</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Scope</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="scopeDelayBox">
+         <property name="maximum">
+          <number>100</number>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="horizontalSpacer">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -73,7 +117,7 @@
        <item>
         <widget class="QLabel" name="label_4">
          <property name="text">
-          <string>Repetition Rate</string>
+          <string>Rep Rate</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -128,7 +172,7 @@
   <customwidget>
    <class>PulsePlot</class>
    <extends>QWidget</extends>
-   <header location="global">pulseplot.h</header>
+   <header>pulseplot.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

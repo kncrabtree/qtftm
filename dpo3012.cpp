@@ -2,6 +2,8 @@
 
 #include "tcpinstrument.h"
 
+#include <QTimer>
+
 DPO3012::DPO3012(QObject *parent) :
     Oscilloscope(parent)
 {
@@ -216,21 +218,21 @@ void DPO3012::setResolution()
 
     //get current resolution setting
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
-    Resolution r = (Resolution)s.value(QString("%1/resolution").arg(d_key),(int)Res_5kHz).toInt();
+    QtFTM::ScopeResolution r = (QtFTM::ScopeResolution)s.value(QString("%1/resolution").arg(d_key),(int)QtFTM::Res_5kHz).toInt();
 
     //apply appropriate settings. 10 kHz = 100 us, 5 kHz = 200 us, 2 kHz = 500 us, 1 kHz = 1000 us
     switch(r)
     {
-    case Res_1kHz:
+    case QtFTM::Res_1kHz:
         p_comm->writeCmd(QString(":HORIZONTAL:SCALE 100e-6;RECORDLENGTH 100000;:DATA:STOP 100000\n"));
         break;
-    case Res_2kHz:
+    case QtFTM::Res_2kHz:
         p_comm->writeCmd(QString(":HORIZONTAL:SCALE 100e-6;RECORDLENGTH 100000;:DATA:STOP 50000\n"));
         break;
-    case Res_10kHz:
+    case QtFTM::Res_10kHz:
         p_comm->writeCmd(QString(":HORIZONTAL:SCALE 20e-6;RECORDLENGTH 10000;:DATA:STOP 5000\n"));
         break;
-    case Res_5kHz:
+    case QtFTM::Res_5kHz:
     default:
         p_comm->writeCmd(QString(":HORIZONTAL:SCALE 20e-6;RECORDLENGTH 10000;:DATA:STOP 10000\n"));
         break;

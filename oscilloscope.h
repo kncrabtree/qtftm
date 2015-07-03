@@ -21,7 +21,6 @@ public slots:
     virtual void setResolution() =0;
     virtual void sendCurveQuery() =0;
     virtual void setActive(bool active = true) { d_acquisitionActive = active; }
-    void wakeTheFUp();
 
 private:
     bool d_acquisitionActive;

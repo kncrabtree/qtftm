@@ -40,9 +40,6 @@ public slots:
     void updateInterval();
     virtual void readNext();
 
-    // HardwareObject interface
-    void readTimeData();
-
 protected:
     FlowConfig d_config;
     QTimer *p_readTimer;

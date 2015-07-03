@@ -23,15 +23,22 @@ public slots:
     void newConfig(const PulseGenConfig c);
     void newSetting(int index, QtFTM::PulseSetting s, QVariant val);
     void newRepRate(double d);
+    void newProtDelay(int d);
+    void newScopeDelay(int d);
 
     // ZoomPanPlot interface
 protected:
+    void updateVerticalMarkers();
     void filterData();
     void replot();
 
 private:
     PulseGenConfig d_config;
     QList<QPair<QwtPlotCurve*,QwtPlotMarker*>> d_plotItems;
+    QwtPlotMarker *p_protMarker;
+    QwtPlotMarker *p_scopeMarker;
+    int d_protDelay;
+    int d_scopeDelay;
 
 };
 

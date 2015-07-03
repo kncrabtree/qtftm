@@ -6,16 +6,29 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>376</width>
+    <width>740</width>
     <height>528</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Single Scan</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0">
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
      <item>
       <layout class="QFormLayout" name="formLayout">
        <property name="fieldGrowthPolicy">
@@ -222,543 +235,83 @@
        </layout>
       </widget>
      </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
     </layout>
    </item>
    <item>
-    <layout class="QGridLayout" name="gridLayout" columnstretch="0,1,1,0">
-     <item row="2" column="1">
-      <widget class="QDoubleSpinBox" name="ssDcDelayBox">
-       <property name="keyboardTracking">
-        <bool>false</bool>
+    <widget class="PulseConfigWidget" name="pulseConfigWidget" native="true"/>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <spacer name="horizontalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
        </property>
-       <property name="decimals">
-        <number>3</number>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
        </property>
-       <property name="maximum">
-        <double>100000.000000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>10.000000000000000</double>
-       </property>
-      </widget>
+      </spacer>
      </item>
-     <item row="1" column="2">
-      <widget class="QDoubleSpinBox" name="ssGasWidthBox">
-       <property name="keyboardTracking">
-        <bool>false</bool>
+     <item>
+      <widget class="QCheckBox" name="skipTuneCheckBox">
+       <property name="toolTip">
+        <string>If checked, the cavity will not be tuned prior to this scan. The cavity voltage will just be measured.</string>
        </property>
-       <property name="decimals">
-        <number>3</number>
-       </property>
-       <property name="minimum">
-        <double>0.004000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>100000.000000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>10.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="2">
-      <widget class="QLabel" name="label_14">
        <property name="text">
-        <string>Width (μs)</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="3">
-      <widget class="QPushButton" name="ssDcPulseOnButton">
-       <property name="text">
-        <string>On</string>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="label_15">
-       <property name="text">
-        <string>DC</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="label_16">
-       <property name="text">
-        <string>MW</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1">
-      <widget class="QDoubleSpinBox" name="ssMwDelayBox">
-       <property name="keyboardTracking">
-        <bool>false</bool>
-       </property>
-       <property name="decimals">
-        <number>3</number>
-       </property>
-       <property name="maximum">
-        <double>100000.000000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>10.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="2">
-      <widget class="QDoubleSpinBox" name="ssMwWidthBox">
-       <property name="keyboardTracking">
-        <bool>false</bool>
-       </property>
-       <property name="decimals">
-        <number>3</number>
-       </property>
-       <property name="minimum">
-        <double>0.004000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>100000.000000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>0.100000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_12">
-       <property name="text">
-        <string>Gas</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0">
-      <widget class="QLabel" name="label_17">
-       <property name="text">
-        <string>DR</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="1">
-      <widget class="QDoubleSpinBox" name="ssDrDelayBox">
-       <property name="keyboardTracking">
-        <bool>false</bool>
-       </property>
-       <property name="decimals">
-        <number>3</number>
-       </property>
-       <property name="maximum">
-        <double>100000.000000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>10.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="2">
-      <widget class="QDoubleSpinBox" name="ssDrWidthBox">
-       <property name="keyboardTracking">
-        <bool>false</bool>
-       </property>
-       <property name="decimals">
-        <number>3</number>
-       </property>
-       <property name="minimum">
-        <double>0.004000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>100000.000000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>10.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="3">
-      <widget class="QPushButton" name="ssDrPulseOnButton">
-       <property name="text">
-        <string>Off</string>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
+        <string>Skip Tuning</string>
        </property>
        <property name="checked">
         <bool>false</bool>
        </property>
       </widget>
      </item>
-     <item row="5" column="0">
-      <widget class="QLabel" name="chELabel">
-       <property name="text">
-        <string>Mon</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="1">
-      <widget class="QDoubleSpinBox" name="ssMonDelayBox">
-       <property name="keyboardTracking">
-        <bool>false</bool>
-       </property>
-       <property name="decimals">
-        <number>3</number>
-       </property>
-       <property name="maximum">
-        <double>100000.000000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>10.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="2">
-      <widget class="QDoubleSpinBox" name="ssMonWidthBox">
-       <property name="keyboardTracking">
-        <bool>false</bool>
-       </property>
-       <property name="decimals">
-        <number>3</number>
-       </property>
-       <property name="minimum">
-        <double>0.004000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>100000.000000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>10.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="0">
-      <widget class="QLabel" name="chFLabel">
-       <property name="text">
-        <string>Aux2</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="2">
-      <widget class="QDoubleSpinBox" name="ssAux2WidthBox">
-       <property name="keyboardTracking">
-        <bool>false</bool>
-       </property>
-       <property name="decimals">
-        <number>3</number>
-       </property>
-       <property name="minimum">
-        <double>0.004000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>100000.000000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>10.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="1">
-      <widget class="QDoubleSpinBox" name="ssAux2DelayBox">
-       <property name="keyboardTracking">
-        <bool>false</bool>
-       </property>
-       <property name="decimals">
-        <number>3</number>
-       </property>
-       <property name="maximum">
-        <double>100000.000000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>10.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="3">
-      <widget class="QPushButton" name="ssAux2PulseOnButton">
-       <property name="text">
-        <string>Off</string>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QLabel" name="label_13">
-       <property name="text">
-        <string>Delay (μs)</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="2">
-      <widget class="QDoubleSpinBox" name="ssDcWidthBox">
-       <property name="keyboardTracking">
-        <bool>false</bool>
-       </property>
-       <property name="decimals">
-        <number>3</number>
-       </property>
-       <property name="minimum">
-        <double>0.004000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>100000.000000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>10.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QDoubleSpinBox" name="ssGasDelayBox">
-       <property name="keyboardTracking">
-        <bool>false</bool>
-       </property>
-       <property name="decimals">
-        <number>3</number>
-       </property>
-       <property name="maximum">
-        <double>100000.000000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>10.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="0">
-      <widget class="QLabel" name="chGLabel">
-       <property name="text">
-        <string>Aux3</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="1">
-      <widget class="QDoubleSpinBox" name="ssAux3DelayBox">
-       <property name="keyboardTracking">
-        <bool>false</bool>
-       </property>
-       <property name="decimals">
-        <number>3</number>
-       </property>
-       <property name="maximum">
-        <double>100000.000000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>10.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="2">
-      <widget class="QDoubleSpinBox" name="ssAux3WidthBox">
-       <property name="keyboardTracking">
-        <bool>false</bool>
-       </property>
-       <property name="decimals">
-        <number>3</number>
-       </property>
-       <property name="minimum">
-        <double>0.004000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>100000.000000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>10.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="3">
-      <widget class="QPushButton" name="ssAux3PulseOnButton">
-       <property name="text">
-        <string>Off</string>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="0">
-      <widget class="QLabel" name="chHLabel">
-       <property name="text">
-        <string>Aux4</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="1">
-      <widget class="QDoubleSpinBox" name="ssAux4DelayBox">
-       <property name="keyboardTracking">
-        <bool>false</bool>
-       </property>
-       <property name="decimals">
-        <number>3</number>
-       </property>
-       <property name="maximum">
-        <double>100000.000000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>10.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="2">
-      <widget class="QDoubleSpinBox" name="ssAux4WidthBox">
-       <property name="keyboardTracking">
-        <bool>false</bool>
-       </property>
-       <property name="decimals">
-        <number>3</number>
-       </property>
-       <property name="minimum">
-        <double>0.004000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>100000.000000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>10.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="3">
-      <widget class="QPushButton" name="ssAux4PulseOnButton">
-       <property name="text">
-        <string>Off</string>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="3">
-      <widget class="QPushButton" name="ssAux1PulseOnButton">
-       <property name="text">
-        <string>Off</string>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="9" column="1">
-      <widget class="QSpinBox" name="ssProtectionSpinBox">
-       <property name="suffix">
-        <string/>
-       </property>
-       <property name="minimum">
-        <number>1</number>
-       </property>
-       <property name="maximum">
-        <number>100</number>
-       </property>
-      </widget>
-     </item>
-     <item row="9" column="0">
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Prot</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="10" column="0">
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>Scope</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="10" column="1">
-      <widget class="QSpinBox" name="ssScopeDelaySpinBox">
-       <property name="suffix">
-        <string/>
-       </property>
-       <property name="maximum">
-        <number>100</number>
-       </property>
-      </widget>
+     <item>
+      <spacer name="horizontalSpacer_4">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
      </item>
     </layout>
-   </item>
-   <item>
-    <widget class="QCheckBox" name="skipTuneCheckBox">
-     <property name="toolTip">
-      <string>If checked, the cavity will not be tuned prior to this scan. The cavity voltage will just be measured.</string>
-     </property>
-     <property name="text">
-      <string>Skip Tuning</string>
-     </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
-    </widget>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PulseConfigWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">pulseconfigwidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>ssShotsSpinBox</tabstop>
   <tabstop>ssFtmDoubleSpinBox</tabstop>
   <tabstop>ssAttnSpinBox</tabstop>
   <tabstop>ssDrDoubleSpinBox</tabstop>
   <tabstop>ssPwrDoubleSpinBox</tabstop>
-  <tabstop>ssGasDelayBox</tabstop>
-  <tabstop>ssGasWidthBox</tabstop>
-  <tabstop>ssDcDelayBox</tabstop>
-  <tabstop>ssDcWidthBox</tabstop>
-  <tabstop>ssDcPulseOnButton</tabstop>
-  <tabstop>ssMwDelayBox</tabstop>
-  <tabstop>ssMwWidthBox</tabstop>
-  <tabstop>ssDrDelayBox</tabstop>
-  <tabstop>ssDrWidthBox</tabstop>
-  <tabstop>ssDrPulseOnButton</tabstop>
-  <tabstop>ssMonDelayBox</tabstop>
-  <tabstop>ssMonWidthBox</tabstop>
-  <tabstop>ssAux2DelayBox</tabstop>
-  <tabstop>ssAux2WidthBox</tabstop>
-  <tabstop>ssAux2PulseOnButton</tabstop>
-  <tabstop>ssAux3DelayBox</tabstop>
-  <tabstop>ssAux3WidthBox</tabstop>
-  <tabstop>ssAux3PulseOnButton</tabstop>
-  <tabstop>ssAux4DelayBox</tabstop>
-  <tabstop>ssAux4WidthBox</tabstop>
-  <tabstop>ssAux4PulseOnButton</tabstop>
  </tabstops>
  <resources/>
  <connections/>

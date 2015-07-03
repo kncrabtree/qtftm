@@ -10,7 +10,7 @@ DrScanSetupPage::DrScanSetupPage(SingleScanWidget *ssw, AutoFitWidget *aw, QWidg
 	//set default values
 	drSsw = new SingleScanWidget(this);
     drSsw->setFromScan(ssw->toScan());
-    drSsw->ui->ssShotsSpinBox->setEnabled(false);
+    drSsw->setShotsBoxEnabled(false);
     drSsw->enableSkipTune(true);
 //    drSsw->setFtmFreq(ssw->ftmFreq());
 //	drSsw->setAttn(ssw->attn());
@@ -60,5 +60,5 @@ bool DrScanSetupPage::validatePage()
 void DrScanSetupPage::initializePage()
 {
     drSsw->setDrFreq(field(QString("drStart")).toDouble());
-    drSsw->ui->ssDrDoubleSpinBox->setEnabled(false);
+    drSsw->setDrSynthBoxEnabled(false);
 }

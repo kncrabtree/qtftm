@@ -17,7 +17,7 @@ public slots:
 protected:
     double setSynthFreq(double d);
     double readSynthFreq();
-    double setSynthPower(double d);
+    double setSynthPower(double p);
     double readSynthPower();
 };
 

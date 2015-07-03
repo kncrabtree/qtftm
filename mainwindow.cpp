@@ -152,6 +152,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	controlThread = new QThread(this);
 
 	hwm = new HardwareManager();
+	connect(this,&MainWindow::scopeResolutionChanged,hwm,&HardwareManager::scopeResolutionChanged);
 	connect(hwm,&HardwareManager::ftmSynthUpdate,this,&MainWindow::ftmCavityUpdate);
 	connect(hwm,&HardwareManager::probeFreqUpdate,this,&MainWindow::ftmProbeUpdate);
     connect(hwm,&HardwareManager::synthRangeChanged,this,&MainWindow::synthSettingsChanged);
@@ -166,14 +167,8 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(hwm,&HardwareManager::statusMessage,lh,&LogHandler::sendStatusMessage);
 	connect(hwm,&HardwareManager::allHardwareConnected,this,&MainWindow::hardwareStatusChanged);
 	connect(ui->ftmControlDoubleSpinBox,doubleVc,hwm,&HardwareManager::setFtmCavityFreqFromUI);
-#ifndef CONFIG_NODRSYNTH
 	connect(ui->drControlDoubleSpinBox,doubleVc,hwm,&HardwareManager::setDrSynthFreqFromUI);
 	connect(ui->pwrControlDoubleSpinBox,doubleVc,hwm,&HardwareManager::setDrSynthPwrFromUI);
-#endif
-    connect(ui->protectionSpinBox,intVc,hwm,&HardwareManager::setProtectionDelayFromUI);
-    connect(ui->scopeDelaySpinBox,intVc,hwm,&HardwareManager::setScopeDelayFromUI);
-    connect(hwm,&HardwareManager::hmScopeDelayUpdate,this,&MainWindow::updateScopeDelayOnUI);
-    connect(hwm,&HardwareManager::hmProtectionDelayUpdate,this,&MainWindow::updateProtectionDelayOnUI);
 	connect(ui->attnControlSpinBox,intVc,hwm,&HardwareManager::setAttnFromUI);
     connect(hwm,&HardwareManager::attenUpdate,this,&MainWindow::setcvUpdate);
     connect(ui->magnetOnOffButton,&QAbstractButton::clicked,hwm,&HardwareManager::setMagnetFromUI);
@@ -195,29 +190,15 @@ MainWindow::MainWindow(QWidget *parent) :
 		    ui->pressureControlButton->setText(QString("Off"));
     });
 
-    //update for pulse config widget!
-    for(int i=0;i<8;i++)
-    {
-	    connect(d_delayBoxes.at(i),doubleVc,[=](double d){ pGenSet(i,PulseGenerator::Delay,d); });
-	    connect(d_widthBoxes.at(i),doubleVc,[=](double d){ pGenSet(i,PulseGenerator::Width,d); });
-	    if(d_onOffButtons.at(i))
-	    {
-		    connect(d_onOffButtons.at(i),&QPushButton::toggled,[=](bool b){ pGenSet(i,PulseGenerator::Enabled,b); });
-		    connect(d_onOffButtons.at(i),&QPushButton::toggled,[=](bool on){
-			    if(on)
-				    d_onOffButtons[i]->setText(QString("On"));
-			    else
-				    d_onOffButtons[i]->setText(QString("Off"));
-		    });
-	    }
-    }
-	connect(hwm,&HardwareManager::pGenChannelSetting,this,&MainWindow::pGenSettingUpdate);
-	connect(hwm,&HardwareManager::pGenChannelAll,this,&MainWindow::pGenChannelUpdate);
-	connect(hwm,&HardwareManager::pGenAll,this,&MainWindow::pGenAllUpdate);
-	connect(hwm,&HardwareManager::pGenAll,ui->pulsePlot,&PulsePlot::pConfigAll);
-	connect(hwm,&HardwareManager::pGenChannelAll,ui->pulsePlot,&PulsePlot::pConfigSingle);
-	connect(hwm,&HardwareManager::pGenChannelSetting,ui->pulsePlot,&PulsePlot::pConfigSetting);
-    //end pulse config widget stuff
+	connect(hwm,&HardwareManager::pGenChannelSetting,ui->pulseConfigWidget,&PulseConfigWidget::newSetting);
+	connect(hwm,&HardwareManager::pGenConfigUpdate,ui->pulseConfigWidget,&PulseConfigWidget::newConfig);
+	connect(hwm,&HardwareManager::repRateUpdate,ui->pulseConfigWidget,&PulseConfigWidget::newRepRate);
+	connect(hwm,&HardwareManager::hmProtectionDelayUpdate,ui->pulseConfigWidget,&PulseConfigWidget::newProtDelay);
+	connect(hwm,&HardwareManager::hmScopeDelayUpdate,ui->pulseConfigWidget,&PulseConfigWidget::newScopeDelay);
+	connect(ui->pulseConfigWidget,&PulseConfigWidget::changeSetting,hwm,&HardwareManager::setPulseSetting);
+	connect(ui->pulseConfigWidget,&PulseConfigWidget::changeRepRate,hwm,&HardwareManager::setRepRate);
+	connect(ui->pulseConfigWidget,&PulseConfigWidget::changeProtDelay,hwm,&HardwareManager::setProtectionDelayFromUI);
+	connect(ui->pulseConfigWidget,&PulseConfigWidget::changeScopeDelay,hwm,&HardwareManager::setScopeDelayFromUI);
     connect(hwm,&HardwareManager::mirrorPosUpdate,this,&MainWindow::mirrorPosUpdate);
     connect(hwm,&HardwareManager::tuningComplete,this,&MainWindow::tuningComplete);
     connect(ui->actionTune_Cavity,&QAction::triggered,this,&MainWindow::tuneCavityCallback);
@@ -350,14 +331,13 @@ void MainWindow::updateUiConfig()
         ui->actionFT_Synth->setDisabled(uiState & (Acquiring|Tuning));
         ui->actionDR_Synth->setDisabled(uiState & (Acquiring|Tuning));
         ui->actionIO_Board->setDisabled(uiState & (Acquiring|Tuning));
-        ui->actionPulse_Generator->setDisabled(uiState & (Acquiring|Tuning));
         ui->actionView_Batch->setEnabled(true); //old batch scans can now be loaded at any time
         ui->actionChange_Tuning_File->setDisabled(uiState & (Acquiring|Tuning));
         ui->actionGenerate_Tuning_Table->setDisabled(uiState & (Acquiring|Tuning) || uiState & Asleep);
         ui->synthControlGroup->setDisabled(uiState & (Acquiring|Tuning) || uiState & Asleep);
         ui->environmentControlBox->setDisabled(uiState & (Acquiring|Tuning) || uiState & Asleep);
         ui->gasControlGroup->setDisabled(uiState & (Acquiring|Tuning) || uiState & Asleep);
-        ui->pulseGroup->setDisabled(uiState & (Acquiring|Tuning) || uiState & Asleep);
+	   ui->pulseConfigWidget->setDisabled(uiState & (Acquiring|Tuning) || uiState & Asleep);
         ui->menuResolution->setDisabled(uiState & (Acquiring|Tuning) || uiState & Asleep);
         ui->menuMotor_Driver->setDisabled(uiState & (Acquiring|Tuning) || uiState & Asleep);
 	}
@@ -373,23 +353,16 @@ void MainWindow::updateUiConfig()
 		ui->actionFT_Synth->setEnabled(false);
         ui->actionDR_Synth->setEnabled(false);
         ui->actionIO_Board->setEnabled(true);
-        ui->actionPulse_Generator->setEnabled(false);
         ui->actionView_Batch->setEnabled(true);
         ui->actionChange_Tuning_File->setEnabled(true);
         ui->actionGenerate_Tuning_Table->setEnabled(false);
 		ui->synthControlGroup->setEnabled(false);
 		ui->environmentControlBox->setEnabled(false);
 		ui->gasControlGroup->setEnabled(false);
-		ui->pulseGroup->setEnabled(false);
+		ui->pulseConfigWidget->setEnabled(false);
         ui->menuResolution->setEnabled(false);
         ui->menuMotor_Driver->setEnabled(false);
 	}
-
-#ifdef CONFIG_NODRSYNTH
-    ui->actionDR_Synth->setEnabled(false);
-    ui->drControlDoubleSpinBox->setEnabled(false);
-    ui->pwrControlDoubleSpinBox->setEnabled(false);
-#endif
 }
 
 void MainWindow::saveLogCallback()
@@ -490,20 +463,6 @@ void MainWindow::attnUpdate(int a)
 	ui->attnControlSpinBox->blockSignals(true);
 	ui->attnControlSpinBox->setValue(a);
     ui->attnControlSpinBox->blockSignals(false);
-}
-
-void MainWindow::updateScopeDelayOnUI(int a)
-{
-    ui->scopeDelaySpinBox->blockSignals(true);
-    ui->scopeDelaySpinBox->setValue(a);
-    ui->scopeDelaySpinBox->blockSignals(false);
-}
-
-void MainWindow::updateProtectionDelayOnUI(int a)
-{
-    ui->protectionSpinBox->blockSignals(true);
-    ui->protectionSpinBox->setValue(a);
-    ui->protectionSpinBox->blockSignals(false);
 }
 
 
@@ -666,68 +625,6 @@ void MainWindow::fatalSaveError()
 	ui->tabWidget->setCurrentIndex(ui->tabWidget->count()-1);
 }
 
-void MainWindow::pGenSettingUpdate(const int ch, const PulseGenerator::Setting s, const QVariant val)
-{
-	if(ch-1 >= 8)
-		return;
-
-	switch(s)
-	{
-	case PulseGenerator::Delay:
-		d_delayBoxes[ch-1]->blockSignals(true);
-		d_delayBoxes[ch-1]->setValue(val.toDouble());
-		d_delayBoxes[ch-1]->blockSignals(false);
-		break;
-	case PulseGenerator::Width:
-		d_widthBoxes[ch-1]->blockSignals(true);
-		d_widthBoxes[ch-1]->setValue(val.toDouble());
-		d_widthBoxes[ch-1]->blockSignals(false);
-		break;
-	case PulseGenerator::Enabled:
-		if(val.toBool())
-			d_leds[ch-1]->setState(true);
-		else
-			d_leds[ch-1]->setState(false);
-
-		if(d_onOffButtons.at(ch-1))
-		{
-			d_onOffButtons[ch-1]->blockSignals(true);
-			d_onOffButtons[ch-1]->setChecked(val.toBool());
-			if(val.toBool())
-				d_onOffButtons[ch-1]->setText(QString("On"));
-			else
-				d_onOffButtons[ch-1]->setText(QString("Off"));
-			d_onOffButtons[ch-1]->blockSignals(false);
-		}
-		break;
-	default:
-		break;
-	}
-}
-
-void MainWindow::pGenChannelUpdate(const PulseGenerator::PulseChannelConfiguration p)
-{
-	pGenSettingUpdate(p.channel,PulseGenerator::Delay,QVariant(p.delay));
-	pGenSettingUpdate(p.channel,PulseGenerator::Width,QVariant(p.width));
-	pGenSettingUpdate(p.channel,PulseGenerator::Enabled,QVariant(p.enabled));
-}
-
-void MainWindow::pGenAllUpdate(const QList<PulseGenerator::PulseChannelConfiguration> l)
-{
-	for(int i=0;i<l.size();i++)
-		pGenChannelUpdate(l.at(i));
-}
-
-void MainWindow::pGenSet(const int channel, const PulseGenerator::Setting s, const QVariant val)
-{
-	if(channel>-1)
-	{
-		QMetaObject::invokeMethod(hwm,"setPulse",Q_ARG(int,channel+1),
-							 Q_ARG(PulseGenerator::Setting,s),Q_ARG(QVariant,val));
-		return;
-	}
-}
-
 void MainWindow::singleScanCallback()
 {
 	if(batchThread->isRunning())
@@ -746,9 +643,9 @@ void MainWindow::singleScanCallback()
 	ssw->setAttn(ui->attnControlSpinBox->value());
 	ssw->setDrFreq(ui->drControlDoubleSpinBox->value());
 	ssw->setDrPower(ui->pwrControlDoubleSpinBox->value());
-	ssw->setPulseConfig(readPulseConfig());
-    ssw->setProtectionTime(ui->protectionSpinBox->value());
-    ssw->setScopeTime(ui->scopeDelaySpinBox->value());
+	ssw->setPulseConfig(ui->pulseConfigWidget->getConfig());
+    ssw->setProtectionTime(ui->pulseConfigWidget->protDelay());
+    ssw->setScopeTime(ui->pulseConfigWidget->scopeDelay());
     ssw->setMagnet(ui->magnetOnOffButton->isChecked());
     ssw->enableSkipTune();
 
@@ -783,9 +680,9 @@ void MainWindow::batchScanCallback()
 	ssw->setAttn(ui->attnControlSpinBox->value());
 	ssw->setDrFreq(ui->drControlDoubleSpinBox->value());
 	ssw->setDrPower(ui->pwrControlDoubleSpinBox->value());
-	ssw->setPulseConfig(readPulseConfig());
-    ssw->setProtectionTime(ui->protectionSpinBox->value());
-    ssw->setScopeTime(ui->scopeDelaySpinBox->value());
+	ssw->setPulseConfig(ui->pulseConfigWidget->getConfig());
+    ssw->setProtectionTime(ui->pulseConfigWidget->protDelay());
+    ssw->setScopeTime(ui->pulseConfigWidget->scopeDelay());
     ssw->setMagnet(ui->magnetOnOffButton->isChecked());
 
     AutoFitWidget *aw = new AutoFitWidget(guessBufferString(),ui->peakUpPlot->getDelay(),ui->peakUpPlot->getHpf(),ui->peakUpPlot->getExp(),ui->peakUpPlot->getPadFidBox()->isChecked());
@@ -816,8 +713,8 @@ void MainWindow::batchScanCallback()
 	uiState = Acquiring;
 	updateUiConfig();
 
-	delete ssw;
-	delete aw;
+	ssw->deleteLater();
+	aw->deleteLater();
 }
 
 void MainWindow::sleep(bool b)
@@ -908,7 +805,7 @@ void MainWindow::resolutionChanged(QtFTM::ScopeResolution res)
     s.setValue(QString("scope/resolution"),(int)res);
     s.sync();
 
-    QMetaObject::invokeMethod(hwm,"scopeResolutionChanged");
+    emit scopeResolutionChanged();
 
 }
 
@@ -1003,7 +900,6 @@ void MainWindow::setHardwareRanges()
     ui->attnControlSpinBox->setRange(s.value(QString("attn/min"),0).toInt(),s.value(QString("attn/max"),70).toInt());
     ui->attnControlSpinBox->blockSignals(false);
 
-#ifndef CONFIG_NODRSYNTH
     //dr synth
     ui->drControlDoubleSpinBox->blockSignals(true);
     ui->pwrControlDoubleSpinBox->blockSignals(true);
@@ -1011,35 +907,6 @@ void MainWindow::setHardwareRanges()
     ui->pwrControlDoubleSpinBox->setRange(s.value(QString("drSynth/minPower"),-70.0).toDouble(),s.value(QString("drSynth/maxPower"),17.0).toDouble());
     ui->drControlDoubleSpinBox->blockSignals(false);
     ui->pwrControlDoubleSpinBox->blockSignals(false);
-#endif
-
-    //pulse generator
-    double minWidth = s.value(QString("pulseGenerator/minWidth"),0.004).toDouble();
-    double maxWidth = s.value(QString("pulseGenerator/maxWidth"),1.0e5).toDouble();
-    double minDelay = s.value(QString("pulseGenerator/minDelay"),0.0).toDouble();
-    double maxDelay = s.value(QString("pulseGenerator/maxDelay"),1.0e5).toDouble();
-
-    for(int i=0;i<d_widthBoxes.size();i++)
-    {
-	   if(d_widthBoxes.at(i) != nullptr)
-        {
-		  QDoubleSpinBox *b = d_widthBoxes[i];
-            b->blockSignals(true);
-            b->setRange(minWidth,maxWidth);
-            b->blockSignals(false);
-        }
-    }
-
-    for(int i=0;i<d_delayBoxes.size();i++)
-    {
-	   if(d_delayBoxes.at(i) != nullptr)
-        {
-		  QDoubleSpinBox *b = d_delayBoxes[i];
-            b->blockSignals(true);
-            b->setRange(minDelay,maxDelay);
-            b->blockSignals(false);
-        }
-    }
 
 }
 
@@ -1211,9 +1078,9 @@ void MainWindow::attnTablePrepComplete(bool success)
     scan.setAttenuation(ui->attenuationSpinBox->value());
     scan.setDrFreq(ui->drControlDoubleSpinBox->value());
     scan.setDrPower(ui->powerDoubleSpinBox->value());
-    scan.setPulseConfiguration(readPulseConfig());
-    scan.setProtectionDelayTime(ui->protectionSpinBox->value());
-    scan.setScopeDelayTime(ui->scopeDelaySpinBox->value());
+    scan.setPulseConfiguration(ui->pulseConfigWidget->getConfig());
+    scan.setProtectionDelayTime(ui->pulseConfigWidget->protDelay());
+    scan.setScopeDelayTime(ui->pulseConfigWidget->scopeDelay());
 
     BatchAttenuation *bm = new BatchAttenuation(minFreqBox->value(),maxFreqBox->value(),stepBox->value(),scan.attenuation(),scan,nameBox->text());
 
@@ -1273,15 +1140,6 @@ void MainWindow::attnTableBatchComplete(bool aborted)
     updateUiConfig();
 
 
-}
-
-QList<PulseGenerator::PulseChannelConfiguration> MainWindow::readPulseConfig()
-{
-	QList<PulseGenerator::PulseChannelConfiguration> out;
-
-	QMetaObject::invokeMethod(hwm,"readPGenAll",Qt::BlockingQueuedConnection,
-						 Q_RETURN_ARG(QList<PulseGenerator::PulseChannelConfiguration>,out));
-	return out;
 }
 
 void MainWindow::makeBatchConnections(BatchManager *bm, bool sleep)

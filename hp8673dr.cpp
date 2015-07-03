@@ -3,12 +3,12 @@
 #include "gpibinstrument.h"
 
 HP8673DR::HP8673DR(QObject *parent) :
-    FtmSynthesizer(parent)
+    DrSynthesizer(parent)
 {
     d_subKey = QString("hp8340");
     d_prettyName = QString("HP8340 FTM Synthesizer");
 
-    p_comm = new GpibInstrument(d_key,d_subKey,parent,this);
+    p_comm = new GpibInstrument(d_key,d_subKey,static_cast<GpibController*>(parent),this);
     connect(p_comm,&CommunicationProtocol::logMessage,this,&HP8673DR::logMessage);
     connect(p_comm,&CommunicationProtocol::hardwareFailure,this,&HP8673DR::hardwareFailure);
 
@@ -71,11 +71,11 @@ double HP8673DR::setSynthFreq(double d)
     //Figure out the HP8673D band used to generate the frequency, and select nearest valid value
     //See manual for details
     int hpBand = 1;
-    if(rawFreq>6600.0)
+    if(d>6600.0)
         hpBand++;
-    if(rawFreq>12300.0)
+    if(d>12300.0)
         hpBand++;
-    if(rawFreq>18600.0)
+    if(d>18600.0)
         hpBand++;
 
     int freqkHz = qRound(d*1000.0);
@@ -87,7 +87,7 @@ double HP8673DR::setSynthFreq(double d)
     }
 
     //write command to synth here!
-    if (!writeCmd(QString("CF%1MZ;\n").arg(rawFreq,0,'f',3)))
+    if (!p_comm->writeCmd(QString("CF%1MZ;\n").arg(rawFreq,0,'f',3)))
     {
         emit hardwareFailure();
         return -1.0;
@@ -108,13 +108,13 @@ double HP8673DR::readSynthFreq()
     return resp.mid(2,11).trimmed().toDouble()/1.0e6;
 }
 
-double HP8673DR::setSynthPower(double d)
+double HP8673DR::setSynthPower(double p)
 {
     double power = readSynthPower();
     if(qAbs(p-power) > 0.09)
     {
         p_comm->device()->waitForReadyRead(50);
-        writeCmd(QString("PL%1DB;\n").arg(QString::number(p,'f',2)));
+	   p_comm->writeCmd(QString("PL%1DB;\n").arg(QString::number(p,'f',2)));
         p_comm->device()->waitForReadyRead(50);// seems to be same command for both generators
     }
 

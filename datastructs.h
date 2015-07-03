@@ -2,6 +2,7 @@
 #define DATASTRUCTS_H
 
 #include <QString>
+#include <QMetaType>
 
 namespace QtFTM {
 
@@ -57,6 +58,11 @@ struct PulseChannelConfig {
 };
 
 }
+
+Q_DECLARE_METATYPE(QtFTM::FlowSetting)
+Q_DECLARE_METATYPE(QtFTM::PulseActiveLevel)
+Q_DECLARE_METATYPE(QtFTM::LogMessageCode)
+Q_DECLARE_METATYPE(QtFTM::ScopeResolution)
 
 #endif // DATASTRUCTS_H
 

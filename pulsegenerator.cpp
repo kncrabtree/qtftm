@@ -1,7 +1,7 @@
 #include "pulsegenerator.h"
 
 PulseGenerator::PulseGenerator(QObject *parent) :
-   HardwareObject(parent)
+   HardwareObject(parent), d_minDelay(0.0), d_maxDelay(100000.0), d_minWidth(0.001), d_maxWidth(100000.0)
 {
     d_key = QString("pulseGenerator");
 }
@@ -52,6 +52,18 @@ bool PulseGenerator::setAll(const PulseGenConfig cc)
     success &= setRepRate(cc.repRate());
 
     return success;
+}
+
+PulseGenConfig PulseGenerator::configureForTuning()
+{
+	PulseGenConfig out = d_config;
+	//disable everything except gas and MW
+	for(int i=0; i<d_config.size(); i++)
+	{
+		if(i != QTFTM_PGEN_GASCHANNEL && i != QTFTM_PGEN_MWCHANNEL)
+			set(i,QtFTM::PulseEnabled,false);
+	}
+	return out;
 }
 
 void PulseGenerator::readAll()

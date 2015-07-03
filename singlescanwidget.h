@@ -2,9 +2,8 @@
 #define SINGLESCANWIDGET_H
 
 #include <QWidget>
-#include "pulsegenerator.h"
-#include "ui_singlescanwidget.h"
 #include "scan.h"
+#include <QSpinBox>
 
 namespace Ui {
 class SingleScanWidget;
@@ -17,7 +16,6 @@ class SingleScanWidget : public QWidget
 public:
 	explicit SingleScanWidget(QWidget *parent = nullptr);
 	~SingleScanWidget();
-	Ui::SingleScanWidget *ui;
 
 	int shots() const;
 	double ftmFreq() const;
@@ -27,13 +25,13 @@ public:
     int protectionTime() const;
     int scopeTime() const;
     double dipoleMoment() const;
-    QList<PulseGenerator::PulseChannelConfiguration> pulseConfig() const;
+    PulseGenConfig pulseConfig() const;
 
 	void setFtmFreq(double d);
 	void setAttn(int a);
 	void setDrFreq(double d);
 	void setDrPower(double d);
-	void setPulseConfig(const QList<PulseGenerator::PulseChannelConfiguration> pc);
+	void setPulseConfig(const PulseGenConfig pc);
     void setProtectionTime(int a);
     void setScopeTime(int a);
     void setMagnet(bool b);
@@ -43,13 +41,17 @@ public:
     void setFromScan(const Scan s);
     Scan toScan() const;
 
+    QSpinBox *shotsSpinBox();
+    void setFtmSynthBoxEnabled(bool enabled);
+    void setDrSynthBoxEnabled(bool enabled);
+    void setShotsBoxEnabled(bool enabled);
+
 public slots:
-	void toggleOnOffButtonText(bool on);
 	void shotsChanged(int newShots);
 
-
 private:
-	QList<PulseGenerator::PulseChannelConfiguration> pConfig;
+	Ui::SingleScanWidget *ui;
+
 
 };
 

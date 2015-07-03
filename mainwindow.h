@@ -55,8 +55,6 @@ public slots:
     void setcvUpdate(int a);
     void magnetUpdate(bool mag);
     void viewBatchCallback();
-    void updateScopeDelayOnUI(int a);
-    void updateProtectionDelayOnUI(int a);
     void mirrorPosUpdate(int pos);
     void flowControllerUpdate(int i ,double d);
     void pressureUpdate(double p);
@@ -64,12 +62,6 @@ public slots:
     void pressureSetpointUpdate(double d);
     void pressureControlMode(bool on);
 	void fatalSaveError();
-
-	void pGenSettingUpdate(const int ch, const PulseGenerator::Setting s, const QVariant val);
-	void pGenChannelUpdate(const PulseGenerator::PulseChannelConfiguration p);
-	void pGenAllUpdate(const QList<PulseGenerator::PulseChannelConfiguration> l);
-
-	void pGenSet(const int channel, const PulseGenerator::Setting s, const QVariant val);
 
 	void singleScanCallback();
 	void batchScanCallback();
@@ -97,6 +89,8 @@ public slots:
 signals:
     void changeGasName(int, QString);
     void setFlowSetpoint(int i, double d);
+    void pGenSettingUpdate(const int ch, const QtFTM::PulseSetting s, const QVariant val);
+    void scopeResolutionChanged();
 
 private:
 	Ui::MainWindow *ui;
@@ -110,7 +104,6 @@ private:
 	HardwareManager *hwm;
 	LogHandler *lh;
 
-	QList<PulseGenerator::PulseChannelConfiguration> readPulseConfig();
 	QList<Led*> d_leds;
     QList<QLineEdit*> d_gasBoxes;
     QList<QDoubleSpinBox*> d_gasSetpointBoxes;

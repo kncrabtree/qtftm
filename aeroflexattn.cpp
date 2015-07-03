@@ -3,7 +3,7 @@
 #include "tcpinstrument.h"
 
 AeroflexAttn::AeroflexAttn(QObject *parent) :
-    HardwareObject(parent)
+    Attenuator(parent)
 {
     d_subKey = QString("aeroflex");
     d_prettyName = QString("Aeroflex Weinschel Attenuator");
@@ -13,16 +13,16 @@ AeroflexAttn::AeroflexAttn(QObject *parent) :
     connect(p_comm,&CommunicationProtocol::hardwareFailure,this,&AeroflexAttn::hardwareFailure);
 
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
-    int min = s.value(QString("%1/%2/min").arg(d_key).arg(d_subKey),0).toInt();
-    int max = s.value(QString("%1/%2/max").arg(d_key).arg(d_subKey),100).toInt();
+    d_min = s.value(QString("%1/%2/min").arg(d_key).arg(d_subKey),0).toInt();
+    d_max = s.value(QString("%1/%2/max").arg(d_key).arg(d_subKey),100).toInt();
     //rewrite these values (so that they always appear in file)
-    s.setValue(QString("%1/%2/min").arg(d_key).arg(d_subKey),min);
-    s.setValue(QString("%1/%2/max").arg(d_key).arg(d_subKey),max);
+    s.setValue(QString("%1/%2/min").arg(d_key).arg(d_subKey),d_min);
+    s.setValue(QString("%1/%2/max").arg(d_key).arg(d_subKey),d_max);
 
     //the values below are used by the program to set limits, and will be overwritten by other implementations
     //at runtime if they are selected at compile time
-    s.setValue(QString(d_key).append("/min"),min);
-    s.setValue(QString(d_key).append("/max"),max);
+    s.setValue(QString(d_key).append("/min"),d_min);
+    s.setValue(QString(d_key).append("/max"),d_max);
     s.sync();
 }
 
@@ -73,9 +73,13 @@ int AeroflexAttn::setAttn(int a)
 {
     //write attenuation command
     //changing attenuation takes some time, so wait for *OPC? to return before reading
-    if(a >=0 && a <= 105)
-        queryCmd(QString("ATTN 1 %1;*OPC?\n").arg(a)).trimmed();
+    if(a < d_min || a > d_max)
+    {
+	    emit logMessage(QString("Requested attenuation (%1) is outside valid range (%2 - %3).").arg(a).arg(d_min).arg(d_max));
+	    return -1;
+    }
 
+    p_comm->queryCmd(QString("ATTN 1 %1;*OPC?\n").arg(a)).trimmed();
     return readAttn();
 }
 

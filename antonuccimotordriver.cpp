@@ -1,9 +1,15 @@
 #include "antonuccimotordriver.h"
 
 AntonucciMotorDriver::AntonucciMotorDriver(QObject *parent) :
-    HardwareObject(parent), d_lastTuneFreq(0.0),
-    d_lastTuneAtten(0), d_lastTuneVoltage(0), d_lastTuneMode(0), d_lastTuneWidth(0), d_lastCalVoltage(0), d_quiet(false)
+    MotorDriver(parent)
 {
+	d_lastTuneFreq = 0.0;
+	d_lastTuneAtten = 0;
+	d_lastTuneVoltage = 0;
+	d_lastTuneMode = 0;
+	d_lastTuneWidth = 0;
+	d_lastCalVoltage = 0;
+	d_quiet = false;
     d_key = QString("motorDriver");
 }
 
@@ -23,11 +29,10 @@ bool AntonucciMotorDriver::testConnection()
         return false;
     }
 
-    if(d_sp->bytesAvailable())
-        d_sp->readAll();
+    if(p_comm->device()->bytesAvailable())
+	   p_comm->device()->readAll();
 
-    setReadOptions(1500,true,QByteArray("\n\r")); //note that read options will need to change for fine tuning, since that takes over 1 second to finish
-    QByteArray resp = queryCmd(QString("v"));
+    QByteArray resp = p_comm->queryCmd(QString("v"));
     if(!resp.startsWith("v:"))
     {
         emit connected(false,QString("Invalid ID response. (Response: %1)").arg(QString(resp)));
@@ -644,7 +649,7 @@ void AntonucciMotorDriver::calibrate()
     }
 
     //reset encoder to 0 at this position
-    queryCmd(QString("R"));
+    p_comm->queryCmd(QString("R"));
     readPos();
 
 //    QFile f(QString("/home/data/QtFTM/tuningLog.txt"));
@@ -721,7 +726,7 @@ int AntonucciMotorDriver::readAnalog()
     bool done = false;
     while(!done)
     {
-        d_sp->waitForReadyRead(10);
+	   p_comm->device()->waitForReadyRead(10);
         int newAnalog = getAnalogReading();
         if(newAnalog < 0)
             return -1;

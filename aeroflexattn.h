@@ -20,6 +20,10 @@ public slots:
     int setAttn(int a);
     int readAttn();
 
+private:
+    double d_min;
+    double d_max;
+
 };
 
 #endif // AEROFLEXATTN_H

@@ -14,13 +14,13 @@ SurveyScanSetupPage::SurveyScanSetupPage(SingleScanWidget *ssw, QWidget *parent)
 	surveyScanSsw = new SingleScanWidget(this);
     surveyScanSsw->setFromScan(ssw->toScan());
 	surveyScanSsw->setFtmFreq(field(QString("surveyStart")).toDouble());
-	surveyScanSsw->ui->ssFtmDoubleSpinBox->setEnabled(false);
+	surveyScanSsw->setFtmSynthBoxEnabled(false);
 //	surveyScanSsw->setAttn(ssw->attn());
 //	surveyScanSsw->setDrFreq(ssw->drFreq());
 //	surveyScanSsw->setDrPower(ssw->drPower());
 //	surveyScanSsw->setPulseConfig(ssw->pulseConfig());
 
-	registerField(QString("surveyScanShots"),surveyScanSsw->ui->ssShotsSpinBox);
+	registerField(QString("surveyScanShots"),surveyScanSsw->shotsSpinBox());
 	QVBoxLayout *vl = new QVBoxLayout(this);
 	vl->addWidget(surveyScanSsw);
 
@@ -30,7 +30,7 @@ SurveyScanSetupPage::SurveyScanSetupPage(SingleScanWidget *ssw, QWidget *parent)
 
 	setLayout(vl);
 
-	connect(surveyScanSsw->ui->ssShotsSpinBox,static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+	connect(surveyScanSsw->shotsSpinBox(),static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
 		   this,&SurveyScanSetupPage::updateLabel);
 }
 
@@ -63,7 +63,7 @@ bool SurveyScanSetupPage::validatePage()
 
 void SurveyScanSetupPage::updateLabel()
 {
-	surveyScanSsw->ui->ssFtmDoubleSpinBox->setValue(field(QString("surveyStart")).toDouble());
+	surveyScanSsw->setFtmFreq(field(QString("surveyStart")).toDouble());
 	bool hasCal = field(QString("surveyCal")).toBool();
 	double start = field(QString("surveyStart")).toDouble();
 	double stop = field(QString("surveyStop")).toDouble();

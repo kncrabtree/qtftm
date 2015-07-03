@@ -5,7 +5,6 @@
 #include <QList>
 
 #include "pulsegenconfig.h"
-#include "pulsegenerator.h"
 
 class QLabel;
 class QDoubleSpinBox;
@@ -38,19 +37,26 @@ public:
     };
 
     PulseGenConfig getConfig();
+    int protDelay();
+    int scopeDelay();
 
+    //use when this is a display widget rather than a control widget (eg in single scan widget)
     void makeInternalConnections();
 
 
 signals:
     void changeSetting(int,QtFTM::PulseSetting,QVariant);
     void changeRepRate(double);
+    void changeProtDelay(int);
+    void changeScopeDelay(int);
 
 public slots:
     void launchChannelConfig(int ch);
     void newSetting(int index,QtFTM::PulseSetting s,QVariant val);
     void newConfig(const PulseGenConfig c);
     void newRepRate(double r);
+    void newProtDelay(int d);
+    void newScopeDelay(int d);
 
 private:
     Ui::PulseConfigWidget *ui;

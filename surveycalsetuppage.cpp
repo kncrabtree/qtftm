@@ -18,7 +18,7 @@ SurveyCalSetupPage::SurveyCalSetupPage(SingleScanWidget *ssw, QWidget *parent) :
 //	surveyCalSsw->setDrPower(ssw->drPower());
 //	surveyCalSsw->setPulseConfig(ssw->pulseConfig());
 
-	registerField(QString("surveyCalShots"),surveyCalSsw->ui->ssShotsSpinBox);
+	registerField(QString("surveyCalShots"),surveyCalSsw->shotsSpinBox());
 	QVBoxLayout *vl = new QVBoxLayout(this);
 	vl->addWidget(surveyCalSsw);
 

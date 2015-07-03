@@ -12,7 +12,24 @@ QC9518::QC9518(QObject *parent) :
     connect(p_comm,&CommunicationProtocol::logMessage,this,&QC9518::logMessage);
     connect(p_comm,&CommunicationProtocol::hardwareFailure,[=](){ emit hardwareFailure(); });
 
-    p_comm->setReadOptions(100,true,QByteArray("\r\n"));
+    QSettings s(QSettings::SystemScope, QApplication::organizationName(), QApplication::applicationName());
+    s.beginGroup(d_key);
+    s.beginGroup(d_subKey);
+
+    d_minWidth = s.value(QString("minWidth"),0.004).toDouble();
+    d_maxWidth = s.value(QString("maxWidth"),100000.0).toDouble();
+    d_minDelay = s.value(QString("minDelay"),0.0).toDouble();
+    d_maxDelay = s.value(QString("maxDelay"),100000.0).toDouble();
+
+    s.setValue(QString("minWidth"),d_minWidth);
+    s.setValue(QString("maxWidth"),d_maxWidth);
+    s.setValue(QString("minDelay"),d_minDelay);
+    s.setValue(QString("maxDelay"),d_maxDelay);
+
+    s.endGroup();
+    s.endGroup();
+    s.sync();
+
 }
 
 
@@ -55,13 +72,15 @@ bool QC9518::testConnection()
 
 void QC9518::initialize()
 {
+	p_comm->setReadOptions(100,true,QByteArray("\r\n"));
+
     //set up config
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
     s.beginGroup(d_key);
     s.beginGroup(d_subKey);
 
     s.beginReadArray(QString("channels"));
-    for(int i=0; i<BC_PGEN_NUMCHANNELS; i++)
+    for(int i=0; i<QTFTM_PGEN_NUMCHANNELS; i++)
     {
         s.setArrayIndex(i);
         QString name = s.value(QString("name"),QString("Ch%1").arg(i)).toString();
@@ -77,35 +96,12 @@ void QC9518::initialize()
     }
     s.endArray();
 
-    d_config.setRepRate(s.value(QString("repRate"),10.0).toDouble());
+    d_config.setRepRate(s.value(QString("repRate"),6.0).toDouble());
     s.endGroup();
     s.endGroup();
 
     p_comm->initialize();
     testConnection();
-}
-
-Experiment QC9518::prepareForExperiment(Experiment exp)
-{
-    bool success = setAll(exp.pGenConfig());
-    if(!success)
-        exp.setHardwareFailed();
-
-    return exp;
-}
-
-void QC9518::beginAcquisition()
-{
-    pGenWriteCmd(QString(":SYSTEM:KLOCK 1\n"));
-}
-
-void QC9518::endAcquisition()
-{
-    pGenWriteCmd(QString(":SYSTEM:KLOCK 0\n"));
-}
-
-void QC9518::readTimeData()
-{
 }
 
 QVariant QC9518::read(const int index, const QtFTM::PulseSetting s)
@@ -214,7 +210,12 @@ bool QC9518::set(const int index, const QtFTM::PulseSetting s, const QVariant va
     case QtFTM::PulseDelay:
         setting = QString("delay");
         target = QString::number(val.toDouble());
-        if(qAbs(val.toDouble() - d_config.at(index).delay) > 0.001)
+	   if(val.toDouble() < d_minDelay || val.toDouble() > d_maxDelay)
+	   {
+		   emit logMessage(QString("Requested delay (%1) is outside valid range (%2 - %3)").arg(target).arg(d_minDelay).arg(d_maxDelay));
+		   out = false;
+	   }
+	   else if(qAbs(val.toDouble() - d_config.at(index).delay) > 0.001)
         {
             bool success = pGenWriteCmd(QString(":PULSE%1:DELAY %2\n").arg(index+1).arg(val.toDouble()/1e6,0,'f',9));
             if(!success)
@@ -230,7 +231,12 @@ bool QC9518::set(const int index, const QtFTM::PulseSetting s, const QVariant va
     case QtFTM::PulseWidth:
         setting = QString("width");
         target = QString::number(val.toDouble());
-        if(qAbs(val.toDouble() - d_config.at(index).width) > 0.001)
+	   if(val.toDouble() < d_minWidth || val.toDouble() > d_maxWidth)
+	   {
+		   emit logMessage(QString("Requested width (%1) is outside valid range (%2 - %3)").arg(target).arg(d_minWidth).arg(d_maxWidth));
+		   out = false;
+	   }
+	   else if(qAbs(val.toDouble() - d_config.at(index).width) > 0.001)
         {
             bool success = pGenWriteCmd(QString(":PULSE%1:WIDTH %2\n").arg(index+1).arg(val.toDouble()/1e6,0,'f',9));
             if(!success)

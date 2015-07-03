@@ -22,7 +22,7 @@ bool CustomInstrument::writeBinary(QByteArray dat)
 QByteArray CustomInstrument::queryCmd(QString cmd)
 {
     Q_UNUSED(cmd)
-    return QByteArray;
+    return QByteArray();
 }
 
 QIODevice *CustomInstrument::device()

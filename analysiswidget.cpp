@@ -941,8 +941,8 @@ QFrame *AnalysisWidget::renderPrintSidebar()
 		pl->addWidget(pw,i+2,2,Qt::AlignCenter);
 
 		QLabel *pa = new QLabel;
-		PulseGenerator::ActiveLevel al = d_currentScan.pulseConfiguration().at(i).active;
-		if(al == PulseGenerator::ActiveHigh)
+		QtFTM::PulseActiveLevel al = d_currentScan.pulseConfiguration().at(i).level;
+		if(al == QtFTM::PulseLevelActiveHigh)
 			pa->setText(QString("High"));
 		else
 			pa->setText(QString("Low"));

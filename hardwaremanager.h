@@ -209,19 +209,13 @@ signals:
      *
      * Note that the other to similar function just encapsulate this information for a single channel, or for all channels
      */
-	void pGenChannelSetting(const int,const PulseGenerator::Setting,const QVariant);
-
-    /*!
-     * \brief Emitted when several settings for a single channel change
-     * \sa pGenChannelSetting()
-     */
-	void pGenChannelAll(const PulseGenerator::PulseChannelConfiguration);
+	void pGenChannelSetting(int,QtFTM::PulseSetting,QVariant);
 
     /*!
      * \brief Emitted when multiple channel settings change
      * \sa pGenChannelSetting()
      */
-	void pGenAll(const QList<PulseGenerator::PulseChannelConfiguration>);
+	void pGenConfigUpdate(const PulseGenConfig);
 
     /*!
      * \brief Emitted when a message needs to be displayed on the log
@@ -313,6 +307,17 @@ signals:
      */
     void setDrSynthPwrFromUI(double p);
 
+    /*!
+	* \brief Sets a single setting for a pulse generator channel
+	* \param ch Channel number
+	* \param s Setting to change
+	* \param x New value
+	*/
+	void setPulseSetting(const int ch, const QtFTM::PulseSetting s, const QVariant x);
+
+	void setRepRate(double);
+	void repRateUpdate(double);
+
 
     /*!
      * \brief Sets protection delay from UI control box
@@ -384,30 +389,10 @@ public slots:
     void changeAttnFile(QString fileName);
 
     /*!
-     * \brief Sets a single setting for a pulse generator channel
-     * \param ch Channel number
-     * \param s Setting to change
-     * \param x New value
-     */
-	void setPulse(const int ch, const PulseGenerator::Setting s, const QVariant x);
-
-    /*!
-     * \brief Overloaded function to set all settings for a channel at once
-     * \param p Channel configuration
-     */
-	void setPulse(const PulseGenerator::PulseChannelConfiguration p);
-
-    /*!
-     * \brief Reads all pulse generator settings
-     * \return List of all settings
-     */
-	QList<PulseGenerator::PulseChannelConfiguration> readPGenAll();
-
-    /*!
      * \brief Disables all pulsed except microwave, gas, and monitor
      * \return Pulse channel configuration PRIOR to disabling channels (so that settings can be restored afterwards)
      */
-    QList<PulseGenerator::PulseChannelConfiguration> configurePGenForTuning();
+    PulseGenConfig configurePGenForTuning();
 
 	//functions to be used during a scan; these return (as appropriate) the actual settings that will be saved!
 	//these functions block until the operation is complete, so don't use them from the UI!
@@ -417,7 +402,7 @@ public slots:
      * \param l List of settings
      * \return The actual settings after they have been applied
      */
-	QList<PulseGenerator::PulseChannelConfiguration> setPulse(QList<PulseGenerator::PulseChannelConfiguration> l);
+	PulseGenConfig setPulseConfig(const PulseGenConfig c);
 
     /*!
      * \brief Sets FTM synthesizer to the probe frequency for the current cavity frequency
@@ -502,8 +487,6 @@ public slots:
     int setCwMode(bool cw);
 
     int setMagnetMode(bool mag);
-
-    void applyPGenSettings();
 
     /*!
 	\brief Causes Oscilloscope to ignore trigger events
@@ -643,7 +626,7 @@ private:
     Scan d_currentScan;
     bool d_waitingForScanTune;
     bool d_waitingForCalibration;
-    QList<PulseGenerator::PulseChannelConfiguration> d_tuningOldPulseConfig;
+    PulseGenConfig d_tuningOldPulseConfig;
     int d_tuningOldA;
 
 	QHash<QString,bool> d_status;

@@ -120,7 +120,7 @@ void FlowConfig::setPressureControlMode(bool en)
 QString FlowConfig::headerString() const
 {
     QString out;
-    out.append(QString("#Pressure\t%1\tkTorr\n").arg(pressure());
+    out.append(QString("#Pressure\t%1\tkTorr\n").arg(pressure()));
     for(int i=0;i<data->configList.size(); i++)
     {
         out.append(QString("Gas %1 name\t%2\t\n").arg(i+1).arg(data->configList.at(i).name));

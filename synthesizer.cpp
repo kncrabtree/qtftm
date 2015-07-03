@@ -99,6 +99,8 @@ double Synthesizer::setPower(double p)
                         .arg(p).arg(d_hardwareMinPower).arg(d_hardwareMaxPower),QtFTM::LogWarning);
         return -1e200;
     }
+
+    return setSynthPower(p);
 }
 
 bool Synthesizer::calculateBand(double f)
@@ -283,6 +285,6 @@ double Synthesizer::setFreqForce(double f)
         return -1.0;
     }
 
-    return setSynthFreq(rawfreq);
+    return setSynthFreq(rawFreq);
 }
 

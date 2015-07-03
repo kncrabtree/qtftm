@@ -99,10 +99,11 @@ void HardwareManager::initializeHardware()
     connect(this,&HardwareManager::setPressureSetpoint,fc,&FlowController::setPressureSetpoint);
     d_hardwareList.append(qMakePair(fc,new QThread(this)));
 
-    pGen = new PulseGenerator();
-    connect(pGen,&PulseGenerator::newChannelSetting,this,&HardwareManager::pGenChannelSetting);
-    connect(pGen,&PulseGenerator::newChannelSettingAll,this,&HardwareManager::pGenChannelAll);
-    connect(pGen,&PulseGenerator::newSettings,this,&HardwareManager::pGenAll);
+    pGen = new PulseGeneratorHardware();
+    connect(pGen,&PulseGenerator::settingUpdate,this,&HardwareManager::pGenChannelSetting);
+    connect(pGen,&PulseGenerator::configUpdate,this,&HardwareManager::pGenConfigUpdate);
+    connect(this,&HardwareManager::setRepRate,pGen,&PulseGenerator::setRepRate);
+    connect(pGen,&PulseGenerator::repRateUpdate,this,&HardwareManager::repRateUpdate);
     d_hardwareList.append(qMakePair(pGen,new QThread(this)));
 
 	//write arrays of the connected devices for use in the Hardware Settings menu
@@ -284,39 +285,40 @@ void HardwareManager::changeAttnFile(QString fileName)
     attn->changeAttenFile(fileName);
 }
 
-void HardwareManager::setPulse(const int ch, const PulseGenerator::Setting s, const QVariant x)
+PulseGenConfig HardwareManager::configurePGenForTuning()
 {
-    QMetaObject::invokeMethod(pGen,"setChannelSetting",Q_ARG(int,ch),Q_ARG(PulseGenerator::Setting,s),Q_ARG(QVariant,x));
+	if(pGen->thread() == thread())
+		return pGen->configureForTuning();
+	else
+	{
+		PulseGenConfig out;
+		QMetaObject::invokeMethod(pGen,"configureForTuning",Qt::BlockingQueuedConnection,
+							 Q_RETURN_ARG(PulseGenConfig,out));
+		return out;
+	}
 }
 
-void HardwareManager::setPulse(const PulseGenerator::PulseChannelConfiguration p)
+PulseGenConfig HardwareManager::setPulseConfig(const PulseGenConfig c)
 {
-    QMetaObject::invokeMethod(pGen,"setChannelAll",Q_ARG(PulseGenerator::PulseChannelConfiguration,p));
-}
+	if(pGen->thread() == thread())
+	{
+		bool success = pGen->setAll(c);
+		if(success)
+			return pGen->config();
+		else
+			return PulseGenConfig();
+	}
+	else
+	{
+		bool success = false;
+		PulseGenConfig out;
+		QMetaObject::invokeMethod(pGen,"setAll",Qt::BlockingQueuedConnection,
+							 Q_RETURN_ARG(bool,success),Q_ARG(PulseGenConfig,c));
+		if(success)
+			QMetaObject::invokeMethod(pGen,"config",Qt::BlockingQueuedConnection,Q_RETURN_ARG(PulseGenConfig,out));
 
-QList<PulseGenerator::PulseChannelConfiguration> HardwareManager::readPGenAll()
-{
-	QList<PulseGenerator::PulseChannelConfiguration> out;
-    QMetaObject::invokeMethod(pGen,"readAll",Qt::BlockingQueuedConnection,
-						 Q_RETURN_ARG(QList<PulseGenerator::PulseChannelConfiguration>,out));
-    return out;
-}
-
-QList<PulseGenerator::PulseChannelConfiguration> HardwareManager::configurePGenForTuning()
-{
-    QList<PulseGenerator::PulseChannelConfiguration> out;
-    QMetaObject::invokeMethod(pGen,"configureForTuning",Qt::BlockingQueuedConnection,
-                         Q_RETURN_ARG(QList<PulseGenerator::PulseChannelConfiguration>,out));
-    return out;
-}
-
-QList<PulseGenerator::PulseChannelConfiguration> HardwareManager::setPulse(QList<PulseGenerator::PulseChannelConfiguration> l)
-{
-	QList<PulseGenerator::PulseChannelConfiguration> out;
-    QMetaObject::invokeMethod(pGen,"setAll",Qt::BlockingQueuedConnection,
-						 Q_RETURN_ARG(QList<PulseGenerator::PulseChannelConfiguration>,out),
-						 Q_ARG(QList<PulseGenerator::PulseChannelConfiguration>,l));
-	return out;
+		return out;
+	}
 }
 
 double HardwareManager::goToFtmSynthProbeFreq()
@@ -403,11 +405,6 @@ int HardwareManager::setMagnetMode(bool mag)
 	long out = -1;
 	QMetaObject::invokeMethod(iob,"setMagnet",Qt::BlockingQueuedConnection,Q_RETURN_ARG(long,out),Q_ARG(bool,mag));
 	return out;
-}
-
-void HardwareManager::applyPGenSettings()
-{
-    QMetaObject::invokeMethod(pGen,"applySettings");
 }
 
 void HardwareManager::pauseScope(bool pause)
@@ -578,15 +575,15 @@ void HardwareManager::finishPreparation(bool tuneSuccess)
 #endif
 
     //set pulse generator configuration
-    QList<PulseGenerator::PulseChannelConfiguration> ls = setPulse(d_currentScan.pulseConfiguration());
-    if(ls.isEmpty())
+    PulseGenConfig pc = setPulseConfig(d_currentScan.pulseConfiguration());
+    if(pc.isEmpty())
     {
         emit scanInitialized(d_currentScan);
         d_currentScan = Scan();
         pauseScope(false);
         return;
     }
-    d_currentScan.setPulseConfiguration(ls);
+    d_currentScan.setPulseConfiguration(pc);
 
     //set magnet mode
     int mag = setMagnetMode(d_currentScan.magnet());
@@ -660,17 +657,13 @@ void HardwareManager::tuneCavity(double freq, int mode, bool measureOnly)
     }
 
     //3.) Turn MW to DC (how?), turn off all other pulses except gas (high band?)
-    if(d_tuningOldPulseConfig.isEmpty())
-        d_tuningOldPulseConfig = configurePGenForTuning();
-    else
-        configurePGenForTuning();
+    d_tuningOldPulseConfig = configurePGenForTuning();
 
     if(setCwMode(true) < 0)
     {
         emit statusMessage(QString("Tuning failed"));
-        setPulse(d_tuningOldPulseConfig);
+	   setPulseConfig(d_tuningOldPulseConfig);
         attn->setAttn(d_tuningOldA);
-        d_tuningOldPulseConfig.clear();
         d_tuningOldA = -1;
         goToFtmSynthProbeFreq();
         if(d_waitingForScanTune)
@@ -696,18 +689,9 @@ void HardwareManager::cavityTuneComplete(bool success)
     //reconfigure everything
     setCwMode(false);
 
-    //5-16-2014: More user-friendly to leave the attenuation at the tuning value in general
-    //only reset original attenuation if we're not in a scan or a calibration
-//    if(!d_waitingForScanTune && !d_waitingForCalibration)
-//    {
-//        if(d_tuningOldA >= 0)
-//            attn->setAttn(d_tuningOldA);
-//    }
-
     if(!d_tuningOldPulseConfig.isEmpty())
-        setPulse(d_tuningOldPulseConfig);
+	   setPulseConfig(d_tuningOldPulseConfig);
 
-    d_tuningOldPulseConfig.clear();
     d_tuningOldA = 0;
 
     goToFtmSynthProbeFreq();
@@ -758,18 +742,15 @@ void HardwareManager::calibrateCavity()
     }
 
     //3.) Turn MW to DC, turn off all other pulses except gas
-    if(d_tuningOldPulseConfig.isEmpty())
-        d_tuningOldPulseConfig = configurePGenForTuning();
-    else
-        configurePGenForTuning();
+    d_tuningOldPulseConfig = configurePGenForTuning();
 
     if(setCwMode(true) < 0)
     {
-        emit statusMessage(QString("Calibration unsuccessful."));
-        setPulse(d_tuningOldPulseConfig);
-        d_tuningOldPulseConfig.clear();
-        emit tuningComplete();
-        return;
+	    emit statusMessage(QString("Calibration unsuccessful."));
+	    if(!d_tuningOldPulseConfig.isEmpty())
+		    setPulseConfig(d_tuningOldPulseConfig);
+	    emit tuningComplete();
+	    return;
     }
 
     d_waitingForCalibration = true;
@@ -796,7 +777,6 @@ void HardwareManager::prepareForAttnTableGeneration(int a)
     connect(md,&MotorDriver::tuningComplete,this,&HardwareManager::attnTablePrepTuneComplete,Qt::UniqueConnection);
 
     attn->clearAttenData();
-    d_tuningOldPulseConfig = readPGenAll();
     d_tuningOldA = attn->setAttn(a);
     d_waitingForCalibration = true;
     QMetaObject::invokeMethod(md,"shutUp",Q_ARG(bool,true));
@@ -879,8 +859,8 @@ void HardwareManager::restoreSettingsAfterAttnPrep(bool success)
     //restore configuration
     QMetaObject::invokeMethod(md,"shutUp",Q_ARG(bool,false));
     setCwMode(false);
-    setPulse(d_tuningOldPulseConfig);
-    d_tuningOldPulseConfig.clear();
+    if(!d_tuningOldPulseConfig.isEmpty())
+	    setPulseConfig(d_tuningOldPulseConfig);
     d_tuningOldA = 0;
     d_waitingForCalibration = false;
     disconnect(md,&MotorDriver::tuningComplete,this,&HardwareManager::attnTablePrepTuneComplete);

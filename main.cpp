@@ -95,9 +95,8 @@ int main(int argc, char *argv[])
     qRegisterMetaType<Fid>("Fid");
     qRegisterMetaType<QtFTM::LogMessageCode>("QtFTM::LogMessageCode");
     qRegisterMetaType<Scan>("Scan");
-    qRegisterMetaType<PulseGenerator::PulseChannelConfiguration>("PulseGenerator::PulseChannelConfiguration");
-    qRegisterMetaType<PulseGenerator::Setting>("PulseGenerator::Setting");
-    qRegisterMetaType<QList<PulseGenerator::PulseChannelConfiguration> >("QList<PulseGenerator::PulseChannelConfiguration>");
+    qRegisterMetaType<QtFTM::PulseSetting>("QtFTM::PulseSetting");
+    qRegisterMetaType<PulseGenConfig>("PulseGenConfig");
     qRegisterMetaType<BatchManager::BatchPlotMetaData>("BatchManager::BatchPlotMetaData");
     qRegisterMetaType<QList<QVector<QPointF> > >("QList<QVector<QPointF> >");
     qRegisterMetaType<FlowConfig>("FlowConfig");

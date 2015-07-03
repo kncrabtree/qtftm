@@ -2,7 +2,6 @@
 #define BATCHATTENUATION_H
 
 #include "batchmanager.h"
-#include "math.h"
 
 class BatchAttenuation : public BatchManager
 {

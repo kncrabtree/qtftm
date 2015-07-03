@@ -8,7 +8,7 @@ HP8340FTM::HP8340FTM(QObject *parent) :
     d_subKey = QString("hp8340");
     d_prettyName = QString("HP8340 FTM Synthesizer");
 
-    p_comm = new GpibInstrument(d_key,d_subKey,parent,this);
+    p_comm = new GpibInstrument(d_key,d_subKey,static_cast<GpibController*>(parent),this);
     connect(p_comm,&CommunicationProtocol::logMessage,this,&HP8340FTM::logMessage);
     connect(p_comm,&CommunicationProtocol::hardwareFailure,this,&HP8340FTM::hardwareFailure);
 
@@ -91,10 +91,10 @@ double HP8340FTM::readSynthFreq()
 double HP8340FTM::setSynthPower(double d)
 {
     double power = readSynthPower();
-    if(qAbs(p-power) > 0.09)
+    if(qAbs(d-power) > 0.09)
     {
         p_comm->device()->waitForReadyRead(50);
-        writeCmd(QString("PL%1DB;\n").arg(QString::number(p,'f',2)));
+	   p_comm->writeCmd(QString("PL%1DB;\n").arg(QString::number(d,'f',2)));
         p_comm->device()->waitForReadyRead(50);// seems to be same command for both generators
     }
 

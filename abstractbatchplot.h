@@ -4,6 +4,8 @@
 #include "zoompanplot.h"
 
 #include <QMenu>
+#include <QSettings>
+#include <QApplication>
 
 #include <qwt6/qwt_plot_curve.h>
 #include <qwt6/qwt_plot_zoneitem.h>

@@ -1,8 +1,9 @@
 #include "flowcontroller.h"
 
 FlowController::FlowController(QObject *parent) :
-    HardwareObject(parent), d_isCritical(false), d_nextRead(QTFTM_FLOW_NUMCHANNELS)
+    HardwareObject(parent), d_nextRead(QTFTM_FLOW_NUMCHANNELS)
 {
+	d_isCritical = false;
     d_key = QString("flowController");
 
     p_readTimer = new QTimer(this);
@@ -22,7 +23,7 @@ FlowController::~FlowController()
 void FlowController::setChannelName(const int ch, const QString name)
 {
     if(ch < d_config.size())
-        d_config.set(ch,BlackChirp::FlowSettingName,name);
+	   d_config.set(ch,QtFTM::FlowSettingName,name);
 
     emit channelNameUpdate(ch,name);
 
@@ -63,7 +64,7 @@ void FlowController::readAll()
 {
     for(int i=0; i<d_config.size(); i++)
     {
-        emit channelNameUpdate(i,d_config.setting(i,BlackChirp::FlowSettingName).toString());
+	   emit channelNameUpdate(i,d_config.setting(i,QtFTM::FlowSettingName).toString());
         readFlowSetpoint(i);
         readFlow(i);
     }

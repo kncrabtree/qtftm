@@ -3,7 +3,7 @@
 #include <math.h>
 
 Attenuator::Attenuator(QObject *parent) :
-	TcpInstrument(QString("attn"), QString("Attenuator"), parent)
+	HardwareObject(parent)
 {
     d_key = QString("attn");
 }

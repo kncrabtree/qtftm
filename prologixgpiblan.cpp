@@ -42,6 +42,9 @@ bool PrologixGpibLan::testConnection()
     p_comm->writeCmd(QString("++read_tmo_ms 50\n"));
 
     readAddress();
+
+    emit connected();
+    return true;
 }
 
 void PrologixGpibLan::initialize()

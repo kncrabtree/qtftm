@@ -69,7 +69,7 @@ QVariant BatchTableModel::data(const QModelIndex &index, int role) const
 	{
 		//create string of 0s and 1s to represent pulse configuration
 		QString out;
-		QList<PulseGenerator::PulseChannelConfiguration> pc = scanList.at(index.row()).first.pulseConfiguration();
+		PulseGenConfig pc = scanList.at(index.row()).first.pulseConfiguration();
 		for(int i=0; i<pc.size(); i++)
 		{
 			if(pc.at(i).enabled)

@@ -509,7 +509,7 @@ Scan BatchWidget::buildScanFromDialog(bool cal)
 	SingleScanWidget *ssw = d.ssWidget();
 
 	if(cal)
-		ssw->ui->ssShotsSpinBox->blockSignals(true);
+		ssw->shotsSpinBox()->blockSignals(true);
 
 	if(cal && btm.getLastCalScan().targetShots()>0)
 	{
@@ -908,32 +908,32 @@ QString BatchWidget::writeScan(Scan thisScan, Scan ref)
 	if(thisScan.drPower() != ref.drPower() || writeAll)
 		t << QString("drpower:") << QString::number(thisScan.drPower(),'f',1) << QString(" ");
 
-	QList<PulseGenerator::PulseChannelConfiguration> thispConfig = thisScan.pulseConfiguration();
-	QList<PulseGenerator::PulseChannelConfiguration> refpConfig = ref.pulseConfiguration();
+	PulseGenConfig thispConfig = thisScan.pulseConfiguration();
+	PulseGenConfig refpConfig = ref.pulseConfiguration();
 
 	for(int i=0; i<thispConfig.size(); i++)
 	{
-		PulseGenerator::PulseChannelConfiguration pc = thispConfig.at(i);
-		PulseGenerator::PulseChannelConfiguration pref;
+		QtFTM::PulseChannelConfig pc = thispConfig.at(i);
+		QtFTM::PulseChannelConfig pref;
 		if(i<refpConfig.size())
 			pref = refpConfig.at(i);
 
 		//Do not write gas pulse width, or enabled settings for gas or mw (ch 0 and 2)
-		if((pc.width != pref.width || writeAll) && i != 0)
+		if((pc.width != pref.width || writeAll) && i != QTFTM_PGEN_GASCHANNEL && i!= QTFTM_PGEN_MWCHANNEL)
 			t << QString("pulse,") << i << QString(",width:") << QString::number(pc.width,'f',3) << QString(" ");
 
 		if(pc.delay != pref.delay || writeAll)
 			t << QString("pulse,") << i << QString(",delay:") << QString::number(pc.delay,'f',3) << QString(" ");
 
-		if(pc.active != pref.active || writeAll)
+		if(pc.level != pref.level || writeAll)
 		{
-			if(pc.active == PulseGenerator::ActiveHigh)
+			if(pc.level == QtFTM::PulseLevelActiveHigh)
 				t << QString("pulse,") << i << QString(",active:high ");
 			else
 				t << QString("pulse,") << i << QString(",active:low ");
 		}
 
-		if((pc.enabled != pref.enabled || writeAll) && i != 0 && i != 2)
+		if((pc.enabled != pref.enabled || writeAll) && i != QTFTM_PGEN_GASCHANNEL && i!= QTFTM_PGEN_MWCHANNEL)
 		{
 			if(pc.enabled)
 				t << QString("pulse,") << i << QString(",enabled:true ");

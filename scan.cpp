@@ -15,13 +15,13 @@
 */
 class ScanData : public QSharedData {
 public:
-	ScanData() : number(-1), ts(QDateTime::currentDateTime()), ftFreq(-1.0), ftAtten(-1), drFreq(-1.0), drPower(-100.0), pressure(-1.0),
+	ScanData() : number(-1), ts(QDateTime::currentDateTime()), ftFreq(-1.0), ftAtten(-1), drFreq(-1.0), drPower(-100.0),
 	   targetShots(0), completedShots(0), fid(Fid()), initialized(false), saved(false), aborted(false), dummy(false), skipTune(false),
        tuningVoltage(-1), tuningVoltageTakenWithScan(true), scansSinceTuningVoltageTaken(0), cavityVoltage(-1), protectionDelayTime (-1),
        scopeDelayTime(-1), dipoleMoment(0.0), magnet(false) {}
 	ScanData(const ScanData &other) :
 		QSharedData(other), number(other.number), ts(other.ts), ftFreq(other.ftFreq), ftAtten(other.ftAtten), drFreq(other.drFreq),
-        drPower(other.drPower), flowConfig(other.flowConfig), repRate(other.repRate),
+	   drPower(other.drPower), flowConfig(other.flowConfig),
 		pulseConfig(other.pulseConfig), targetShots(other.targetShots), completedShots(other.completedShots),
         fid(other.fid), initialized(other.initialized), saved(other.saved), aborted(other.aborted), dummy(other.dummy),
         skipTune(other.skipTune), tuningVoltage(other.tuningVoltage), tuningVoltageTakenWithScan(other.tuningVoltageTakenWithScan),
@@ -155,12 +155,15 @@ QStringList Scan::gasNames() const
 
 QList<double> Scan::gasFlows() const
 {
-    return data->gasFlows;
+	QList<double> out;
+	for(int i=0; i<data->flowConfig.size(); i++)
+		out.append(data->flowConfig.setting(i,QtFTM::FlowSettingFlow).toDouble());
+    return out;
 }
 
 double Scan::repRate() const
 {
-    return data->repRate;
+    return data->pulseConfig.repRate();
 }
 
 PulseGenConfig Scan::pulseConfiguration() const
@@ -308,27 +311,12 @@ void Scan::setDrPower(const double p)
 
 void Scan::setPressure(const double p)
 {
-	data->pressure = p;
-}
-
-void Scan::setGasNames(const QStringList s)
-{
-	data->gasNames = s;
-}
-
-void Scan::setGasFlows(const QList<double> f)
-{
-	data->gasFlows = f;
+	data->flowConfig.setPressure(p);
 }
 
 void Scan::setTargetShots(int n)
 {
     data->targetShots = n;
-}
-
-void Scan::setRepRate(const double rr)
-{
-    data->repRate = rr;
 }
 
 void Scan::setPulseConfiguration(const PulseGenConfig p)
@@ -469,20 +457,7 @@ QString Scan::scanHeader() const
 	t << QString("#FID points\t") << fid().size() << QString("\t\n");
     t << QString("#Rep rate\t") << repRate() << QString("\tHz\n");
     t << data->flowConfig.headerString();
-
-	for(int i=0; i<pulseConfiguration().size(); i++)
-	{
-		QString prefix = QString("#Pulse ch %1 ").arg(pulseConfiguration().at(i).channel);
-		t << prefix << QString("name\t") << pulseConfiguration().at(i).channelName << QString("\t\n");
-		t << prefix << QString("active level\t") << pulseConfiguration().at(i).active;
-		if(pulseConfiguration().at(i).active == PulseGenerator::ActiveHigh)
-			t << QString("\tActive High\n");
-		else
-			t << QString("\tActive Low\n");
-		t << prefix << QString("enabled\t") << pulseConfiguration().at(i).enabled << QString("\t\n");
-		t << prefix << QString("delay\t") << pulseConfiguration().at(i).delay << QString("\tus\n");
-		t << prefix << QString("width\t") << pulseConfiguration().at(i).width << QString("\tus\n");
-	}
+    t << data->pulseConfig.headerString();
 
 	t.flush();
 	return out;
@@ -573,7 +548,7 @@ void Scan::parseFileLine(QString s)
 	else if(key.startsWith(QString("#DR power")))
 		data->drPower = val.toDouble();
 	else if(key.startsWith(QString("#Pressure")))
-		data->pressure = val.toDouble();
+		data->flowConfig.setPressure(val.toDouble());
 	else if(key.startsWith(QString("#Probe freq")))
 		data->fid.setProbeFreq(val.toDouble());
 	else if(key.startsWith(QString("#FID spacing")))
@@ -584,7 +559,7 @@ void Scan::parseFileLine(QString s)
 	{
         int ch = key.split(QChar(0x20)).at(1).toInt()-1;
 		if(key.endsWith(QString("name")))
-            data->flowConfig.set(ch,QtFTM::FlowSettingName,append(val));
+		  data->flowConfig.set(ch,QtFTM::FlowSettingName,val);
 		else if(key.endsWith(QString("flow")))
             data->flowConfig.set(ch,QtFTM::FlowSettingFlow,val.toDouble());
 	}
@@ -605,9 +580,9 @@ void Scan::parseFileLine(QString s)
             else
             {
                 if(val.contains(QString("High"),Qt::CaseInsensitive))
-                    data->pulseConfig.set(ch,QtFTM::PulseActiveLevel,QtFTM::PulseLevelActiveHigh);
+				data->pulseConfig.set(ch,QtFTM::PulseLevel,QtFTM::PulseLevelActiveHigh);
                 else
-                    data->pulseConfig.set(ch,QtFTM::PulseActiveLevel,QtFTM::PulseLevelActiveLow);
+				data->pulseConfig.set(ch,QtFTM::PulseLevel,QtFTM::PulseLevelActiveLow);
             }
 		}
 		else if(key.endsWith(QString("enabled")))

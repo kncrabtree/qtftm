@@ -13,6 +13,7 @@ class DPO3012 : public Oscilloscope
     Q_OBJECT
 public:
     explicit DPO3012(QObject *parent = nullptr);
+	~DPO3012();
 
 public slots:
     void initialize();

@@ -233,8 +233,8 @@ Scan BatchDR::prepareNextScan()
     }
 
 	//make sure DR is on
-	QList<PulseGenerator::PulseChannelConfiguration> c = next.pulseConfiguration();
-	c[3].enabled = true;
+	PulseGenConfig c = next.pulseConfiguration();
+	c.setDrEnabled(true);
 
 	//if there's a calibration, we might need to disable DR pulses
 	if(d_hasCalibration)
@@ -244,7 +244,7 @@ Scan BatchDR::prepareNextScan()
 		else
 		{
 			//this is a calibration scan, so disable DR pulses
-			c[3].enabled = false;
+			c.setDrEnabled(false);
             d_thisScanIsCal = true;
 		}
 	}

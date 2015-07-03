@@ -8,6 +8,8 @@
 #include "scan.h"
 #include "nofitter.h"
 #include <QTextStream>
+#include <QSettings>
+#include <QApplication>
 
 /*!
  \brief Abstract base class for batch acquisitions

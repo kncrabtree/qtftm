@@ -6,7 +6,7 @@
 #include <qwt6/qwt_plot_curve.h>
 #include <qwt6/qwt_plot_marker.h>
 
-#include "pulsegenerator.h"
+#include "pulsegenconfig.h"
 
 PulsePlot::PulsePlot(QWidget *parent) :
     ZoomPanPlot(QString("pulsePlot"),parent)
@@ -61,6 +61,26 @@ PulsePlot::PulsePlot(QWidget *parent) :
 
     }
 
+    p_protMarker = new QwtPlotMarker();
+    p_protMarker->setLabelAlignment(Qt::AlignTop | Qt::AlignRight);
+    p_protMarker->setLineStyle(QwtPlotMarker::VLine);
+    p_protMarker->setLinePen(QPen(QPalette().color(QPalette::Text)));
+    QwtText protLabel(QString("Prot"));
+    protLabel.setColor(QPalette().color(QPalette::Text));
+    p_protMarker->setLabel(protLabel);
+    p_protMarker->setVisible(true);
+    p_protMarker->attach(this);
+
+    p_scopeMarker = new QwtPlotMarker();
+    p_scopeMarker->setLabelAlignment(Qt::AlignTop | Qt::AlignRight);
+    p_scopeMarker->setLineStyle(QwtPlotMarker::VLine);
+    p_scopeMarker->setLinePen(QPen(QPalette().color(QPalette::Text)));
+    QwtText scopeLabel(QString("Scope"));
+    scopeLabel.setColor(QPalette().color(QPalette::Text));
+    p_scopeMarker->setLabel(scopeLabel);
+    p_scopeMarker->setVisible(true);
+    p_scopeMarker->attach(this);
+
     replot();
 }
 
@@ -77,6 +97,7 @@ PulseGenConfig PulsePlot::config()
 void PulsePlot::newConfig(const PulseGenConfig c)
 {
     d_config = c;
+    updateVerticalMarkers();
     replot();
 }
 
@@ -91,7 +112,33 @@ void PulsePlot::newSetting(int index, QtFTM::PulseSetting s, QVariant val)
 
 void PulsePlot::newRepRate(double d)
 {
-    d_config.setRepRate(d);
+	d_config.setRepRate(d);
+}
+
+void PulsePlot::newProtDelay(int d)
+{
+	d_protDelay = d;
+	updateVerticalMarkers();
+}
+
+void PulsePlot::newScopeDelay(int d)
+{
+	d_scopeDelay = d;
+	updateVerticalMarkers();
+}
+
+void PulsePlot::updateVerticalMarkers()
+{
+	double protpos = d_config.setting(QTFTM_PGEN_MWCHANNEL,QtFTM::PulseDelay).toDouble() +
+			d_config.setting(QTFTM_PGEN_MWCHANNEL,QtFTM::PulseWidth).toDouble() +
+			static_cast<double>(d_protDelay);
+
+	double scopepos = d_config.setting(QTFTM_PGEN_MWCHANNEL,QtFTM::PulseDelay).toDouble() +
+			d_config.setting(QTFTM_PGEN_MWCHANNEL,QtFTM::PulseWidth).toDouble() +
+			static_cast<double>(d_scopeDelay);
+
+	p_protMarker->setXValue(protpos);
+	p_scopeMarker->setXValue(scopepos);
 }
 
 

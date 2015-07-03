@@ -16,10 +16,17 @@ PulseConfigWidget::PulseConfigWidget(QWidget *parent) :
     ui->setupUi(this);    
 
     auto vc = static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged);
-    QSettings s(QSettings::SystemScope, QApplication::organizationName(), QApplication::applicationName());
-    QString subKey = s.value(QString("pGen/subKey"),QString("virtual")).toString();
+    auto ivc = static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged);
+
+    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
     s.beginGroup(QString("pGen"));
-    s.beginGroup(subKey);
+    s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
+
+    double minWidth = s.value(QString("minWidth"),0.004).toDouble();
+    double maxWidth = s.value(QString("maxWidth"),100000.0).toDouble();
+    double minDelay = s.value(QString("minDelay"),0.0).toDouble();
+    double maxDelay = s.value(QString("maxDelay"),100000.0).toDouble();
+
     s.beginReadArray(QString("channels"));
     for(int i=0; i<QTFTM_PGEN_NUMCHANNELS; i++)
     {
@@ -34,7 +41,7 @@ PulseConfigWidget::PulseConfigWidget(QWidget *parent) :
 
         ch.delayBox = new QDoubleSpinBox(this);
         ch.delayBox->setKeyboardTracking(false);
-        ch.delayBox->setRange(0.0,100000.0);
+	   ch.delayBox->setRange(minDelay,maxDelay);
         ch.delayBox->setDecimals(3);
         ch.delayBox->setSuffix(QString::fromUtf16(u" µs"));
         ch.delayBox->setValue(s.value(QString("defaultDelay"),0.0).toDouble());
@@ -45,7 +52,7 @@ PulseConfigWidget::PulseConfigWidget(QWidget *parent) :
 
         ch.widthBox = new QDoubleSpinBox(this);
         ch.widthBox->setKeyboardTracking(false);
-        ch.widthBox->setRange(0.010,100000.0);
+	   ch.widthBox->setRange(minWidth,maxWidth);
         ch.widthBox->setDecimals(3);
         ch.widthBox->setSuffix(QString::fromUtf16(u" µs"));
         ch.widthBox->setValue(s.value(QString("defaultWidth"),0.050).toDouble());
@@ -131,6 +138,21 @@ PulseConfigWidget::PulseConfigWidget(QWidget *parent) :
     s.endArray();
     s.endGroup();
     s.endGroup();
+
+    s.beginGroup(QString("pdg"));
+    s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
+    ui->protDelayBox->setMinimum(s.value(QString("minProt"),1).toInt());
+    ui->protDelayBox->setMaximum(s.value(QString("maxProt"),100).toInt());
+    ui->scopeDelayBox->setMinimum(s.value(QString("minScope"),0).toInt());
+    ui->scopeDelayBox->setMaximum(s.value(QString("maxScope"),100).toInt());
+    s.endGroup();
+    s.endGroup();
+
+    ui->protDelayBox->setSuffix(QString::fromUtf16(u" μs"));
+    ui->scopeDelayBox->setSuffix(QString::fromUtf16(u" μs"));
+
+    connect(ui->protDelayBox,ivc,this,&PulseConfigWidget::changeProtDelay);
+    connect(ui->scopeDelayBox,ivc,this,&PulseConfigWidget::changeScopeDelay);
 }
 
 PulseConfigWidget::~PulseConfigWidget()
@@ -140,12 +162,24 @@ PulseConfigWidget::~PulseConfigWidget()
 
 PulseGenConfig PulseConfigWidget::getConfig()
 {
-    return ui->pulsePlot->config();
+	return ui->pulsePlot->config();
+}
+
+int PulseConfigWidget::protDelay()
+{
+	return ui->protDelayBox->value();
+}
+
+int PulseConfigWidget::scopeDelay()
+{
+	return ui->scopeDelayBox->value();
 }
 
 void PulseConfigWidget::makeInternalConnections()
 {
     connect(this,&PulseConfigWidget::changeSetting,ui->pulsePlot,&PulsePlot::newSetting);
+    connect(this,&PulseConfigWidget::changeProtDelay,ui->pulsePlot,&PulsePlot::newProtDelay);
+    connect(this,&PulseConfigWidget::changeScopeDelay,ui->pulsePlot,&PulsePlot::newScopeDelay);
 }
 
 void PulseConfigWidget::launchChannelConfig(int ch)
@@ -280,4 +314,20 @@ void PulseConfigWidget::newRepRate(double r)
     ui->repRateBox->setValue(r);
     ui->repRateBox->blockSignals(false);
     ui->pulsePlot->newRepRate(r);
+}
+
+void PulseConfigWidget::newProtDelay(int d)
+{
+	ui->protDelayBox->blockSignals(true);
+	ui->protDelayBox->setValue(d);
+	ui->protDelayBox->blockSignals(false);
+	ui->pulsePlot->newProtDelay(d);
+}
+
+void PulseConfigWidget::newScopeDelay(int d)
+{
+	ui->scopeDelayBox->blockSignals(true);
+	ui->scopeDelayBox->setValue(d);
+	ui->scopeDelayBox->blockSignals(false);
+	ui->pulsePlot->newScopeDelay(d);
 }

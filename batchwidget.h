@@ -6,6 +6,7 @@
 #include "scan.h"
 #include "batchtablemodel.h"
 #include <QLabel>
+#include <QCheckBox>
 
 namespace Ui {
 class BatchWidget;

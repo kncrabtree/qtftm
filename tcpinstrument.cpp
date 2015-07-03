@@ -19,8 +19,6 @@ void TcpInstrument::initialize()
 	QString ip = s.value(key().append(QString("/ip")),QString("")).toString();
 	int port = s.value(key().append(QString("/port")),5000).toInt();
 
-	s.setValue(key().append(QString("/prettyName")),name());
-
 	setSocketConnectionInfo(ip,port);
 }
 

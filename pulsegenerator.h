@@ -12,21 +12,6 @@ public:
     PulseGenerator(QObject *parent = nullptr);
     ~PulseGenerator();
 
-    struct PulseChannelConfiguration {
-        int channel;
-        QString channelName;
-        bool enabled;
-        double delay;
-        double width;
-//        ActiveLevel active;
-
-//        PulseChannelConfiguration()
-//            : channel(-1), channelName(QString()), enabled(false), delay(0.0), width(0.0), active(ActiveHigh) {}
-//        explicit PulseChannelConfiguration(int ch, QString n, bool en, double d, double w, ActiveLevel a)
-//            : channel(ch), channelName(n), enabled(en), delay(d), width(w), active(a) {}
-
-    };
-
 public slots:
     PulseGenConfig config() const { return d_config; }
     virtual QVariant read(const int index, const QtFTM::PulseSetting s) =0;
@@ -40,6 +25,8 @@ public slots:
 
     virtual bool setRepRate(double d) =0;
 
+    PulseGenConfig configureForTuning();
+
 signals:
     void settingUpdate(int,QtFTM::PulseSetting,QVariant);
     void configUpdate(const PulseGenConfig);
@@ -48,6 +35,11 @@ signals:
 protected:
     PulseGenConfig d_config;
     virtual void readAll();
+
+    double d_minDelay;
+    double d_maxDelay;
+    double d_minWidth;
+    double d_maxWidth;
 };
 
 #ifdef QTFTM_PGEN
