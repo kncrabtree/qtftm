@@ -559,52 +559,80 @@ void Scan::parseFileLine(QString s)
 	{
         int ch = key.split(QChar(0x20)).at(1).toInt()-1;
 		if(key.endsWith(QString("name")))
-		  data->flowConfig.set(ch,QtFTM::FlowSettingName,val);
+		{
+			if(ch >= data->flowConfig.size())
+			{
+				while(ch >= data->flowConfig.size())
+					data->flowConfig.add(0.0,QString(""));
+			}
+
+			data->flowConfig.set(ch,QtFTM::FlowSettingName,val);
+		}
 		else if(key.endsWith(QString("flow")))
-            data->flowConfig.set(ch,QtFTM::FlowSettingFlow,val.toDouble());
-	}
+		{
+			if(ch >= data->flowConfig.size())
+			{
+				while(ch >= data->flowConfig.size())
+					data->flowConfig.add(0.0,QString(""));
+			}
+
+			data->flowConfig.set(ch,QtFTM::FlowSettingFlow,val.toDouble());
+		}
+    }
 	else if(key.startsWith(QString("#Pulse ch")))
 	{
         int ch = key.split(QChar(0x20)).at(2).toInt()-1;
 		if(key.endsWith(QString("name")))
 		{
             if(ch >= data->pulseConfig.size())
-                data->pulseConfig.add(QString(""),false,0.0,1.0,QtFTM::PulseLevelActiveHigh);
-            else
-                data->pulseConfig.set(ch,QtFTM::PulseName,val);
+		  {
+			  while(ch >= data->pulseConfig.size())
+				  data->pulseConfig.add(QString(""),false,0.0,1.0,QtFTM::PulseLevelActiveHigh);
+		  }
+		  data->pulseConfig.set(ch,QtFTM::PulseName,val);
 		}
 		else if(key.endsWith(QString("level")))
 		{
-            if(ch >= data->pulseConfig.size())
-                data->pulseConfig.add(QString(""),false,0.0,1.0,QtFTM::PulseLevelActiveHigh);
-            else
-            {
-                if(val.contains(QString("High"),Qt::CaseInsensitive))
-				data->pulseConfig.set(ch,QtFTM::PulseLevel,QtFTM::PulseLevelActiveHigh);
-                else
-				data->pulseConfig.set(ch,QtFTM::PulseLevel,QtFTM::PulseLevelActiveLow);
-            }
+			if(ch >= data->pulseConfig.size())
+			{
+				while(ch >= data->pulseConfig.size())
+					data->pulseConfig.add(QString(""),false,0.0,1.0,QtFTM::PulseLevelActiveHigh);
+			}
+
+		  if(val.contains(QString("High"),Qt::CaseInsensitive))
+			  data->pulseConfig.set(ch,QtFTM::PulseLevel,QtFTM::PulseLevelActiveHigh);
+		  else
+			  data->pulseConfig.set(ch,QtFTM::PulseLevel,QtFTM::PulseLevelActiveLow);
 		}
 		else if(key.endsWith(QString("enabled")))
 		{
-            if(ch >= data->pulseConfig.size())
-                data->pulseConfig.add(QString(""),false,0.0,1.0,QtFTM::PulseLevelActiveHigh);
-            else
-                data->pulseConfig.set(ch,QtFTM::PulseEnabled,static_cast<bool>(val.toInt()));
+			if(ch >= data->pulseConfig.size())
+			{
+				while(ch >= data->pulseConfig.size())
+					data->pulseConfig.add(QString(""),false,0.0,1.0,QtFTM::PulseLevelActiveHigh);
+			}
+
+		  data->pulseConfig.set(ch,QtFTM::PulseEnabled,static_cast<bool>(val.toInt()));
 		}
 		else if(key.endsWith(QString("delay")))
 		{
-            if(ch >= data->pulseConfig.size())
-                data->pulseConfig.add(QString(""),false,0.0,1.0,QtFTM::PulseLevelActiveHigh);
-            else
-                data->pulseConfig.set(ch,QtFTM::PulseDelay,val.toDouble());
+			if(ch >= data->pulseConfig.size())
+			{
+				while(ch >= data->pulseConfig.size())
+					data->pulseConfig.add(QString(""),false,0.0,1.0,QtFTM::PulseLevelActiveHigh);
+			}
+
+		  data->pulseConfig.set(ch,QtFTM::PulseDelay,val.toDouble());
 		}
 		else if(key.endsWith(QString("width")))
 		{
-            if(ch >= data->pulseConfig.size())
-                data->pulseConfig.add(QString(""),false,0.0,1.0,QtFTM::PulseLevelActiveHigh);
-            else
-                data->pulseConfig.set(ch,QtFTM::PulseWidth,val.toDouble());
+			if(ch >= data->pulseConfig.size())
+			{
+				while(ch >= data->pulseConfig.size())
+					data->pulseConfig.add(QString(""),false,0.0,1.0,QtFTM::PulseLevelActiveHigh);
+			}
+
+		  data->pulseConfig.set(ch,QtFTM::PulseWidth,val.toDouble());
 		}
 	}
 }

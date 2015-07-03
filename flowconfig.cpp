@@ -78,7 +78,7 @@ void FlowConfig::add(double set, QString name)
 
 void FlowConfig::set(int index, QtFTM::FlowSetting s, QVariant val)
 {
-    if(index < 0 || index > data->configList.size())
+    if(index < 0 || index >= data->configList.size())
         return;
 
     switch(s) {
