@@ -38,7 +38,7 @@ QByteArray GpibController::queryCmd(int address, QString cmd)
     if(address != d_currentAddress)
     {
         if(!setAddress(address))
-            return false;
+		  return QByteArray();
     }
 
 	return p_comm->queryCmd(cmd);

@@ -12,7 +12,8 @@ HEADERS += \
     $$PWD/hp8673dr.h \
     $$PWD/qc9518.h \
     $$PWD/virtualioboard.h \
-    $$PWD/virtualscope.h
+    $$PWD/virtualscope.h \
+    $$PWD/virtualgpibcontroller.h
 
 SOURCES += \
     $$PWD/dpo3012.cpp \
@@ -28,4 +29,5 @@ SOURCES += \
     $$PWD/hp8673dr.cpp \
     $$PWD/qc9518.cpp \
     $$PWD/virtualioboard.cpp \
-    $$PWD/virtualscope.cpp
+    $$PWD/virtualscope.cpp \
+    $$PWD/virtualgpibcontroller.cpp
