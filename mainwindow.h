@@ -61,7 +61,6 @@ public slots:
     void flowSetpointUpdate(int i, double d);
     void pressureSetpointUpdate(double d);
     void pressureControlMode(bool on);
-	void fatalSaveError();
 
 	void singleScanCallback();
 	void batchScanCallback();
@@ -85,6 +84,7 @@ public slots:
     void genAttnTableCallback();
     void attnTablePrepComplete(bool success);
     void attnTableBatchComplete(bool aborted);
+    void setLogIcon(QtFTM::LogMessageCode c);
 
 signals:
     void changeGasName(int, QString);

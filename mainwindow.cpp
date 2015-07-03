@@ -117,6 +117,10 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(ui->analysisWidget,&AnalysisWidget::scanChanged,ui->batchPlot,&BatchPlot::showZone);
 	connect(ui->batchPlot,&BatchPlot::colorChanged,ui->analysisWidget->plot(),&FtPlot::changeColor);
 	connect(ui->batchPlot,&BatchPlot::colorChanged,ui->acqFtPlot,&FtPlot::changeColor);
+	connect(ui->tabWidget,&QTabWidget::currentChanged,[=](int i){
+		if(i == ui->tabWidget->count()-1)
+			setLogIcon(QtFTM::LogNormal);
+	});
     connect(res1kHzAction,&QAction::triggered,[=](){ resolutionChanged(QtFTM::Res_1kHz); });
     connect(res2kHzAction,&QAction::triggered,[=](){ resolutionChanged(QtFTM::Res_2kHz); });
     connect(res5kHzAction,&QAction::triggered,[=](){ resolutionChanged(QtFTM::Res_5kHz); });
@@ -147,6 +151,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	lh = new LogHandler(this);
 	connect(lh,&LogHandler::sendLogMessage,ui->log,&QTextEdit::append);
 	connect(lh,&LogHandler::sendStatusMessage,statusLabel,&QLabel::setText);
+	connect(lh,&LogHandler::iconUpdate,this,&MainWindow::setLogIcon);
 
 	acquisitionThread = new QThread(this);
 	controlThread = new QThread(this);
@@ -221,7 +226,6 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(sm,&ScanManager::scanFid,ui->acqFtPlot,&FtPlot::newFid);
 	connect(sm,&ScanManager::initializationComplete,ui->scanSpinBox,&QAbstractSpinBox::stepUp);
 	connect(sm,&ScanManager::scanShotAcquired,this,&MainWindow::updateProgressBars);
-	connect(sm,&ScanManager::fatalSaveError,this,&MainWindow::fatalSaveError);
 	connect(sm,&ScanManager::fatalSaveError,ui->scanSpinBox,&QAbstractSpinBox::stepDown);
 	connect(ui->actionPause,&QAction::triggered,sm,&ScanManager::pause);
 	connect(ui->actionResume,&QAction::triggered,sm,&ScanManager::resume);
@@ -620,11 +624,6 @@ void MainWindow::pressureControlMode(bool on)
     }
 }
 
-void MainWindow::fatalSaveError()
-{
-	ui->tabWidget->setCurrentIndex(ui->tabWidget->count()-1);
-}
-
 void MainWindow::singleScanCallback()
 {
 	if(batchThread->isRunning())
@@ -744,10 +743,7 @@ void MainWindow::hardwareStatusChanged(bool success)
 {
     //show an error if we go from connected to disconnected
     if((d_hardwareConnected && !success) || (!d_hardwareConnected && !success))
-    {
 		statusLabel->setText(QString("A hardware error occurred. See log for details."));
-        ui->tabWidget->setCurrentIndex(ui->tabWidget->count()-1);
-    }
     else if(!d_hardwareConnected && success)
     {
         statusLabel->setText(QString("Initialization complete."));
@@ -934,10 +930,7 @@ void MainWindow::attnFileSuccess(bool success)
     if(success)
         statusLabel->setText(QString("Attenuation file loaded successfully."));
     else
-    {
-        statusLabel->setText(QString("Attenuation file could not be loaded. See log for details."));
-        ui->tabWidget->setCurrentIndex(ui->tabWidget->count()-1);
-    }
+	   statusLabel->setText(QString("Attenuation file could not be loaded. See log for details."));
 
     disconnect(hwm,&HardwareManager::attnLoadSuccess,this,&MainWindow::attnFileSuccess);
 }
@@ -1091,7 +1084,6 @@ void MainWindow::attnTablePrepComplete(bool success)
     connect(bm,&BatchManager::batchComplete,this,&MainWindow::attnTableBatchComplete);
     connect(bm,&BatchManager::batchComplete,bm,&QObject::deleteLater);
     connect(bm,&BatchManager::batchComplete,ui->batchPlot,&BatchPlot::enableReplotting);
-    connect(bm,&BatchManager::fatalSaveError,this,&MainWindow::fatalSaveError);
     connect(bm,&QObject::destroyed,batchThread,&QThread::quit);
     connect(bm,&BatchManager::beginScan,sm,&ScanManager::prepareScan);
     connect(sm,&ScanManager::dummyComplete,bm,&BatchManager::scanComplete);
@@ -1142,6 +1134,22 @@ void MainWindow::attnTableBatchComplete(bool aborted)
 
 }
 
+void MainWindow::setLogIcon(QtFTM::LogMessageCode c)
+{
+	switch(c) {
+	case QtFTM::LogWarning:
+		if(QVariant(ui->tabWidget->tabIcon(ui->tabWidget->count()-1)) != QVariant(QIcon(QString(":/icons/error.png"))))
+			ui->tabWidget->setTabIcon(ui->tabWidget->count()-1,QIcon(QString(":/icons/warning.png")));
+		break;
+	case QtFTM::LogError:
+		ui->tabWidget->setTabIcon(ui->tabWidget->count()-1,QIcon(QString(":/icons/error.png")));
+		break;
+	default:
+		ui->tabWidget->setTabIcon(ui->tabWidget->count()-1,QIcon());
+		break;
+	}
+}
+
 void MainWindow::makeBatchConnections(BatchManager *bm, bool sleep)
 {
 	ui->actionPrint_Summary->setEnabled(false);
@@ -1151,7 +1159,6 @@ void MainWindow::makeBatchConnections(BatchManager *bm, bool sleep)
 	connect(bm,&BatchManager::batchComplete,this,&MainWindow::batchComplete);
 	connect(bm,&BatchManager::batchComplete,bm,&QObject::deleteLater);
     connect(bm,&BatchManager::batchComplete,ui->batchPlot,&BatchPlot::enableReplotting);
-	connect(bm,&BatchManager::fatalSaveError,this,&MainWindow::fatalSaveError);
 	connect(bm,&QObject::destroyed,batchThread,&QThread::quit);
     connect(bm,&BatchManager::beginScan,this,&MainWindow::scanStarting);
     connect(bm,&BatchManager::beginScan,sm,&ScanManager::prepareScan);

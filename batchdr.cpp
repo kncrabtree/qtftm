@@ -424,7 +424,6 @@ void BatchDR::writeReport()
 		if(!d.mkpath(d.absolutePath()))
 		{
 			emit logMessage(QString("Could not create directory for saving DR scan! Creation of %1 failed, and data were not saved!").arg(d.absolutePath()),QtFTM::LogError);
-			emit fatalSaveError();
 			return;
 		}
 	}
@@ -438,7 +437,6 @@ void BatchDR::writeReport()
 	if(!out.open(QIODevice::WriteOnly))
 	{
 		emit logMessage(QString("Could not open file for writing DR data! Creation of %1 failed, and data were not saved!").arg(out.fileName()),QtFTM::LogError);
-		emit fatalSaveError();
 		return;
 	}
 

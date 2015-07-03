@@ -182,11 +182,6 @@ signals:
 	 \param QList<QVector<QPointF> > Data
 	*/
 	void plotData(const BatchManager::BatchPlotMetaData, const QList<QVector<QPointF> >);
-	/*!
-	 \brief Emitted in case of save failure
-
-	*/
-	void fatalSaveError();
 
     void titleReady(QString);
 

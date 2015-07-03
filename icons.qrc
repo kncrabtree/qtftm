@@ -18,4 +18,8 @@
         <file>icons/open.png</file>
         <file>led.qml</file>
     </qresource>
+    <qresource prefix="/">
+        <file>icons/error.png</file>
+        <file>icons/warning.png</file>
+    </qresource>
 </RCC>

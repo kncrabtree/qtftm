@@ -248,7 +248,6 @@ void BatchAttenuation::writeReport()
         if(!d.mkpath(d.absolutePath()))
         {
             emit logMessage(QString("Could not create directory for saving %1! Creation of %2 failed, and data were not saved!").arg(d_prettyName).arg(d.absolutePath()),QtFTM::LogError);
-            emit fatalSaveError();
             return;
         }
     }
@@ -262,7 +261,6 @@ void BatchAttenuation::writeReport()
     if(!out.open(QIODevice::WriteOnly))
     {
         emit logMessage(QString("Could not open file for writing %1 data! Creation of %2 failed, and data were not saved!").arg(d_prettyName).arg(out.fileName()),QtFTM::LogError);
-        emit fatalSaveError();
         return;
     }
 
@@ -272,7 +270,6 @@ void BatchAttenuation::writeReport()
         if(!d2.mkpath(d2.absolutePath()))
         {
             emit logMessage(QString("Could not create directory for saving attenuation file! Creation of %1 failed, and data were not saved!").arg(d2.absolutePath()),QtFTM::LogError);
-            emit fatalSaveError();
             return;
         }
     }
