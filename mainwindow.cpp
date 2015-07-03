@@ -26,7 +26,7 @@
 #include "lorentziandopplerlmsfitter.h"
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent), ui(new Ui::MainWindow), d_hardwareConnected(false)
+    QMainWindow(parent), ui(new Ui::MainWindow), d_hardwareConnected(false), d_logCount(0)
 {
 
 	//build UI and make trivial connections
@@ -119,7 +119,14 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(ui->batchPlot,&BatchPlot::colorChanged,ui->acqFtPlot,&FtPlot::changeColor);
 	connect(ui->tabWidget,&QTabWidget::currentChanged,[=](int i){
 		if(i == ui->tabWidget->count()-1)
+		{
 			setLogIcon(QtFTM::LogNormal);
+			if(d_logCount > 0)
+			{
+				d_logCount = 0;
+				ui->tabWidget->setTabText(ui->tabWidget->count()-1,QString("Log"));
+			}
+		}
 	});
     connect(res1kHzAction,&QAction::triggered,[=](){ resolutionChanged(QtFTM::Res_1kHz); });
     connect(res2kHzAction,&QAction::triggered,[=](){ resolutionChanged(QtFTM::Res_2kHz); });
@@ -150,6 +157,13 @@ MainWindow::MainWindow(QWidget *parent) :
 	//log handler
 	lh = new LogHandler(this);
 	connect(lh,&LogHandler::sendLogMessage,ui->log,&QTextEdit::append);
+	connect(lh,&LogHandler::sendLogMessage,[=](){
+		if(ui->tabWidget->currentIndex() != ui->tabWidget->count()-1)
+		{
+			d_logCount++;
+			ui->tabWidget->setTabText(ui->tabWidget->count()-1,QString("Log (%1)").arg(d_logCount));
+		}
+	});
 	connect(lh,&LogHandler::sendStatusMessage,statusLabel,&QLabel::setText);
 	connect(lh,&LogHandler::iconUpdate,this,&MainWindow::setLogIcon);
 
@@ -1136,18 +1150,23 @@ void MainWindow::attnTableBatchComplete(bool aborted)
 
 void MainWindow::setLogIcon(QtFTM::LogMessageCode c)
 {
-	switch(c) {
-	case QtFTM::LogWarning:
-		if(QVariant(ui->tabWidget->tabIcon(ui->tabWidget->count()-1)) != QVariant(QIcon(QString(":/icons/error.png"))))
-			ui->tabWidget->setTabIcon(ui->tabWidget->count()-1,QIcon(QString(":/icons/warning.png")));
-		break;
-	case QtFTM::LogError:
-		ui->tabWidget->setTabIcon(ui->tabWidget->count()-1,QIcon(QString(":/icons/error.png")));
-		break;
-	default:
-		ui->tabWidget->setTabIcon(ui->tabWidget->count()-1,QIcon());
-		break;
+	if(ui->tabWidget->currentIndex() != ui->tabWidget->count()-1)
+	{
+		switch(c) {
+		case QtFTM::LogWarning:
+			if(QVariant(ui->tabWidget->tabIcon(ui->tabWidget->count()-1)) != QVariant(QIcon(QString(":/icons/error.png"))))
+				ui->tabWidget->setTabIcon(ui->tabWidget->count()-1,QIcon(QString(":/icons/warning.png")));
+			break;
+		case QtFTM::LogError:
+			ui->tabWidget->setTabIcon(ui->tabWidget->count()-1,QIcon(QString(":/icons/error.png")));
+			break;
+		default:
+			ui->tabWidget->setTabIcon(ui->tabWidget->count()-1,QIcon());
+			break;
+		}
 	}
+	else
+		ui->tabWidget->setTabIcon(ui->tabWidget->count()-1,QIcon());
 }
 
 void MainWindow::makeBatchConnections(BatchManager *bm, bool sleep)
