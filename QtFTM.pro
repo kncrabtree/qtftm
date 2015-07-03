@@ -64,7 +64,9 @@ DEFINES += QTFTM_FTM1
 #Hardware definitions
 
 #Oscilloscope. 0 = virtual, 1 = DPO3012
-DEFINES += QTFTM_OSCILLOSCOPE=1
+#uncomment RESOURCES line if using a virtual scope
+DEFINES += QTFTM_OSCILLOSCOPE=0
+RESOURCES += virtualdata.qrc
 
 #GPIB Controller. 0 = virtual, 1 = Prologix GPIB-LAN
 DEFINES += QTFTM_GPIBCONTROLLER=1

@@ -32,9 +32,9 @@ private:
 class DPO3012;
 typedef DPO3012 OscilloscopeHardware;
 #else
-#include "virtualftmwscope.h"
-class VirtualOscilloscope;
-typedef VirtualOscilloscope OscilloscopeHardware;
+#include "virtualscope.h"
+class VirtualScope;
+typedef VirtualScope OscilloscopeHardware;
 #endif
 #endif
 

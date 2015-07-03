@@ -1165,7 +1165,7 @@ Fid Analysis::parseWaveform(const QByteArray d, double probeFreq)
         return Fid(5e-7,probeFreq,QVector<double>(400));
     }
 
-    double yOffset = prefixFields.at(14).trimmed().toDouble(&ok);
+    double yOffset = prefixFields.at(15).trimmed().toDouble(&ok);
     if(!ok)
     {
 //        emit logMessage(QString("Could not parse waveform prefix. Invalid Y offset. If this problem persists, restart program."),QtFTM::LogWarning);

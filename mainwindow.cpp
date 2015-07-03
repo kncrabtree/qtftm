@@ -50,7 +50,10 @@ MainWindow::MainWindow(QWidget *parent) :
     res10kHzAction = resGroup->addAction(QString("10 kHz"));
     res10kHzAction->setCheckable(true);
 
-    QtFTM::ScopeResolution r = (QtFTM::ScopeResolution)s.value(QString("scope/resolution"),(int)QtFTM::Res_5kHz).toInt();
+
+    QtFTM::ScopeResolution r = (QtFTM::ScopeResolution)s.value(QString("scope/%1/resolution")
+												   .arg(s.value(QString("scope/subKey"),QString("virtual")).toString()),
+												   (int)QtFTM::Res_5kHz).toInt();
 
     switch(r)
     {
@@ -812,7 +815,7 @@ void MainWindow::launchIOBoardSettings()
 void MainWindow::resolutionChanged(QtFTM::ScopeResolution res)
 {
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
-    s.setValue(QString("scope/resolution"),(int)res);
+    s.setValue(QString("scope/%1/resolution").arg(s.value(QString("scope/subKey"),QString("virtual")).toString()),(int)res);
     s.sync();
 
     emit scopeResolutionChanged();

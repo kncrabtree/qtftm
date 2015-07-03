@@ -218,7 +218,8 @@ void DPO3012::setResolution()
 
     //get current resolution setting
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
-    QtFTM::ScopeResolution r = (QtFTM::ScopeResolution)s.value(QString("%1/resolution").arg(d_key),(int)QtFTM::Res_5kHz).toInt();
+    QtFTM::ScopeResolution r = (QtFTM::ScopeResolution)s.value(QString("%1/%2/resolution")
+												   .arg(d_key).arg(d_subKey),(int)QtFTM::Res_5kHz).toInt();
 
     //apply appropriate settings. 10 kHz = 100 us, 5 kHz = 200 us, 2 kHz = 500 us, 1 kHz = 1000 us
     switch(r)
