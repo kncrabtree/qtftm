@@ -20,7 +20,6 @@ SOURCES += mainwindow.cpp \
     $$PWD/pulseconfigwidget.cpp
 
 HEADERS += mainwindow.h \
-    settingsdialog.h \
     ftplot.h \
     pulseplot.h \
     analysiswidget.h \

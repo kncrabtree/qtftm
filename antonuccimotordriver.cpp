@@ -128,7 +128,9 @@ void AntonucciMotorDriver::tune(double freq, int currentAttn, int mode)
         }
     }
 
-    int peakWidth = 100, peakPos = modePair.first, peakIndex = -1;
+    int peakWidth = 100, peakPos = modePair.first;
+    int peakIndex = -1;
+    Q_UNUSED(peakIndex)
     if(doRoughTune)
     {
         d_lastTuneVoltage = -1; // make last tuning votlage invalid!
@@ -570,7 +572,9 @@ void AntonucciMotorDriver::calibrate()
     }
 
     bool ok = false;
-    int tuningVMax = 0, peakWidth = 0, peakPos = 0, peakIndex = -1;
+    int tuningVMax = 0, peakWidth = 0, peakPos = 0;
+    int peakIndex = -1;
+    Q_UNUSED(peakIndex)
     int tv = itResult.at(4).split("=").at(1).trimmed().toInt(&ok);
     if(ok)
         tuningVMax = tv*330/1024;

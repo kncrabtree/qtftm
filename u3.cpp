@@ -4,6 +4,7 @@
 
 #include "u3.h"
 #include <stdlib.h>
+#include <QtGlobal>
 
 
 u3CalibrationInfo U3_CALIBRATION_INFO_DEFAULT = {
@@ -772,6 +773,9 @@ cleanmem:
 
 long eAIN(HANDLE Handle, u3CalibrationInfo *CalibrationInfo, long ConfigIO, long *DAC1Enable, long ChannelP, long ChannelN, double *Voltage, long Range, long Resolution, long Settling, long Binary, long Reserved1, long Reserved2)
 {
+	Q_UNUSED(Range)
+	Q_UNUSED(Reserved1)
+	Q_UNUSED(Reserved2)
     uint8 sendDataBuff[3], recDataBuff[2];
     uint8 FIOAnalog, EIOAnalog, curFIOAnalog, curEIOAnalog;
     uint8 curTCConfig, settling, quicksample, Errorcode;
@@ -896,6 +900,9 @@ long eAIN(HANDLE Handle, u3CalibrationInfo *CalibrationInfo, long ConfigIO, long
 
 long eDAC(HANDLE Handle, u3CalibrationInfo *CalibrationInfo, long ConfigIO, long Channel, double Voltage, long Binary, long Reserved1, long Reserved2)
 {
+	Q_UNUSED(Binary)
+	Q_UNUSED(Reserved1)
+	Q_UNUSED(Reserved2)
     uint8 sendDataBuff[3];
     uint8 byteV, DAC1Enabled, Errorcode, ErrorFrame;
     uint16 bytesV;
@@ -1074,6 +1081,8 @@ long eDO(HANDLE Handle, long ConfigIO, long Channel, long State)
 
 long eTCConfig(HANDLE Handle, long *aEnableTimers, long *aEnableCounters, long TCPinOffset, long TimerClockBaseIndex, long TimerClockDivisor, long *aTimerModes, double *aTimerValues, long Reserved1, long Reserved2)
 {
+	Q_UNUSED(Reserved1)
+	Q_UNUSED(Reserved2)
     uint8 sendDataBuff[8];
     uint8 FIOAnalog, EIOAnalog, curFIOAnalog, curEIOAnalog;
     uint8 TimerCounterConfig, curTimerCounterConfig, Errorcode, ErrorFrame;
@@ -1178,6 +1187,8 @@ long eTCConfig(HANDLE Handle, long *aEnableTimers, long *aEnableCounters, long T
 
 long eTCValues(HANDLE Handle, long *aReadTimers, long *aUpdateResetTimers, long *aReadCounters, long *aResetCounters, double *aTimerValues, double *aCounterValues, long Reserved1, long Reserved2)
 {
+	Q_UNUSED(Reserved1)
+	Q_UNUSED(Reserved2)
     uint8 sendDataBuff[12], recDataBuff[16], Errorcode, ErrorFrame;
     int sendDataBuffSize, recDataBuffSize, i, j;
     int numTimers, dataCountCounter, dataCountTimer;
