@@ -20,9 +20,9 @@ public slots:
 class HP8673DR;
 typedef HP8673DR DrSynthHardware;
 #elif QTFTM_DRSYNTH == 2
-#include "hp8640dr.h"
-class HP8640DR;
-typedef HP8640DR DrSynthHardware;
+#include "hp8340dr.h"
+class HP8340DR;
+typedef HP8340DR DrSynthHardware;
 #else
 #include "virtualdrsynth.h"
 class VirtualDrSynth;

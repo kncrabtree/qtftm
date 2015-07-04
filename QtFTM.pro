@@ -3,23 +3,19 @@
 # Project created by QtCreator 2013-05-26T19:28:00
 #
 #-------------------------------------------------
-#This project is only set up to work properly on UNIX, because save paths for files are hard-coded
-#It could be easily modified to run on windows; see the Scan::save() and Scan::parseFile() methods
-#as well as the BatchManager::writeReport() implementations.
-#Before running this program, the directory /home/data must exist, and must be writable to any/all users
-#that may run this program! Recommended premissions for directory are 775.
+#This project is only set up to work properly on UNIX, because the default save path starts with /
+#It could be easily modified to run on windows; simply modify savePath and appDataPath in main.cpp
+#Both directories need to be writable by the user running the program
 #
-#This is the Qt-FTM5 branch, originally to run on FTM1    Jan 2 2015 PRAA
-# modified Dec-Jan to run on Qt 5.4/5.4, FTM 2
-#Note that #include directories may need to be changed to switch back to FTM 1, especially
-#include <qwt6/qwt_plot_canvas.h>, when it ran qwt 6.1, with Qt 5.1 to
-#include <qwt_plot_canvas.h>       qwt 6.1.2, which is necessary to run with Qt 5.4
-#Running on FTM 2, Jan 2.  also running on FTM 1, Jan 5.  I prefer not to
-#have separate branches (for the moment . . . ??)
+#This version allows compile-time selection of hardware, and also has virtual hardware implementations
+#so that it can run on systems not connected to real instrumentation
 
 
 QT       += core gui network
-CONFIG   += qt thread
+CONFIG   += qt thread c++11
+
+#If you want to compile with all virtual hardware, uncomment the following line
+CONFIG += nohardware
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets serialport printsupport
 
@@ -40,54 +36,142 @@ include(implementations.pri)
 
 SOURCES += main.cpp
 
-#unix:!macx: LIBS += -L/usr/local/lib64 -lqwt -lgsl -lgslcblas -lm -llabjackusb
-
-unix:!macx: LIBS +=                         -lgsl -lgslcblas -lm -llabjackusb  #-lQtSerialPort
-LIBS += -L/usr/local/qwt-6.1.2/lib -lqwt
-
-QMAKE_CXXFLAGS += -std=c++11
-
 RESOURCES += \
     icons.qrc
 
 #This line should reflect which spectrometer the code is being compiled for
 DEFINES += QTFTM_SPECTROMETER=1
 
-#Hardware definitions
-
-#Oscilloscope. 0 = virtual, 1 = DPO3012
-#uncomment RESOURCES line if using a virtual scope
-DEFINES += QTFTM_OSCILLOSCOPE=0
-RESOURCES += virtualdata.qrc
-
-#GPIB Controller. 0 = virtual, 1 = Prologix GPIB-LAN
-DEFINES += QTFTM_GPIBCONTROLLER=0
-
-#Attenuator. 0 = virtual, 1 = Aeroflex Weinschel Attenuator
-DEFINES += QTFTM_ATTENUATOR=0
-
-#Pin switch delay generator. 0 = virtual, 1 = Antonucci
-DEFINES += QTFTM_PDG=0
-
-#Motor driver. 0 = virtual, 1 = Antonucci
-DEFINES += QTFTM_MOTORDRIVER=0
-
-#flow controller. 0 = virtual, 1 = MKS 647C
-DEFINES += QTFTM_FLOWCONTROLLER=0 QTFTM_FLOW_NUMCHANNELS=4
-
-#IO Board. 0 = virtual, 1 = LabJack U3
-DEFINES += QTFTM_IOBOARD=0
-
-#FTM Synth. 0 = virtual, 1 = HP8673, 2 = HP8340
-DEFINES += QTFTM_FTMSYNTH=0
-
-#DR Synth. 0 = virtual, 1 = HP8673, 2 = HP8340
-DEFINES += QTFTM_DRSYNTH=0
-
-#pulse generator. 0 = virtual, 1 = QC 9518
-DEFINES += QTFTM_PGEN=0 QTFTM_PGEN_GASCHANNEL=0 BC_PGEN_DCCHANNEL=1 QTFTM_PGEN_MWCHANNEL=2 \
-	QTFTM_PGEN_DRCHANNEL=3 QTFTM_PGEN_NUMCHANNELS=8
-
 DISTFILES += \
     Notes.txt
 
+#note: on linux, /usr/lib64 should have symbolic links set up to point to the qwt library if not using
+#pre-compiled qwt6 libraries (as of openSUSE 13.2, the pre-compiled libraries are built against Qt4,
+#so to use this program the libraries must be built manually against Qt5
+#example links (all in /usr/lib64, e.g, as root, ln -s /usr/local/qwt-6.1.3-svn/lib/libqwt.so /usr/lib64/libswt.so)
+#libqwt.so -> /usr/local/qwt-6.1.3-svn/lib/libqwt.so
+#libqwt.so.6 -> /usr/local/qwt-6.1.3-svn/lib/libqwt.so
+#libqwt.so.6.1 -> /usr/local/qwt-6.1.3-svn/lib/libqwt.so
+#libqwt.so.6.1.3 -> /usr/local/qwt-6.1.3-svn/lib/libqwt.so
+
+#headers for qwt6 should be linked in /usr/local/include/qwt6:
+#example: ln -s /usr/local/qwt-6.1.3/include /usr/local/include/qwt6
+unix:!macx: LIBS += -L/usr/local/lib64 -lqwt -lgsl -lgslcblas -lm -llabjackusb
+
+
+#Hardware definitions
+nohardware {
+####################################################
+#       DO NOT MODIFY VALUES IN THIS SECTION       #
+#This sets definitions for nohardware configuration#
+# You can choose your hardware in the next section #
+#   Add new variables here if new hardware added   #
+####################################################
+SCOPE=0
+GPIB=0
+ATTN=0
+PDG=0
+MD=0
+FC=0
+FC_CHANNELS=4
+IOB=0
+FTMSYNTH=0
+DRSYNTH=0
+PGEN=0
+PGEN_GAS=0
+PGEN_DC=1
+PGEN_MW=2
+PGEN_DR=3
+PGEN_CHANNELS=4
+####################################################
+} else {
+
+####################################################
+#              HARDWARE DEFINITIONS                #
+# Choose hardware here. Be sure to read each entry #
+#If you add a new implementation, add comment below#
+#If you add new hardware, make new variables below #
+####################################################
+
+####################################################
+#Oscilloscope. 0 = virtual, 1 = DPO3012            #
+####################################################
+SCOPE=1
+
+#####################################################
+#GPIB Controller. 0 = virtual, 1 = Prologix GPIB-LAN#
+#####################################################
+GPIB=1
+
+#####################################################
+#Attenuator. 0 = virtual, 1 = Aeroflex Weinschel Attenuator
+#####################################################
+ATTN=1
+
+#####################################################
+#Pin switch delay generator. 0 = virtual, 1 = Antonucci
+#####################################################
+PDG=1
+
+#####################################################
+#Motor driver. 0 = virtual, 1 = Antonucci
+#####################################################
+MD=1
+
+#####################################################
+#flow controller. 0 = virtual, 1 = MKS 647C
+#####################################################
+FC=1
+FC_CHANNELS=4
+
+#####################################################
+#IO Board. 0 = virtual, 1 = LabJack U3
+#####################################################
+IOB=1
+
+#####################################################
+#FTM Synth. 0 = virtual, 1 = HP8673, 2 = HP8340
+#####################################################
+FTMSYNTH=1
+
+#####################################################
+#DR Synth. 0 = virtual, 1 = HP8673, 2 = HP8340
+#####################################################
+DRSYNTH=2
+
+#####################################################
+#pulse generator. 0 = virtual, 1 = QC 9518
+#Indicate numbers of Gas, DC, MW, and DR channels
+#Also be sure to indicate total number of channels
+#####################################################
+PGEN=1
+PGEN_GAS=0
+PGEN_DC=1
+PGEN_MW=2
+PGEN_DR=3
+PGEN_CHANNELS=8
+}
+
+
+######################################################
+#only modify the lines below if you know what you're doing!
+#For instance, if new hardware is added to program, you
+#should make new variables above for both configurations
+#and add appropriate defines below. See headers of
+#hardware base classes for examples of how to use these
+######################################################
+DEFINES += QTFTM_OSCILLOSCOPE=$$SCOPE
+DEFINES += QTFTM_GPIBCONTROLLER=$$GPIB
+DEFINES += QTFTM_ATTENUATOR=$$ATTN
+DEFINES += QTFTM_PDG=$$PDG
+DEFINES += QTFTM_MOTORDRIVER=$$MD
+DEFINES += QTFTM_FLOWCONTROLLER=$$FC QTFTM_FLOW_NUMCHANNELS=$$FC_CHANNELS
+DEFINES += QTFTM_IOBOARD=$$IOB
+DEFINES += QTFTM_FTMSYNTH=$$FTMSYNTH
+DEFINES += QTFTM_DRSYNTH=$$DRSYNTH
+DEFINES += QTFTM_PGEN=$$PGEN QTFTM_PGEN_GASCHANNEL=$$PGEN_GAS QTFTM_PGEN_DCCHANNEL=$$PGEN_DC QTFTM_PGEN_MWCHANNEL=$$PGEN_MW \
+	QTFTM_PGEN_DRCHANNEL=$$PGEN_DR QTFTM_PGEN_NUMCHANNELS=$$PGEN_CHANNELS
+
+equals($$SCOPE, 0) {
+	RESOURCES += virtualdata.qrc
+}

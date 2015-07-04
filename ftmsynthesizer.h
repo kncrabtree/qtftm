@@ -34,9 +34,9 @@ protected:
 class HP8673FTM;
 typedef HP8673FTM FtmSynthHardware;
 #elif QTFTM_FTMSYNTH == 2
-#include "hp8640ftm.h"
-class HP8640FTM;
-typedef HP8640FTM FtmSynthHardware;
+#include "hp8340ftm.h"
+class HP8340FTM;
+typedef HP8340FTM FtmSynthHardware;
 #else
 #include "virtualftmsynth.h"
 class VirtualFtmSynth;
