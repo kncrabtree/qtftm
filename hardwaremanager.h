@@ -116,7 +116,7 @@ signals:
      * \brief Emitted when a synthesizer band (either DR or FTM) is automatically changed
      */
     void synthRangeChanged();
-#ifndef CONFIG_NODRSYNTH
+
     /*!
      * \brief Emitted when DR frequency changes
      * \param f New DR frequency
@@ -133,7 +133,6 @@ signals:
      * \brief Triggered from UI when band is changed manually
      */
     void drSynthChangeBandFromUi();
-#endif
 
     /*!
      * \brief Emitted when attenuation is changed
@@ -462,8 +461,6 @@ public slots:
     */
     int readCalVoltage();
 
-#ifndef CONFIG_NODRSYNTH
-
     /*!
      * \brief Sets DR synthesizer frequency
      * \param f New frequency
@@ -477,7 +474,6 @@ public slots:
      * \return Actual synthesizer power setting
      */
 	double setDrSynthPwr(double p);
-#endif
 
     /*!
      * \brief Sets the IO Board's cw line for tuning more

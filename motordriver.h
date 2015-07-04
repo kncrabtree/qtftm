@@ -6,7 +6,7 @@
 #include <QDateTime>
 #include <QStringList>
 
-#ifdef QTFTM_FTM1
+#if QTFTM_SPECTROMETER==1
 #define MD_MIRRORROC 83.2048
 #define MD_MINLENGTH 68.322
 #define MD_MAXLENGTH 72.893
@@ -15,10 +15,7 @@
 #define MD_ENCODERCOUNTSPERCM 40000.0
 #define MD_CALMODEOFFSET 13000
 #define MD_CALTUNEMODE 47
-#endif
-
-
-#ifdef QTFTM_FTM2
+#else
 #define MD_MIRRORROC 83.2048
 #define MD_MINLENGTH 67.1
 #define MD_MAXLENGTH 72.1

@@ -29,11 +29,13 @@ void VirtualMotorDriver::initialize()
 
 bool VirtualMotorDriver::moveToPosition(int pos)
 {
+	Q_UNUSED(pos)
 	return true;
 }
 
 bool VirtualMotorDriver::stepMotor(int motorSteps)
 {
+	Q_UNUSED(motorSteps)
 	return true;
 }
 

@@ -47,19 +47,11 @@ LIBS += -L/usr/local/qwt-6.1.2/lib -lqwt
 
 QMAKE_CXXFLAGS += -std=c++11
 
-
 RESOURCES += \
     icons.qrc
 
-#Comment the following line and rebuild to enable the DR synthesizer
-#DEFINES += CONFIG_NODRSYNTH
-
-#DR synthesizer can be HP8673 or  HP8340 - choose
-DEFINES += HP8340
-
 #This line should reflect which spectrometer the code is being compiled for
-#DEFINES += QTFTM_FTM2
-DEFINES += QTFTM_FTM1
+DEFINES += QTFTM_SPECTROMETER=1
 
 #Hardware definitions
 

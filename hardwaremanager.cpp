@@ -407,7 +407,6 @@ int HardwareManager::readCalVoltage()
     return out;
 }
 
-#ifndef CONFIG_NODRSYNTH
 double HardwareManager::setDrSynthFreq(double f)
 {
 	double out = 0.0;
@@ -421,7 +420,6 @@ double HardwareManager::setDrSynthPwr(double p)
     QMetaObject::invokeMethod(gpib,"setDrSynthPower",Qt::BlockingQueuedConnection,Q_RETURN_ARG(double,out),Q_ARG(double,p));
     return out;
 }
-#endif
 
 int HardwareManager::setCwMode(bool cw)
 {
@@ -578,7 +576,6 @@ void HardwareManager::finishPreparation(bool tuneSuccess)
     }
     d_currentScan.setProbeFreq(f);
 
-#ifndef CONFIG_NODRSYNTH
     //set DR synthesizer
     f = setDrSynthFreq(d_currentScan.drFreq());
     if(f < 0.0)
@@ -599,10 +596,6 @@ void HardwareManager::finishPreparation(bool tuneSuccess)
         return;
     }
     d_currentScan.setDrPower(f);
-#else
-    d_currentScan.setDrFreq(-1.0);
-    d_currentScan.setDrPower(0.0);
-#endif
 
     //set pulse generator configuration
     PulseGenConfig pc = setPulseConfig(d_currentScan.pulseConfiguration());

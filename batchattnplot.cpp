@@ -151,13 +151,7 @@ void BatchAttnPlot::print()
     //do printing
     QwtText t = title();
     QwtText oldTitle = title();
-#ifdef QTFTM_FTM1
-    t = QwtText(QString("%1 %2").arg(QString("FTM1")).arg(title().text()));
-#endif
-
-#ifdef QTFTM_FTM2
-    t = QwtText(QString("%1 %2").arg(QString("FTM2")).arg(title().text()));
-#endif
+    t = QwtText(QString("FTM%1 %2").arg(QTFTM_SPECTROMETER).arg(title().text()));
 
     setTitle(QString(""));
     double xMin = d_plotCurveData.at(0).first().x();

@@ -1626,13 +1626,7 @@ void BatchPlot::printSurvey()
 	//do the printing
     QwtText t = title();
     QwtText oldTitle = title();
-#ifdef QTFTM_FTM1
-    t = QwtText(QString("%1 %2").arg(QString("FTM1")).arg(title().text()));
-#endif
-
-#ifdef QTFTM_FTM2
-    t = QwtText(QString("%1 %2").arg(QString("FTM2")).arg(title().text()));
-#endif
+    t = QwtText(QString("FTM%1 %2").arg(QTFTM_SPECTROMETER).arg(title().text()));
 
     setTitle(QString(""));
     doPrint(xMin,xMax,xWidth,perPage,t.text(),&p);
@@ -1936,13 +1930,7 @@ void BatchPlot::printDr()
 	//do the printing
     QwtText t = title();
     QwtText oldTitle = title();
-#ifdef QTFTM_FTM1
-    t = QwtText(QString("%1 %2").arg(QString("FTM1")).arg(title().text()));
-#endif
-
-#ifdef QTFTM_FTM2
-    t = QwtText(QString("%1 %2").arg(QString("FTM2")).arg(title().text()));
-#endif
+    t = QwtText(QString("FTM%1 %2").arg(QTFTM_SPECTROMETER).arg(title().text()));
 
     setTitle(QString(""));
 
@@ -2181,13 +2169,7 @@ void BatchPlot::printBatch()
 	//do the printing
     QwtText t = title();
     QwtText oldTitle = title();
-#ifdef QTFTM_FTM1
-    t = QwtText(QString("%1 %2").arg(QString("FTM1")).arg(title().text()));
-#endif
-
-#ifdef QTFTM_FTM2
-    t = QwtText(QString("%1 %2").arg(QString("FTM2")).arg(title().text()));
-#endif
+    t = QwtText(QString("FTM%1 %2").arg(QTFTM_SPECTROMETER).arg(title().text()));
 
     setTitle(QString(""));
     doPrint(start,end,(double)scansPerGraph,perPage,t.text(),&p);
@@ -2288,13 +2270,7 @@ void BatchPlot::printAttn()
     //do printing
     QwtText t = title();
     QwtText oldTitle = title();
-#ifdef QTFTM_FTM1
-    t = QwtText(QString("%1 %2").arg(QString("FTM1")).arg(title().text()));
-#endif
-
-#ifdef QTFTM_FTM2
-    t = QwtText(QString("%1 %2").arg(QString("FTM2")).arg(title().text()));
-#endif
+    t = QwtText(QString("FTM%1 %2").arg(QTFTM_SPECTROMETER).arg(title().text()));
 
     setTitle(QString(""));
     double xMin = plotCurveData.at(0).at(0).x();

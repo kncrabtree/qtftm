@@ -588,13 +588,7 @@ QFrame *AnalysisWidget::renderPrintSidebar()
 	QGridLayout *sl = new QGridLayout;
 
 	QString instString;
-#ifdef QTFTM_FTM1
-    instString.append(QString("FTM1"));
-#endif
-
-#ifdef QTFTM_FTM2
-	instString.append(QString("FTM2"));
-#endif
+    instString.append(QString("FTM%1").arg(QTFTM_SPECTROMETER));
 
 	if(!instString.isEmpty())
 	{

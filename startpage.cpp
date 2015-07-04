@@ -34,10 +34,6 @@ StartPage::StartPage(QWidget *parent) :
 	vl->addWidget(miscBox);
 	setLayout(vl);
 
-#ifdef CONFIG_NODRSYNTH
-    drButton->setEnabled(false);
-#endif
-
 }
 
 int StartPage::nextId() const
