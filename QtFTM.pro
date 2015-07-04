@@ -75,7 +75,7 @@ DEFINES += QTFTM_GPIBCONTROLLER=0
 DEFINES += QTFTM_ATTENUATOR=0
 
 #Pin switch delay generator. 0 = virtual, 1 = Antonucci
-DEFINES += QTFTM_PDG=1
+DEFINES += QTFTM_PDG=0
 
 #Motor driver. 0 = virtual, 1 = Antonucci
 DEFINES += QTFTM_MOTORDRIVER=1

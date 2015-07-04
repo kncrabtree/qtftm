@@ -14,7 +14,8 @@ HEADERS += \
     $$PWD/virtualioboard.h \
     $$PWD/virtualscope.h \
     $$PWD/virtualgpibcontroller.h \
-    $$PWD/virtualattenuator.h
+    $$PWD/virtualattenuator.h \
+    $$PWD/virtualpindelaygenerator.h
 
 SOURCES += \
     $$PWD/dpo3012.cpp \
@@ -32,4 +33,5 @@ SOURCES += \
     $$PWD/virtualioboard.cpp \
     $$PWD/virtualscope.cpp \
     $$PWD/virtualgpibcontroller.cpp \
-    $$PWD/virtualattenuator.cpp
+    $$PWD/virtualattenuator.cpp \
+    $$PWD/virtualpindelaygenerator.cpp

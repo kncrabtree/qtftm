@@ -36,9 +36,9 @@ protected:
 class PinDelayGeneratorPA;
 typedef PinDelayGeneratorPA PDGHardware;
 #else
-#include "virtualpindelaygenerator"
+#include "virtualpindelaygenerator.h"
 class VirtualPinDelayGenerator;
-typedef VirtualPinDelayGenerator PDGHardware
+typedef VirtualPinDelayGenerator PDGHardware;
 #endif
 #endif
 

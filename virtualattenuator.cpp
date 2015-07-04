@@ -24,6 +24,7 @@ void VirtualAttenuator::initialize()
 
 bool VirtualAttenuator::testConnection()
 {
+	readAttn();
 	emit connected();
 	return true;
 }
