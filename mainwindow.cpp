@@ -84,16 +84,14 @@ MainWindow::MainWindow(QWidget *parent) :
     d_gasSetpointBoxes.append(ui->g3setPointBox);
     d_gasSetpointBoxes.append(ui->g4setPointBox);
 
-    //apply ranges to synth control boxes
-    synthSettingsChanged();
-    d_leds.append(ui->gasLed);
-    d_leds.append(ui->dcLed);
-    d_leds.append(ui->mwLed);
-    d_leds.append(ui->drLed);
-   d_leds.append(ui->aux1Led);
-    d_leds.append(ui->aux2Led);
-    d_leds.append(ui->aux3Led);
-    d_leds.append(ui->aux4Led);
+    d_ledList.append(qMakePair(ui->gasLedLabel,ui->gasLed));
+    d_ledList.append(qMakePair(ui->dcLedLabel,ui->dcLed));
+    d_ledList.append(qMakePair(ui->mwLedLabel,ui->mwLed));
+    d_ledList.append(qMakePair(ui->drLedLabel,ui->drLed));
+   d_ledList.append(qMakePair(ui->chELedLabel,ui->aux1Led));
+    d_ledList.append(qMakePair(ui->chFLedLabel,ui->aux2Led));
+    d_ledList.append(qMakePair(ui->chGLedLabel,ui->aux3Led));
+    d_ledList.append(qMakePair(ui->chHLedLabel,ui->aux4Led));
 
     auto doubleVc = static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged);
     auto intVc = static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged);
@@ -191,7 +189,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(ui->pwrControlDoubleSpinBox,doubleVc,hwm,&HardwareManager::setDrSynthPwrFromUI);
 	connect(ui->attnControlSpinBox,intVc,hwm,&HardwareManager::setAttnFromUI);
     connect(hwm,&HardwareManager::attenUpdate,this,&MainWindow::setcvUpdate);
-    connect(ui->magnetOnOffButton,&QAbstractButton::clicked,hwm,&HardwareManager::setMagnetFromUI);
+    connect(ui->magnetOnOffButton,&QAbstractButton::toggled,hwm,&HardwareManager::setMagnetFromUI);
     connect(hwm,&HardwareManager::magnetUpdate,this,&MainWindow::magnetUpdate);
     connect(hwm,&HardwareManager::flowUpdate,this,&MainWindow::flowControllerUpdate);
     connect(hwm,&HardwareManager::pressureUpdate,this,&MainWindow::pressureUpdate);
@@ -211,7 +209,9 @@ MainWindow::MainWindow(QWidget *parent) :
     });
 
 	connect(hwm,&HardwareManager::pGenChannelSetting,ui->pulseConfigWidget,&PulseConfigWidget::newSetting);
+	connect(hwm,&HardwareManager::pGenChannelSetting,this,&MainWindow::updatePulseLed);
 	connect(hwm,&HardwareManager::pGenConfigUpdate,ui->pulseConfigWidget,&PulseConfigWidget::newConfig);
+	connect(hwm,&HardwareManager::pGenConfigUpdate,this,&MainWindow::updatePulseLeds);
 	connect(hwm,&HardwareManager::repRateUpdate,ui->pulseConfigWidget,&PulseConfigWidget::newRepRate);
 	connect(hwm,&HardwareManager::hmProtectionDelayUpdate,ui->pulseConfigWidget,&PulseConfigWidget::newProtDelay);
 	connect(hwm,&HardwareManager::hmScopeDelayUpdate,ui->pulseConfigWidget,&PulseConfigWidget::newScopeDelay);
@@ -287,17 +287,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	ui->batchProgressBar->setValue(0);
 	ui->shotsProgressBar->setValue(0);
-
-#ifdef CONFIG_NODRSYNTH
-    ui->drControlDoubleSpinBox->setMinimum(-10.0);
-    ui->drControlDoubleSpinBox->setValue(-1.0);
-    ui->drDoubleSpinBox->setMinimum(-10.0);
-    ui->drDoubleSpinBox->setValue(-1.0);
-    ui->powerDoubleSpinBox->setValue(0.0);
-    ui->pwrControlDoubleSpinBox->setValue(0.0);
-    ui->drControlDoubleSpinBox->blockSignals(true);
-    ui->pwrControlDoubleSpinBox->blockSignals(true);
-#endif
 
     synthSettingsChanged();
 
@@ -436,21 +425,30 @@ void MainWindow::resumeAcq()
 void MainWindow::synthSettingsChanged()
 {
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+    s.beginGroup(QString("ftmSynth"));
+    s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
 
     ui->ftmControlDoubleSpinBox->blockSignals(true);
-    ui->ftmControlDoubleSpinBox->setRange(s.value(QString("ftmSynth/min"),5000.0).toDouble(),s.value(QString("ftmSynth/max"),26490.0).toDouble());
+    ui->ftmControlDoubleSpinBox->setRange(s.value(QString("min"),5000.0).toDouble(),s.value(QString("max"),26490.0).toDouble());
     ui->ftmControlDoubleSpinBox->blockSignals(false);
 
-#ifndef CONFIG_NODRSYNTH
+    s.endGroup();
+    s.endGroup();
+
+    s.beginGroup(QString("drSynth"));
+    s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
+
     ui->drControlDoubleSpinBox->blockSignals(true);
     ui->pwrControlDoubleSpinBox->blockSignals(true);
 
-    ui->drControlDoubleSpinBox->setRange(s.value(QString("drSynth/min"),50.0).toDouble(),s.value(QString("drSynth/max"),26500.0).toDouble());
-    ui->pwrControlDoubleSpinBox->setRange(s.value(QString("drSynth/minPower"),-70.0).toDouble(),s.value(QString("drSynth/maxPower"),17.0).toDouble());
+    ui->drControlDoubleSpinBox->setRange(s.value(QString("min"),50.0).toDouble(),s.value(QString("max"),26500.0).toDouble());
+    ui->pwrControlDoubleSpinBox->setRange(s.value(QString("minPower"),-70.0).toDouble(),s.value(QString("maxPower"),17.0).toDouble());
 
     ui->drControlDoubleSpinBox->blockSignals(false);
     ui->pwrControlDoubleSpinBox->blockSignals(false);
-#endif
+
+    s.endGroup();
+    s.endGroup();
 
 }
 
@@ -617,6 +615,7 @@ void MainWindow::pressureSetpointUpdate(double d)
 
 void MainWindow::pressureControlMode(bool on)
 {
+	ui->pressureLed->setState(on);
     if(on)
     {
         if(!ui->pressureControlButton->isChecked())
@@ -1168,6 +1167,33 @@ void MainWindow::setLogIcon(QtFTM::LogMessageCode c)
 	}
 	else
 		ui->tabWidget->setTabIcon(ui->tabWidget->count()-1,QIcon());
+}
+
+void MainWindow::updatePulseLeds(const PulseGenConfig cc)
+{
+	for(int i=0; i<d_ledList.size() && i < cc.size(); i++)
+	{
+		d_ledList.at(i).first->setText(cc.at(i).channelName);
+		d_ledList.at(i).second->setState(cc.at(i).enabled);
+	}
+}
+
+void MainWindow::updatePulseLed(int index, QtFTM::PulseSetting s, QVariant val)
+{
+	if(index < 0 || index >= d_ledList.size())
+	    return;
+
+	switch(s) {
+	case QtFTM::PulseName:
+	    d_ledList.at(index).first->setText(val.toString());
+	    break;
+	case QtFTM::PulseEnabled:
+	    d_ledList.at(index).second->setState(val.toBool());
+	    break;
+	default:
+	    break;
+	}
+
 }
 
 void MainWindow::makeBatchConnections(BatchManager *bm, bool sleep)

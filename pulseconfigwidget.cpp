@@ -19,7 +19,7 @@ PulseConfigWidget::PulseConfigWidget(QWidget *parent) :
     auto ivc = static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged);
 
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
-    s.beginGroup(QString("pGen"));
+    s.beginGroup(QString("pulseGenerator"));
     s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
 
     double minWidth = s.value(QString("minWidth"),0.004).toDouble();
@@ -217,8 +217,8 @@ void PulseConfigWidget::launchChannelConfig(int ch)
     if(d.exec() == QDialog::Accepted)
     {
         QSettings s(QSettings::SystemScope, QApplication::organizationName(), QApplication::applicationName());
-        QString subKey = s.value(QString("pGen/subKey"),QString("virtual")).toString();
-        s.beginGroup(QString("pGen"));;
+	   QString subKey = s.value(QString("pulseGenerator/subKey"),QString("virtual")).toString();
+	   s.beginGroup(QString("pulseGenerator"));;
         s.beginGroup(subKey);
         s.beginWriteArray(QString("channels"));
         s.setArrayIndex(ch);

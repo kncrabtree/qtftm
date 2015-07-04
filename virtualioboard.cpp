@@ -48,6 +48,7 @@ void VirtualIOBoard::ftmSynthBand(int band)
 
 long VirtualIOBoard::setMagnet(bool mag)
 {
+	emit magnetUpdate(mag);
 	if(mag)
 		return 1;
 	else

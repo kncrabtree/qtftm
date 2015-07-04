@@ -564,6 +564,9 @@
         </item>
         <item>
          <layout class="QGridLayout" name="gridLayout_3" columnstretch="1,0,1,0">
+          <item row="3" column="3">
+           <widget class="Led" name="aux2Led" native="true"/>
+          </item>
           <item row="4" column="0">
            <widget class="QLabel" name="mwLedLabel">
             <property name="text">
@@ -591,7 +594,7 @@
            </widget>
           </item>
           <item row="2" column="0">
-           <widget class="QLabel" name="gasPulseLabel">
+           <widget class="QLabel" name="gasLedLabel">
             <property name="text">
              <string>Gas</string>
             </property>
@@ -615,9 +618,6 @@
              <number>5</number>
             </property>
            </widget>
-          </item>
-          <item row="3" column="3">
-           <widget class="Led" name="aux2Led" native="true"/>
           </item>
           <item row="3" column="0">
            <widget class="QLabel" name="dcLedLabel">
@@ -671,15 +671,11 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="0" colspan="3">
-           <widget class="QLabel" name="magLabel">
-            <property name="text">
-             <string>Magnet</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
+          <item row="4" column="3">
+           <widget class="Led" name="aux3Led" native="true"/>
+          </item>
+          <item row="2" column="3">
+           <widget class="Led" name="aux1Led" native="true"/>
           </item>
           <item row="1" column="0" colspan="4">
            <widget class="QLabel" name="label_24">
@@ -691,29 +687,46 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="3">
-           <widget class="Led" name="aux3Led" native="true"/>
-          </item>
-          <item row="2" column="3">
-           <widget class="Led" name="aux1Led" native="true"/>
-          </item>
           <item row="5" column="3">
            <widget class="Led" name="aux4Led" native="true"/>
           </item>
           <item row="0" column="3">
            <widget class="Led" name="magnetLed" native="true"/>
           </item>
-          <item row="2" column="1">
-           <widget class="Led" name="gasLed" native="true"/>
-          </item>
           <item row="3" column="1">
            <widget class="Led" name="dcLed" native="true"/>
           </item>
-          <item row="4" column="1">
-           <widget class="Led" name="mwLed" native="true"/>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_12">
+            <property name="text">
+             <string>PC</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="Led" name="pressureLed" native="true"/>
           </item>
           <item row="5" column="1">
            <widget class="Led" name="drLed" native="true"/>
+          </item>
+          <item row="2" column="1">
+           <widget class="Led" name="gasLed" native="true"/>
+          </item>
+          <item row="0" column="2">
+           <widget class="QLabel" name="magLedLabel">
+            <property name="text">
+             <string>Magnet</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="Led" name="mwLed" native="true"/>
           </item>
          </layout>
         </item>

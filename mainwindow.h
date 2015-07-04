@@ -85,6 +85,8 @@ public slots:
     void attnTablePrepComplete(bool success);
     void attnTableBatchComplete(bool aborted);
     void setLogIcon(QtFTM::LogMessageCode c);
+    void updatePulseLeds(const PulseGenConfig cc);
+    void updatePulseLed(int index, QtFTM::PulseSetting s, QVariant val);
 
 signals:
     void changeGasName(int, QString);
@@ -104,7 +106,7 @@ private:
 	HardwareManager *hwm;
 	LogHandler *lh;
 
-	QList<Led*> d_leds;
+	QList<QPair<QLabel*,Led*>> d_ledList;
     QList<QLineEdit*> d_gasBoxes;
     QList<QDoubleSpinBox*> d_gasSetpointBoxes;
 
