@@ -72,7 +72,7 @@ RESOURCES += virtualdata.qrc
 DEFINES += QTFTM_GPIBCONTROLLER=0
 
 #Attenuator. 0 = virtual, 1 = Aeroflex Weinschel Attenuator
-DEFINES += QTFTM_ATTENUATOR=1
+DEFINES += QTFTM_ATTENUATOR=0
 
 #Pin switch delay generator. 0 = virtual, 1 = Antonucci
 DEFINES += QTFTM_PDG=1

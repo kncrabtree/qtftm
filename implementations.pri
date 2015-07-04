@@ -13,7 +13,8 @@ HEADERS += \
     $$PWD/qc9518.h \
     $$PWD/virtualioboard.h \
     $$PWD/virtualscope.h \
-    $$PWD/virtualgpibcontroller.h
+    $$PWD/virtualgpibcontroller.h \
+    $$PWD/virtualattenuator.h
 
 SOURCES += \
     $$PWD/dpo3012.cpp \
@@ -30,4 +31,5 @@ SOURCES += \
     $$PWD/qc9518.cpp \
     $$PWD/virtualioboard.cpp \
     $$PWD/virtualscope.cpp \
-    $$PWD/virtualgpibcontroller.cpp
+    $$PWD/virtualgpibcontroller.cpp \
+    $$PWD/virtualattenuator.cpp

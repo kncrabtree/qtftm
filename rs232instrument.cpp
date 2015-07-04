@@ -43,7 +43,11 @@ bool Rs232Instrument::testConnection()
         return true;
     }
     else
+    {
+	    emit logMessage(QString("Could not open port (name: %1). Verify that the device name and baud rate are correct.")
+					.arg(id),QtFTM::LogError);
         return false;
+    }
 }
 
 bool Rs232Instrument::writeCmd(QString cmd)

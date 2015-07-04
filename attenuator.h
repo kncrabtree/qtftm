@@ -38,7 +38,7 @@ typedef AeroflexAttn AttenuatorHardware;
 #else
 #include "virtualattenuator.h"
 class VirtualAttenuator;
-typedef VirtualAttenuator GpibControllerHardware;
+typedef VirtualAttenuator AttenuatorHardware;
 #endif
 #endif
 

@@ -38,7 +38,7 @@ bool QC9518::testConnection()
 {
     if(!p_comm->testConnection())
     {
-        emit connected(false,QString("RS232 error."));
+	   emit connected(false);
         return false;
     }
 
