@@ -44,6 +44,19 @@ void VirtualPulseGenerator::initialize()
 	   QVariant lvl = s.value(QString("level"),QtFTM::PulseLevelActiveHigh);
         bool en = s.value(QString("defaultEnabled"),false).toBool();
 
+	   if(i == QTFTM_PGEN_GASCHANNEL)
+	   {
+		   en = true;
+		   w = 400.0;
+	   }
+	   if(i == QTFTM_PGEN_MWCHANNEL)
+	   {
+		   en = true;
+		   d = 1000.0;
+		   w = 1.0;
+		   lvl = QVariant::fromValue(QtFTM::PulseLevelActiveLow);
+	   }
+
 	   if(lvl == QVariant(QtFTM::PulseLevelActiveHigh))
 		  d_config.add(name,en,d,w,QtFTM::PulseLevelActiveHigh);
         else

@@ -735,26 +735,26 @@ Scan BatchWidget::parseLine(Scan defaultScan, QString line)
 						if(success)
 						{
 							parseSuccess = true;
-							if(level == 0)
-                                pConfig.set(ch,QtFTM::PulseLevel,
-                                            QVariant::fromValue(QtFTM::PulseLevelActiveHigh));
+							if(level == 0 && ch != QTFTM_PGEN_MWCHANNEL)
+								pConfig.set(ch,QtFTM::PulseLevel,
+										  QVariant::fromValue(QtFTM::PulseLevelActiveHigh));
 							else
-                                pConfig.set(ch,QtFTM::PulseLevel,
-                                            QVariant::fromValue(QtFTM::PulseLevelActiveLow));
+								pConfig.set(ch,QtFTM::PulseLevel,
+										  QVariant::fromValue(QtFTM::PulseLevelActiveLow));
 						}
 						else
 						{
 							if(val.contains(QString("high"),Qt::CaseInsensitive))
 							{
 								parseSuccess = true;
-                                pConfig.set(ch,QtFTM::PulseLevel,
-                                            QVariant::fromValue(QtFTM::PulseLevelActiveHigh));
+								pConfig.set(ch,QtFTM::PulseLevel,
+										  QVariant::fromValue(QtFTM::PulseLevelActiveHigh));
 							}
 							else if(val.contains(QString("low"),Qt::CaseInsensitive))
 							{
 								parseSuccess = true;
-                                pConfig.set(ch,QtFTM::PulseLevel,
-                                            QVariant::fromValue(QtFTM::PulseLevelActiveLow));
+								pConfig.set(ch,QtFTM::PulseLevel,
+										  QVariant::fromValue(QtFTM::PulseLevelActiveLow));
 							}
 						}
 					}

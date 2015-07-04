@@ -62,7 +62,7 @@ PulsePlot::PulsePlot(QWidget *parent) :
     }
 
     p_protMarker = new QwtPlotMarker();
-    p_protMarker->setLabelAlignment(Qt::AlignTop | Qt::AlignRight);
+    p_protMarker->setLabelAlignment(Qt::AlignTop | Qt::AlignLeft);
     p_protMarker->setLineStyle(QwtPlotMarker::VLine);
     p_protMarker->setLinePen(QPen(QPalette().color(QPalette::Text)));
     QwtText protLabel(QString("Prot"));
@@ -72,10 +72,10 @@ PulsePlot::PulsePlot(QWidget *parent) :
     p_protMarker->attach(this);
 
     p_scopeMarker = new QwtPlotMarker();
-    p_scopeMarker->setLabelAlignment(Qt::AlignTop | Qt::AlignRight);
+    p_scopeMarker->setLabelAlignment(Qt::AlignTop | Qt::AlignLeft);
     p_scopeMarker->setLineStyle(QwtPlotMarker::VLine);
     p_scopeMarker->setLinePen(QPen(QPalette().color(QPalette::Text)));
-    QwtText scopeLabel(QString("Scope"));
+    QwtText scopeLabel(QString("\nScope"));
     scopeLabel.setColor(QPalette().color(QPalette::Text));
     p_scopeMarker->setLabel(scopeLabel);
     p_scopeMarker->setVisible(true);
@@ -103,7 +103,7 @@ void PulsePlot::newConfig(const PulseGenConfig c)
 
 void PulsePlot::newSetting(int index, QtFTM::PulseSetting s, QVariant val)
 {
-    if(index < 0 || index > d_config.size())
+    if(index < 0 || index >= d_config.size())
         return;
 
     d_config.set(index,s,val);
@@ -118,13 +118,13 @@ void PulsePlot::newRepRate(double d)
 void PulsePlot::newProtDelay(int d)
 {
 	d_protDelay = d;
-	updateVerticalMarkers();
+	replot();
 }
 
 void PulsePlot::newScopeDelay(int d)
 {
 	d_scopeDelay = d;
-	updateVerticalMarkers();
+	replot();
 }
 
 void PulsePlot::updateVerticalMarkers()
@@ -161,7 +161,7 @@ void PulsePlot::replot()
         return;
     }
 
-
+    updateVerticalMarkers();
     double maxTime = 1.0;
     for(int i=0; i<d_config.size(); i++)
     {

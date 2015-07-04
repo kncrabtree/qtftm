@@ -104,6 +104,7 @@ void HardwareManager::initializeHardware()
     connect(pGen,&PulseGenerator::configUpdate,this,&HardwareManager::pGenConfigUpdate);
     connect(this,&HardwareManager::setRepRate,pGen,&PulseGenerator::setRepRate);
     connect(pGen,&PulseGenerator::repRateUpdate,this,&HardwareManager::repRateUpdate);
+    connect(this,&HardwareManager::setPulseSetting,pGen,&PulseGenerator::set);
     d_hardwareList.append(qMakePair(pGen,new QThread(this)));
 
 	//write arrays of the connected devices for use in the Hardware Settings menu

@@ -178,10 +178,8 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(hwm,&HardwareManager::ftmSynthUpdate,this,&MainWindow::ftmCavityUpdate);
 	connect(hwm,&HardwareManager::probeFreqUpdate,this,&MainWindow::ftmProbeUpdate);
     connect(hwm,&HardwareManager::synthRangeChanged,this,&MainWindow::synthSettingsChanged);
-#ifndef CONFIG_NODRSYNTH
 	connect(hwm,&HardwareManager::drSynthFreqUpdate,this,&MainWindow::drSynthFreqUpdate);
 	connect(hwm,&HardwareManager::drSynthPwrUpdate,this,&MainWindow::drSynthPwrUpdate);
-#endif
     connect(hwm,&HardwareManager::attenUpdate,this,&MainWindow::attnUpdate);
     connect(hwm,&HardwareManager::taattenUpdate,this,&MainWindow::taattnUpdate);
     connect(hwm,&HardwareManager::attnTablePrepComplete,this,&MainWindow::attnTablePrepComplete);

@@ -89,6 +89,19 @@ void QC9518::initialize()
         QVariant lvl = s.value(QString("level"),QtFTM::PulseLevelActiveHigh);
         bool en = s.value(QString("defaultEnabled"),false).toBool();
 
+	   if(i == QTFTM_PGEN_GASCHANNEL)
+	   {
+		   en = true;
+		   w = 400.0;
+	   }
+	   if(i == QTFTM_PGEN_MWCHANNEL)
+	   {
+		   en = true;
+		   d = 1000.0;
+		   w = 1.0;
+		   lvl = QVariant::fromValue(QtFTM::PulseLevelActiveLow);
+	   }
+
         if(lvl == QVariant(QtFTM::PulseLevelActiveHigh))
             d_config.add(name,en,d,w,QtFTM::PulseLevelActiveHigh);
         else
@@ -250,6 +263,11 @@ bool QC9518::set(const int index, const QtFTM::PulseSetting s, const QVariant va
         }
         break;
     case QtFTM::PulseLevel:
+	    if(index == QTFTM_PGEN_MWCHANNEL)
+	    {
+		    out = true;
+		    break;
+	    }
         setting = QString("active level");
         target = val.toInt() == static_cast<int>(d_config.at(index).level) ? QString("active high") : QString("active low");
         if(val.toInt() != static_cast<int>(d_config.at(index).level))
@@ -271,6 +289,11 @@ bool QC9518::set(const int index, const QtFTM::PulseSetting s, const QVariant va
         }
         break;
     case QtFTM::PulseEnabled:
+	    if(index == QTFTM_PGEN_GASCHANNEL || index == QTFTM_PGEN_MWCHANNEL)
+	    {
+		    out = true;
+		    break;
+	    }
         setting = QString("enabled");
         target = val.toBool() ? QString("true") : QString("false");
         if(val.toBool() != d_config.at(index).enabled)

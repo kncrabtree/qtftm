@@ -35,7 +35,7 @@ PulseConfigWidget::PulseConfigWidget(QWidget *parent) :
         int col = 0;
 
         ch.label = new QLabel(s.value(QString("name"),QString("Ch%1").arg(i)).toString(),this);
-        ch.label->setAlignment(Qt::AlignRight);
+	   ch.label->setAlignment(Qt::AlignRight|Qt::AlignVCenter);
         ui->pulseConfigBoxLayout->addWidget(ch.label,i+1,col,1,1);
         col++;
 
@@ -108,6 +108,8 @@ PulseConfigWidget::PulseConfigWidget(QWidget *parent) :
             else
                 ch.levelButton->setText(QString("Active Low"));
         });
+	   if(i == QTFTM_PGEN_MWCHANNEL)
+		  ch.levelButton->setEnabled(false);
         ch.levelButton->hide();
 
         ch.delayStepBox = new QDoubleSpinBox(this);
