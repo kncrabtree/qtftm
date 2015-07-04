@@ -236,7 +236,9 @@ void AntonucciMotorDriver::tune(double freq, int currentAttn, int mode)
     }
 
 //    int finalPos = readPos();
-//    QFile f(QString("/home/data/QtFTM/tuningLog.txt"));
+//    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+//    QString savePath = s.value(QString("savePath"),QString(".")).toString();
+//    QFile f(savePath + QString("/tuningLog.txt"));
 //    if(f.open(QIODevice::Append))
 //    {
 //        f.write(QString("%1\t%2\t%3\t%4\t%5\t%6\n").arg(freq,0,'f',3).arg(startingPos).arg(posGuess).arg(finalPos).arg(finalPos-startingPos).arg(finalPos-posGuess).toLatin1());
@@ -663,7 +665,9 @@ void AntonucciMotorDriver::calibrate()
     p_comm->queryCmd(QString("R"));
     readPos();
 
-//    QFile f(QString("/home/data/QtFTM/tuningLog.txt"));
+//    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+//    QString savePath = s.value(QString("savePath"),QString(".")).toString();
+//    QFile f(savePath + QString("/tuningLog.txt"));
 //    if(f.open(QIODevice::Append))
 //    {
 //        f.write(QString("\ncalibrated\n\n").toLatin1());

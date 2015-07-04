@@ -37,7 +37,9 @@ BatchAttenuation::BatchAttenuation(int num) :
     int millions = (int)floor((double)num/1000000.0);
     int thousands = (int)floor((double)num/1000.0);
 
-    QFile f(QString("/home/data/QtFTM/attn/%1/%2/%3.txt").arg(millions).arg(thousands).arg(num));
+    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+    QString savePath = s.value(QString("savePath"),QString(".")).toString();
+    QFile f(savePath + QString("/attn/%1/%2/%3.txt").arg(millions).arg(thousands).arg(num));
 
     if(!f.exists())
         return;
@@ -241,7 +243,8 @@ void BatchAttenuation::writeReport()
     int millions = (int)floor((double)num/1000000.0);
     int thousands = (int)floor((double)num/1000.0);
 
-    QDir d(QString("/home/data/QtFTM/attn/%1/%2").arg(millions).arg(thousands));
+    QString savePath = s.value(QString("savePath"),QString(".")).toString();
+    QDir d(savePath + QString("/attn/%1/%2").arg(millions).arg(thousands));
 
     if(!d.exists())
     {
@@ -264,7 +267,7 @@ void BatchAttenuation::writeReport()
         return;
     }
 
-    QDir d2(QString("/home/data/QtFTM/tuningTables"));
+    QDir d2(savePath + QString("/tuningTables"));
     if(!d2.exists())
     {
         if(!d2.mkpath(d2.absolutePath()))
@@ -275,7 +278,7 @@ void BatchAttenuation::writeReport()
     }
 
     //create attenuation table output file
-    QFile atnFile(QString("/home/data/QtFTM/tuningTables/%1.atn").arg(d_atnFilename));
+    QFile atnFile(savePath + QString("/tuningTables/%1.atn").arg(d_atnFilename));
     if(atnFile.exists()) // don't overwrite an existing file. make a new one!
     {
         bool done = false;
@@ -283,7 +286,7 @@ void BatchAttenuation::writeReport()
         while(!done)
         {
             QString testName = QString("%1_%2").arg(d_atnFilename).arg(suffixIndex);
-            atnFile.setFileName(QString("/home/data/QtFTM/tuningTables/%1.atn").arg(testName));
+		  atnFile.setFileName(savePath + QString("/tuningTables/%1.atn").arg(testName));
             if(!atnFile.exists())
                 done = true;
             else

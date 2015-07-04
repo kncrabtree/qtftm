@@ -245,7 +245,10 @@ void AnalysisWidget::saveScanMetaData()
 	int dirMillionsNum = (int)floor((double) d_currentScan.number()/1000000.0);
 	int dirThousandsNum = (int)floor((double) d_currentScan.number()/1000.0);
 
-	QDir d(QString("/home/data/QtFTM/metadata/%1/%2").arg(dirMillionsNum).arg(dirThousandsNum));
+	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+	QString savePath = s.value(QString("savePath"),QString(".")).toString();
+
+	QDir d(savePath + QString("/metadata/%1/%2").arg(dirMillionsNum).arg(dirThousandsNum));
 	if(!d.exists())
 	{
 		if(!d.mkpath(d.absolutePath()))
@@ -293,8 +296,11 @@ void AnalysisWidget::loadScanMetaData()
     FitResult res(d_currentScan.number());
     d_currentBaseline = res.baselineY0Slope();
 
+    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+    QString savePath = s.value(QString("savePath"),QString(".")).toString();
+
 	//open metadata file
-	QFile f(QString("/home/data/QtFTM/metadata/%1/%2/%3.txt").arg(dirMillionsNum).arg(dirThousandsNum).arg(d_currentScan.number()));
+	QFile f(savePath + QString("/metadata/%1/%2/%3.txt").arg(dirMillionsNum).arg(dirThousandsNum).arg(d_currentScan.number()));
 	if(f.exists() && f.open(QIODevice::ReadOnly))
 	{
 		while(!f.atEnd())

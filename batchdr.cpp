@@ -65,7 +65,9 @@ BatchDR::BatchDR(int num, AbstractFitter *ftr) : BatchManager(DrScan,true,ftr), 
     int drMillions = (int)floor((double)drNum/1000000.0);
     int drThousands = (int)floor((double)drNum/1000.0);
 
-    QDir d(QString("/home/data/QtFTM/dr/%1/%2").arg(drMillions).arg(drThousands));
+    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+    QString savePath = s.value(QString("savePath"),QString(".")).toString();
+    QDir d(savePath + QString("/dr/%1/%2").arg(drMillions).arg(drThousands));
 
     //create output file
     QFile f(QString("%1/%2.txt").arg(d.absolutePath()).arg(drNum));
@@ -417,7 +419,8 @@ void BatchDR::writeReport()
 	int drMillions = (int)floor((double)drNum/1000000.0);
 	int drThousands = (int)floor((double)drNum/1000.0);
 
-	QDir d(QString("/home/data/QtFTM/dr/%1/%2").arg(drMillions).arg(drThousands));
+	QString savePath = s.value(QString("savePath"),QString(".")).toString();
+	QDir d(savePath + QString("/dr/%1/%2").arg(drMillions).arg(drThousands));
 
 	if(!d.exists())
 	{

@@ -11,7 +11,7 @@
  * In addition, there is an option to do periodic calibration scans.
  * If so, a reference Scan is used to store all the settings for that scan, and the scansPerCal variable sets how many scans are executed between calibrations.
  * The survey will always begin and end with a calibration scan if they are enabled.
- * Survey reports are stored in /home/data/QtFTM/surveys/x/y/z.txt, where z is the survey number, y are the thousands digits, and x are the millions digits (though it's unlikely that will ever go above 0!)
+ * Survey reports are stored in savePath/surveys/x/y/z.txt, where z is the survey number, y are the thousands digits, and x are the millions digits (though it's unlikely that will ever go above 0!)
  * Reports contain lists of survey and calibration scan numbers, as well as XY lists of frequency and FT intensity for the survey, and frequency and peak calibration line intensity for the calibrations.
  */
 class BatchSurvey : public BatchManager

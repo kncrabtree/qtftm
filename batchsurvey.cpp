@@ -62,7 +62,10 @@ BatchSurvey::BatchSurvey(int num) : BatchManager(Survey,true)
     int surveyNum = num;
     int surveyMillions = (int)floor((double)surveyNum/1000000.0);
     int surveyThousands = (int)floor((double)surveyNum/1000.0);
-    QDir d(QString("/home/data/QtFTM/surveys/%1/%2").arg(surveyMillions).arg(surveyThousands));
+
+    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+    QString savePath = s.value(QString("savePath"),QString(".")).toString();
+    QDir d(savePath + QString("/surveys/%1/%2").arg(surveyMillions).arg(surveyThousands));
 
     //open file for writing
     QFile out(QString("%1/%2.txt").arg(d.absolutePath()).arg(surveyNum));
@@ -131,7 +134,6 @@ BatchSurvey::BatchSurvey(int num) : BatchManager(Survey,true)
 
     d_surveyTemplate = Scan(d_loadScanList.at(0));
 
-    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
     d_offset = s.value(QString("ftSynth/offset"),0.400).toDouble();
     d_chunkStart = qMax(d_offset - fabs(d_step)/2.0, 0.0);
     d_chunkEnd = qMin(d_offset + fabs(d_step)/2.0, 2.0*d_offset);
@@ -317,7 +319,9 @@ void BatchSurvey::writeReport()
 	int surveyNum = s.value(d_numKey,1).toInt();
 	int surveyMillions = (int)floor((double)surveyNum/1000000.0);
 	int surveyThousands = (int)floor((double)surveyNum/1000.0);
-	QDir d(QString("/home/data/QtFTM/surveys/%1/%2").arg(surveyMillions).arg(surveyThousands));
+
+	QString savePath = s.value(QString("savePath"),QString(".")).toString();
+	QDir d(savePath + QString("/surveys/%1/%2").arg(surveyMillions).arg(surveyThousands));
 
 	if(!d.exists())
 	{

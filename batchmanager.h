@@ -216,7 +216,7 @@ protected:
 	/*!
 	 \brief Generates report for batch.
 
-	 This function should generate a report (except SingleScan) in /home/data/QtFTM/x/y/z, where x is a string unique for the type (presently, survey, dr, and batch), x is the millions digit, and y is the thousands digit.
+	 This function should generate a report (except SingleScan) in savePath/x/y/z, where x is a string unique for the type (presently, survey, dr, and batch), x is the millions digit, and y is the thousands digit.
 	 The file name should be num.txt, and the value of num comes from the settings key stored in d_numKey.
 	 This function should increment that number in the settings when the save is successfully completed.
 	*/

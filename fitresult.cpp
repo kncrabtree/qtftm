@@ -7,6 +7,8 @@
 #include <QFile>
 #include <QTextStream>
 #include "analysis.h"
+#include <QSettings>
+#include <QApplication>
 
 class FitData : public QSharedData
 {
@@ -536,7 +538,10 @@ void FitResult::save(int num)
 	int dirMillionsNum = (int)floor((double) num/1000000.0);
 	int dirThousandsNum = (int)floor((double) num/1000.0);
 
-	QDir d(QString("/home/data/QtFTM/autofit/%1/%2").arg(dirMillionsNum).arg(dirThousandsNum));
+	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+	QString savePath = s.value(QString("savePath"),QString(".")).toString();
+
+	QDir d(savePath + QString("/autofit/%1/%2").arg(dirMillionsNum).arg(dirThousandsNum));
 	if(!d.exists())
 	{
 		if(!d.mkpath(d.absolutePath()))
@@ -588,7 +593,9 @@ void FitResult::loadFromFile(int num)
 	int dirMillionsNum = (int)floor((double) num/1000000.0);
 	int dirThousandsNum = (int)floor((double) num/1000.0);
 
-	QDir d(QString("/home/data/QtFTM/autofit/%1/%2").arg(dirMillionsNum).arg(dirThousandsNum));
+	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+	QString savePath = s.value(QString("savePath"),QString(".")).toString();
+	QDir d(savePath + QString("/autofit/%1/%2").arg(dirMillionsNum).arg(dirThousandsNum));
 
 	//open file
 	QFile f(QString("%1/%2.txt").arg(d.absolutePath()).arg(num));

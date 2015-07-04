@@ -340,7 +340,8 @@ void Scan::save()
 	int dirMillionsNum = (int)floor((double) number()/1000000.0);
 	int dirThousandsNum = (int)floor((double) number()/1000.0);
 
-	QDir d(QString("/home/data/QtFTM/scans/%1/%2").arg(dirMillionsNum).arg(dirThousandsNum));
+	QString savePath = s.value(QString("savePath"),QString(".")).toString();
+	QDir d(savePath + QString("/scans/%1/%2").arg(dirMillionsNum).arg(dirThousandsNum));
 	if(!d.exists())
 	{
 		if(!d.mkpath(d.absolutePath()))
@@ -471,7 +472,9 @@ void Scan::parseFile(int num)
 	int dirMillionsNum = (int)floor((double) num/1000000.0);
 	int dirThousandsNum = (int)floor((double) num/1000.0);
 
-	QFile f(QString("/home/data/QtFTM/scans/%1/%2/%3.txt").arg(dirMillionsNum).arg(dirThousandsNum).arg(num));
+	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+	QString savePath = s.value(QString("savePath"),QString(".")).toString();
+	QFile f(savePath + QString("/scans/%1/%2/%3.txt").arg(dirMillionsNum).arg(dirThousandsNum).arg(num));
 
 	if(!f.exists())
 		return;

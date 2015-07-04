@@ -26,7 +26,9 @@ Batch::Batch(int num) : BatchManager(BatchManager::Batch,true), d_loadingIndex(0
     int batchThousands = (int)floor((double)batchNum/1000.0);
 
     //get directory and file
-    QDir d(QString("/home/data/QtFTM/batch/%1/%2").arg(batchMillions).arg(batchThousands));
+    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+    QString savePath = s.value(QString("savePath"),QString(".")).toString();
+    QDir d(savePath + QString("/batch/%1/%2").arg(batchMillions).arg(batchThousands));
     QFile f(QString("%1/%2.txt").arg(d.absolutePath()).arg(batchNum));
 
     if(!f.exists())
@@ -182,7 +184,8 @@ void Batch::writeReport()
 	int batchThousands = (int)floor((double)batchNum/1000.0);
 
 	//create directory, if necessary
-	QDir d(QString("/home/data/QtFTM/batch/%1/%2").arg(batchMillions).arg(batchThousands));
+	QString savePath = s.value(QString("savePath"),QString(".")).toString();
+	QDir d(savePath + QString("/batch/%1/%2").arg(batchMillions).arg(batchThousands));
 	if(!d.exists())
 	{
 		if(!d.mkpath(d.absolutePath()))

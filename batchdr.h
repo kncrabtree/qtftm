@@ -12,7 +12,7 @@
  * If the user requests calibration data, then each DR frequency will be scanned twice, once with the DR pulse off, and once with it on, and the resulting integrals ratioed.
  * The ranges list in the constructor contains the regions that should be integrated.
  * In the report, lists of the DR and calibration scans are listed, along with XY arrays of the ratioed data, signal integrals, and calibration integrals vs frequency (if there is no calibration, then just the signal vs frequency is given.
- * DR scan reports are stored in /home/data/QtFTM/dr/x/y/z.txt, where z is the drScan number, y are the thousands digits, and x are the millions digits (though it's unlikely that will ever go above 0!)
+ * DR scan reports are stored in savePath/dr/x/y/z.txt, where z is the drScan number, y are the thousands digits, and x are the millions digits (though it's unlikely that will ever go above 0!)
  *
  */
 class BatchDR : public BatchManager

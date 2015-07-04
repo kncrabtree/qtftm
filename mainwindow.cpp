@@ -925,7 +925,9 @@ void MainWindow::changeAttnFileCallback()
     if(batchThread->isRunning())
         return;
 
-    QDir d(QString("/home/data/QtFTM/tuningTables"));
+    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+    QString savePath = s.value(QString("savePath"),QString(".")).toString();
+    QDir d(savePath + QString("/tuningTables"));
     if(!d.exists())
         d.mkpath(d.absolutePath());
 
