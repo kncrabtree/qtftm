@@ -26,6 +26,7 @@ public:
     int scopeTime() const;
     double dipoleMoment() const;
     PulseGenConfig pulseConfig() const;
+    int dcVoltage() const;
 
 	void setFtmFreq(double d);
 	void setAttn(int a);
@@ -35,6 +36,7 @@ public:
     void setProtectionTime(int a);
     void setScopeTime(int a);
     void setMagnet(bool b);
+    void setDcVoltage(int v);
 
     void enableSkipTune(bool enable = true);
 

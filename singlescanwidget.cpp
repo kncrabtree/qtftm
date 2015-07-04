@@ -47,6 +47,15 @@ SingleScanWidget::SingleScanWidget(QWidget *parent) :
 	ui->ssPwrDoubleSpinBox->setMaximum(s.value(QString("maxPower"),17.0).toDouble());
 	s.endGroup();
 	s.endGroup();
+
+	s.beginGroup(QString("hvps"));
+	s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
+	ui->dcControlSpinBox->setMinimum(s.value(QString("min"),0).toInt());
+	ui->dcControlSpinBox->setMaximum(s.value(QString("max"),2000).toInt());
+	s.endGroup();
+	s.endGroup();
+
+
 	ui->ssShotsSpinBox->setValue(s.value(QString("lastScanShots"),100).toInt());
 	ui->ssShotsSpinBox->setFocus();
 
@@ -104,6 +113,11 @@ PulseGenConfig SingleScanWidget::pulseConfig() const
 	return ui->pulseConfigWidget->getConfig();
 }
 
+int SingleScanWidget::dcVoltage() const
+{
+	return ui->dcControlSpinBox->value();
+}
+
 void SingleScanWidget::setFtmFreq(double d)
 {
 	ui->ssFtmDoubleSpinBox->setValue(d);
@@ -144,12 +158,17 @@ void SingleScanWidget::setMagnet(bool b)
 	ui->magnetOnOffButton->setChecked(b);
 }
 
+void SingleScanWidget::setDcVoltage(int v)
+{
+	ui->dcControlSpinBox->setValue(v);
+}
+
 void SingleScanWidget::enableSkipTune(bool enable)
 {
 	ui->skipTuneCheckBox->setEnabled(enable);
 }
 
-void SingleScanWidget::setFromScan(Scan s)
+void SingleScanWidget::setFromScan(const Scan s)
 {
     ui->ssShotsSpinBox->setValue(s.targetShots());
     setFtmFreq(s.ftFreq());
@@ -161,6 +180,7 @@ void SingleScanWidget::setFromScan(Scan s)
     setScopeTime(s.scopeDelayTime());
     ui->magnetOnOffButton->setChecked(s.magnet());
     ui->dipoleDoubleSpinBox->setValue(s.dipoleMoment());
+    ui->dcControlSpinBox->setValue(s.dcVoltage());
 }
 
 Scan SingleScanWidget::toScan() const
@@ -176,6 +196,7 @@ Scan SingleScanWidget::toScan() const
     out.setScopeDelayTime(ui->pulseConfigWidget->scopeDelay());
     out.setDipoleMoment(dipoleMoment());
     out.setMagnet(ui->magnetOnOffButton->isChecked());
+    out.setDcVoltage(ui->dcControlSpinBox->value());
     out.setSkiptune(ui->skipTuneCheckBox->isChecked());
     return out;
 }

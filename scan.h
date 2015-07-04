@@ -211,6 +211,8 @@ public:
 
     bool magnet() const;
 
+    int dcVoltage() const;
+
 	/*!
 	 \brief
 
@@ -335,6 +337,8 @@ public:
     void setScansSinceTuningVoltageTaken( int i);
 
     void setMagnet(bool b);
+
+    void setDcVoltage(int v);
 
 	/*!
 	 \brief

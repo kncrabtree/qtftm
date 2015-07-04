@@ -688,6 +688,23 @@ Scan BatchWidget::parseLine(Scan defaultScan, QString line)
                 s.endGroup();
 			}
 		}
+		else if(key.startsWith(QString("dcv"),Qt::CaseInsensitive)) //dc voltage
+		{
+			bool success = false;
+			int v = val.toInt(&success);
+			if(success)
+			{
+				s.beginGroup(QString("hvps"));
+				s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
+				if(v >= s.value(QString("min"),0).toInt() && v <= s.value(QString("max"),2000).toInt())
+				{
+					parseSuccess = true;
+					out.setDcVoltage(v);
+				}
+				s.endGroup();
+				s.endGroup();
+			}
+		}
 		else if(key.startsWith(QString("p"),Qt::CaseInsensitive)) //pulse configuration
 		{
 			//the pulse config key has 3 parts, the pulse identifier, the channel, and the setting, separated by commas
@@ -699,7 +716,7 @@ Scan BatchWidget::parseLine(Scan defaultScan, QString line)
 				if(chSuccess && ch >= 0 && ch < pConfig.size()) //channel selected
 				{
 					s.beginGroup(QString("pulseGenerator"));
-                    s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
+					s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
 					if(subkeys.at(2).startsWith(QString("w"))) //width
 					{
 						bool success = false;
@@ -907,6 +924,9 @@ QString BatchWidget::writeScan(Scan thisScan, Scan ref)
 
 	if(thisScan.drPower() != ref.drPower() || writeAll)
 		t << QString("drpower:") << QString::number(thisScan.drPower(),'f',1) << QString(" ");
+
+	if(thisScan.dcVoltage() != ref.dcVoltage() || writeAll)
+		t << QString("dcvoltage:") << thisScan.dcVoltage() << QString(" ");
 
 	PulseGenConfig thispConfig = thisScan.pulseConfiguration();
 	PulseGenConfig refpConfig = ref.pulseConfiguration();

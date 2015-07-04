@@ -87,6 +87,7 @@ public slots:
     void setLogIcon(QtFTM::LogMessageCode c);
     void updatePulseLeds(const PulseGenConfig cc);
     void updatePulseLed(int index, QtFTM::PulseSetting s, QVariant val);
+    void dcVoltageUpdate(int v);
 
 signals:
     void changeGasName(int, QString);

@@ -13,6 +13,7 @@
 #include "attenuator.h"
 #include "motordriver.h"
 #include "pinswitchdrivedelaygenerator.h"
+#include "hvpowersupply.h"
 #include <QThread>
 #include "ioboard.h"
 
@@ -181,14 +182,6 @@ signals:
     void setPressureControlMode(bool);
 
     /*!
-     * \brief Emitted when the discharge voltage changes
-     * \param New voltage
-     *
-     * \todo This is presently not implemented. If the voltage is ever to be set or read from the program, use this signal to pass the new value to the UI
-     */
-	void dcVoltageUpdate(const double v);
-
-    /*!
      * \brief Emitted when the scope acquires a trace
      * \param QByteArray The raw waveform data
      */
@@ -340,6 +333,9 @@ signals:
 
     void hmScopeDelayUpdate(int a);
 
+    void setDcVoltageFromUI(int);
+    void dcVoltageUpdate(int);
+
     void failure();
 
     void setMagnetFromUI(bool);
@@ -455,6 +451,8 @@ public slots:
     \return int in microseconds
     */
     int setScopeDelay(int a);
+
+    int setDcVoltage(int a);
 
     /*!
 	\brief Reads most recent calibration voltage from MotorDriver
@@ -620,6 +618,7 @@ private:
     PulseGenerator *pGen;
     FtmSynthesizer *p_ftmSynth;
     DrSynthesizer *p_drSynth;
+    HvPowerSupply *p_hvps;
 
     Scan d_currentScan;
     bool d_waitingForScanTune;

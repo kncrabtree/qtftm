@@ -108,6 +108,11 @@ void HardwareManager::initializeHardware()
     connect(this,&HardwareManager::setPulseSetting,pGen,&PulseGenerator::set);
     d_hardwareList.append(qMakePair(pGen,new QThread(this)));
 
+    p_hvps = new HvPowerSupplyHardware();
+    connect(this,&HardwareManager::setDcVoltageFromUI,p_hvps,&HvPowerSupply::setVoltage);
+    connect(p_hvps,&HvPowerSupply::voltageUpdate,this,&HardwareManager::dcVoltageUpdate);
+    d_hardwareList.append(qMakePair(p_hvps,nullptr));
+
 	//write arrays of the connected devices for use in the Hardware Settings menu
 	//first array is for all objects accessible to the hardware manager
 	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
@@ -484,6 +489,18 @@ int HardwareManager::setScopeDelay(int a)
 	}
 }
 
+int HardwareManager::setDcVoltage(int a)
+{
+	if(p_hvps->thread() == thread())
+		return p_hvps->setVoltage(a);
+	else
+	{
+		int out;
+		QMetaObject::invokeMethod(p_hvps,"setVoltage",Qt::BlockingQueuedConnection,Q_RETURN_ARG(int,out),Q_ARG(int,a));
+		return out;
+	}
+}
+
 int HardwareManager::readCalVoltage()
 {
 	if(md->thread() == thread())
@@ -653,6 +670,16 @@ void HardwareManager::finishPreparation(bool tuneSuccess)
 
     d_currentScan.setCavityVoltage( (int) cvvalue);
 
+    //set dc voltage
+    int dc = setDcVoltage(d_currentScan.dcVoltage());
+    if(dc < 0)
+    {
+	    emit scanInitialized(d_currentScan);
+	    d_currentScan = Scan();
+	    pauseScope(false);
+	    return;
+    }
+    d_currentScan.setDcVoltage(dc);
 
     // set current delays  into current scan object  -
     // first, get protection delay from either the pin module or the UI

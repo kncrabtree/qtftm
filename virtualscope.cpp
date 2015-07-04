@@ -37,6 +37,11 @@ void VirtualScope::initialize()
 
 		f.close();
 	}
+	else
+	{
+		for(int i=0; i<2000; i++)
+			d_virtualData.append(static_cast<double>((qrand() % 200000) - 100000)/1e6);
+	}
 
 	d_waveformPrefix = QByteArray("1;x;x;x;RI;LSB;x;x;x;x;5e-7;x;x;x;4.08e-3;0");
 	testConnection();

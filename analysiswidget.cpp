@@ -762,6 +762,18 @@ QFrame *AnalysisWidget::renderPrintSidebar()
 	drPwrUnit->setAlignment(Qt::AlignLeft);
     sl->addWidget(drPwrUnit,lnum++,2,Qt::AlignLeft);
 
+    QLabel *dcvText = new QLabel(QString("DC voltage"));
+    dcvText->setAlignment(Qt::AlignLeft);
+   sl->addWidget(dcvText,lnum,0,Qt::AlignLeft);
+
+    QLabel *dcvVal = new QLabel(QString::number(d_currentScan.dcVoltage()));
+    dcvVal->setAlignment(Qt::AlignRight);
+   sl->addWidget(dcvVal,lnum,1,Qt::AlignRight);
+
+    QLabel *dcvUnit = new QLabel(QString("V"));
+    dcvUnit->setAlignment(Qt::AlignLeft);
+   sl->addWidget(dcvUnit,lnum++,2,Qt::AlignLeft);
+
 	QLabel *probeFreqText = new QLabel(QString("Probe frequency"));
 	probeFreqText->setAlignment(Qt::AlignLeft);
     sl->addWidget(probeFreqText,lnum,0,Qt::AlignLeft);

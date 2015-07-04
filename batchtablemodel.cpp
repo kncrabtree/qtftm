@@ -10,7 +10,7 @@ BatchTableModel::BatchTableModel(QObject *parent) :
 {
 	//headers have a little extra space for padding
 	headers << QString("  FTM Freq  ") << QString("  Shots  ") << QString("  Attn  ") << QString("  DR Freq  ")
-            << QString("  DR P  ") << QString("  Is Cal?  ") << QString("  Pulses  ") << QString("  Magnet?  ");
+		  << QString("  DR P  ") << QString("  DC V  ") << QString("  Is Cal?  ") << QString("  Pulses  ") << QString("  Magnet?  ");
 	for(int i=0;i<headers.size();i++)
 		setHeaderData(i,Qt::Horizontal,headers.at(i));
 
@@ -60,12 +60,14 @@ QVariant BatchTableModel::data(const QModelIndex &index, int role) const
 		return QString::number(scanList.at(index.row()).first.drPower(),'f',1);
 		break;
 	case 5:
+		return QString::number(scanList.at(index.row()).first.dcVoltage());
+	case 6:
 		if(scanList.at(index.row()).second)
 			return QString("Yes");
 		else
 			return QString("No");
 		break;
-	case 6:
+	case 7:
 	{
 		//create string of 0s and 1s to represent pulse configuration
 		QString out;
@@ -80,7 +82,7 @@ QVariant BatchTableModel::data(const QModelIndex &index, int role) const
 		return out;
 		break;
 	}
-    case 7:
+    case 8:
         if(scanList.at(index.row()).first.magnet())
             return QString("Yes");
         else
@@ -128,10 +130,12 @@ QVariant BatchTableModel::headerData(int section, Qt::Orientation orientation, i
 		case 4:
 			return QString("Double resonance power (dBm).\nOnly used if DR pulses are active");
 		case 5:
-			return QString("Whether the scan is a calibration line.\nCalibration scans are displayed with a special label on the bottom plot during the acquisition");
+			 return QString("Discharge voltage (V). Only used if DC pulses are active.");
 		case 6:
+			return QString("Whether the scan is a calibration line.\nCalibration scans are displayed with a special label on the bottom plot during the acquisition");
+		case 7:
 			return QString("Pulse configuration (1 = enabled, 0 = disabled).\nOrder is Gas, DC, MW, DR, Aux1, Aux2, Aux3, Aux4");
-        case 7:
+	   case 8:
             return QString("Whether the magnetic field will be altered during the scan.");
 		default:
 			return QVariant();

@@ -189,6 +189,8 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(ui->pwrControlDoubleSpinBox,doubleVc,hwm,&HardwareManager::setDrSynthPwrFromUI);
 	connect(ui->attnControlSpinBox,intVc,hwm,&HardwareManager::setAttnFromUI);
     connect(hwm,&HardwareManager::attenUpdate,this,&MainWindow::setcvUpdate);
+    connect(ui->dcControlSpinBox,intVc,hwm,&HardwareManager::setDcVoltageFromUI);
+    connect(hwm,&HardwareManager::dcVoltageUpdate,this,&MainWindow::dcVoltageUpdate);
     connect(ui->magnetOnOffButton,&QAbstractButton::toggled,hwm,&HardwareManager::setMagnetFromUI);
     connect(hwm,&HardwareManager::magnetUpdate,this,&MainWindow::magnetUpdate);
     connect(hwm,&HardwareManager::flowUpdate,this,&MainWindow::flowControllerUpdate);
@@ -660,6 +662,7 @@ void MainWindow::singleScanCallback()
     ssw->setProtectionTime(ui->pulseConfigWidget->protDelay());
     ssw->setScopeTime(ui->pulseConfigWidget->scopeDelay());
     ssw->setMagnet(ui->magnetOnOffButton->isChecked());
+    ssw->setDcVoltage(ui->dcControlSpinBox->value());
     ssw->enableSkipTune();
 
 	int ret = d.exec();
@@ -697,6 +700,7 @@ void MainWindow::batchScanCallback()
     ssw->setProtectionTime(ui->pulseConfigWidget->protDelay());
     ssw->setScopeTime(ui->pulseConfigWidget->scopeDelay());
     ssw->setMagnet(ui->magnetOnOffButton->isChecked());
+    ssw->setDcVoltage(ui->dcControlSpinBox->value());
 
     AutoFitWidget *aw = new AutoFitWidget(guessBufferString(),ui->peakUpPlot->getDelay(),ui->peakUpPlot->getHpf(),ui->peakUpPlot->getExp(),ui->peakUpPlot->getPadFidBox()->isChecked());
 
@@ -900,23 +904,40 @@ void MainWindow::setHardwareRanges()
 {
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
 
-    //ftmSynth
+    //ftmSynth: note that min and max (freq) are in the ftmSynth entry, not under the subKey
     ui->ftmControlDoubleSpinBox->blockSignals(true);
     ui->ftmControlDoubleSpinBox->setRange(s.value(QString("ftmSynth/min"),5000.0).toDouble(),s.value(QString("ftmSynth/max"),26490.0).toDouble());
     ui->ftmControlDoubleSpinBox->blockSignals(false);
 
     //attenuators
     ui->attnControlSpinBox->blockSignals(true);
-    ui->attnControlSpinBox->setRange(s.value(QString("attn/min"),0).toInt(),s.value(QString("attn/max"),70).toInt());
+    s.beginGroup(QString("attn"));
+    s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
+    ui->attnControlSpinBox->setRange(s.value(QString("min"),0).toInt(),s.value(QString("max"),70).toInt());
+    s.endGroup();
+    s.endGroup();
     ui->attnControlSpinBox->blockSignals(false);
 
-    //dr synth
+    //dr synth: note that min and max (freq) are in the drSynth entry; power is under the subKey
     ui->drControlDoubleSpinBox->blockSignals(true);
     ui->pwrControlDoubleSpinBox->blockSignals(true);
-    ui->drControlDoubleSpinBox->setRange(s.value(QString("drSynth/min"),50.0).toDouble(),s.value(QString("drSynth/max"),26500.0).toDouble());
-    ui->pwrControlDoubleSpinBox->setRange(s.value(QString("drSynth/minPower"),-70.0).toDouble(),s.value(QString("drSynth/maxPower"),17.0).toDouble());
+    s.beginGroup(QString("drSynth"));
+    ui->drControlDoubleSpinBox->setRange(s.value(QString("min"),50.0).toDouble(),s.value(QString("max"),26500.0).toDouble());
+    s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
+    ui->pwrControlDoubleSpinBox->setRange(s.value(QString("minPower"),-70.0).toDouble(),s.value(QString("maxPower"),17.0).toDouble());
+    s.endGroup();
+    s.endGroup();
     ui->drControlDoubleSpinBox->blockSignals(false);
     ui->pwrControlDoubleSpinBox->blockSignals(false);
+
+    s.beginGroup(QString("hvps"));
+    s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
+    ui->dcControlSpinBox->blockSignals(true);
+    ui->dcControlSpinBox->setMinimum(s.value(QString("min"),0).toInt());
+    ui->dcControlSpinBox->setMaximum(s.value(QString("max"),2000).toInt());
+    ui->dcControlSpinBox->blockSignals(false);
+    s.endGroup();
+    s.endGroup();
 
 }
 
@@ -1204,6 +1225,15 @@ void MainWindow::updatePulseLed(int index, QtFTM::PulseSetting s, QVariant val)
 	    break;
 	}
 
+}
+
+void MainWindow::dcVoltageUpdate(int v)
+{
+	ui->dcSpinBox->setValue(v);
+
+	ui->dcControlSpinBox->blockSignals(true);
+	ui->dcControlSpinBox->setValue(v);
+	ui->dcControlSpinBox->blockSignals(false);
 }
 
 void MainWindow::makeBatchConnections(BatchManager *bm, bool sleep)

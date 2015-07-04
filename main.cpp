@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
 	}
 
 	QString fileName = QString("%1/%2").arg(lockFilePath).arg(lockFileName);
-
+	lockFile.setFileName(fileName);
 	if(!lockFile.open(QIODevice::WriteOnly))
 	{
 	    QMessageBox::critical(nullptr,QString("%1 Error").arg(appName),QString("Could not write lock file to %1. Ensure this location has write permissions enabled for your user.").arg(fileName));

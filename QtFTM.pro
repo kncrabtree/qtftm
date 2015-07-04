@@ -83,6 +83,7 @@ PGEN_DC=1
 PGEN_MW=2
 PGEN_DR=3
 PGEN_CHANNELS=4
+HVPS=0
 ####################################################
 } else {
 
@@ -150,6 +151,11 @@ PGEN_DC=1
 PGEN_MW=2
 PGEN_DR=3
 PGEN_CHANNELS=8
+
+#####################################################
+#HV power supply (discharge). 0 = virtual, 1 = ???? (not implemented as of 2015-07-04)
+#####################################################
+HVPS=0
 }
 
 
@@ -171,7 +177,8 @@ DEFINES += QTFTM_FTMSYNTH=$$FTMSYNTH
 DEFINES += QTFTM_DRSYNTH=$$DRSYNTH
 DEFINES += QTFTM_PGEN=$$PGEN QTFTM_PGEN_GASCHANNEL=$$PGEN_GAS QTFTM_PGEN_DCCHANNEL=$$PGEN_DC QTFTM_PGEN_MWCHANNEL=$$PGEN_MW \
 	QTFTM_PGEN_DRCHANNEL=$$PGEN_DR QTFTM_PGEN_NUMCHANNELS=$$PGEN_CHANNELS
+DEFINES += QTFTM_HVPS=$$HVPS
 
-equals($$SCOPE, 0) {
+equals(SCOPE, "0") {
 	RESOURCES += virtualdata.qrc
 }

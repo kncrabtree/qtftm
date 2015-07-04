@@ -18,7 +18,7 @@ public:
 	ScanData() : number(-1), ts(QDateTime::currentDateTime()), ftFreq(-1.0), ftAtten(-1), drFreq(-1.0), drPower(-100.0),
 	   targetShots(0), completedShots(0), fid(Fid()), initialized(false), saved(false), aborted(false), dummy(false), skipTune(false),
        tuningVoltage(-1), tuningVoltageTakenWithScan(true), scansSinceTuningVoltageTaken(0), cavityVoltage(-1), protectionDelayTime (-1),
-       scopeDelayTime(-1), dipoleMoment(0.0), magnet(false) {}
+	  scopeDelayTime(-1), dipoleMoment(0.0), magnet(false), dcVoltage(0) {}
 	ScanData(const ScanData &other) :
 		QSharedData(other), number(other.number), ts(other.ts), ftFreq(other.ftFreq), ftAtten(other.ftAtten), drFreq(other.drFreq),
 	   drPower(other.drPower), flowConfig(other.flowConfig),
@@ -27,7 +27,7 @@ public:
         skipTune(other.skipTune), tuningVoltage(other.tuningVoltage), tuningVoltageTakenWithScan(other.tuningVoltageTakenWithScan),
         scansSinceTuningVoltageTaken(other.scansSinceTuningVoltageTaken), cavityVoltage(other.cavityVoltage),
         protectionDelayTime(other.protectionDelayTime), scopeDelayTime(other.scopeDelayTime), dipoleMoment(other.dipoleMoment),
-        magnet(other.magnet) {}
+	   magnet(other.magnet), dcVoltage(other.dcVoltage) {}
 	~ScanData() {}
 
 	int number;
@@ -62,6 +62,7 @@ public:
     double dipoleMoment;
     bool magnet;
 
+    int dcVoltage;
 
 };
 
@@ -132,6 +133,11 @@ double Scan::dipoleMoment() const
 bool Scan::magnet() const
 {
 	return data->magnet;
+}
+
+int Scan::dcVoltage() const
+{
+	return data->dcVoltage;
 }
 
 double Scan::drPower() const
@@ -426,6 +432,11 @@ void Scan::setMagnet(bool b)
 	data->magnet = b;
 }
 
+void Scan::setDcVoltage(int v)
+{
+	data->dcVoltage = v;
+}
+
 QString Scan::scanHeader() const
 {
 	QString out;
@@ -453,6 +464,7 @@ QString Scan::scanHeader() const
 //	t << QString("#DR enabled\t") << pulseConfiguration().at(3).enabled << QString("\t\n");
 	t << QString("#DR freq\t") << drFreq() << QString("\tMHz\n");
 	t << QString("#DR power\t") << drPower() << QString("\tdBm\n");
+	t << QString("#DC voltage") << dcVoltage() << QString("\tV\t\n");
 	t << QString("#Probe freq\t") << fid().probeFreq() << QString("\tMHz\n");
 	t << QString("#FID spacing\t") << fid().spacing() << QString("\ts\n");
 	t << QString("#FID points\t") << fid().size() << QString("\t\n");
@@ -550,6 +562,8 @@ void Scan::parseFileLine(QString s)
 		data->drFreq = val.toDouble();
 	else if(key.startsWith(QString("#DR power")))
 		data->drPower = val.toDouble();
+    else if(key.startsWith(QString("DC voltage")))
+	    data->dcVoltage = val.toDouble();
 	else if(key.startsWith(QString("#Pressure")))
 		data->flowConfig.setPressure(val.toDouble());
 	else if(key.startsWith(QString("#Probe freq")))
