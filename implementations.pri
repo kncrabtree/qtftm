@@ -19,7 +19,8 @@ HEADERS += \
     $$PWD/virtualftmsynth.h \
     $$PWD/virtualdrsynth.h \
     $$PWD/virtualpulsegenerator.h \
-    $$PWD/virtualmotordriver.h
+    $$PWD/virtualmotordriver.h \
+    $$PWD/virtualflowcontroller.h
 
 SOURCES += \
     $$PWD/dpo3012.cpp \
@@ -42,4 +43,5 @@ SOURCES += \
     $$PWD/virtualftmsynth.cpp \
     $$PWD/virtualdrsynth.cpp \
     $$PWD/virtualpulsegenerator.cpp \
-    $$PWD/virtualmotordriver.cpp
+    $$PWD/virtualmotordriver.cpp \
+    $$PWD/virtualflowcontroller.cpp
