@@ -12,7 +12,7 @@ void Synthesizer::initialize()
 
     int band = s.value(QString("%1/%2/currentBand").arg(d_key).arg(d_subKey),0).toInt();
     d_mult = s.value(QString("%1/%2/bands/%3/mult").arg(d_key).arg(d_subKey).arg(band+1),1.0).toDouble();
-    d_offset = s.value(QString("%1/%2/bands/%3/offset").arg(d_key).arg(d_subKey).arg(band+1),1.0).toDouble();
+    d_offset = s.value(QString("%1/%2/bands/%3/offset").arg(d_key).arg(d_subKey).arg(band+1),0.0).toDouble();
 }
 
 void Synthesizer::updateBandFromUi()

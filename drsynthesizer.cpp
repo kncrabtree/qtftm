@@ -10,11 +10,4 @@ DrSynthesizer::DrSynthesizer(QObject *parent) :
 void DrSynthesizer::initialize()
 {
     Synthesizer::initialize();
-    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
-    s.beginGroup(d_key);
-    s.beginGroup(d_subKey);
-
-    s.endGroup();
-    s.endGroup();
-    s.sync();
 }

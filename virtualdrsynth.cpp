@@ -1,71 +1,74 @@
-#include "virtualftmsynth.h"
+#include "virtualdrsynth.h"
 
 #include "virtualinstrument.h"
 
-VirtualFtmSynth::VirtualFtmSynth(QObject *parent) :
-	FtmSynthesizer(parent)
+VirtualDrSynth::VirtualDrSynth(QObject *parent) :
+	DrSynthesizer(parent)
 {
 	d_subKey = QString("virtual");
-	d_prettyName = QString("Virtual FTM Synthesizer");
+	d_prettyName = QString("Virtual DR Synthesizer");
 
 	p_comm = new VirtualInstrument(d_key,d_subKey,this);
+
+	d_currentSynthFreq = 10000.0;
+	d_currentSynthPower = 17.0;
 
 	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
 	s.beginGroup(d_key);
 	s.beginGroup(d_subKey);
 	d_hardwareMinFreq = s.value(QString("hardwareMinFreq"),100.0).toDouble();
 	d_hardwareMaxFreq = s.value(QString("hardwareMaxFreq"),26490.0).toDouble();
+	d_hardwareMinPower = s.value(QString("minPower"),-20.0).toDouble();
+	d_hardwareMaxPower = s.value(QString("maxPower"),17.0).toDouble();
 
+	s.setValue(QString("minPower"),d_hardwareMinPower);
+	s.setValue(QString("maxPower"),d_hardwareMaxPower);
 	s.setValue(QString("hardwareMinFreq"),d_hardwareMinFreq);
 	s.setValue(QString("hardwareMaxFreq"),d_hardwareMaxFreq);
 	s.endGroup();
 	s.endGroup();
-
-	d_currentSynthFreq = 4969.6;
-	d_currentSynthPower = 10.0;
 }
 
-VirtualFtmSynth::~VirtualFtmSynth()
+VirtualDrSynth::~VirtualDrSynth()
 {
 
 }
 
 
 
-bool VirtualFtmSynth::testConnection()
+bool VirtualDrSynth::testConnection()
 {
-	d_targetCavityFreq = rawToReal(d_currentSynthFreq) + d_mixerOffset*d_mult + d_probeOffset;
-	emit newCavityFreq(d_targetCavityFreq);
-	emit newProbeFreq(d_targetCavityFreq-d_probeOffset);
+	readFreq();
+	readPower();
 
 	emit connected();
 	return true;
 }
 
-void VirtualFtmSynth::initialize()
+void VirtualDrSynth::initialize()
 {
-	FtmSynthesizer::initialize();
+	DrSynthesizer::initialize();
 	testConnection();
 }
 
-double VirtualFtmSynth::setSynthFreq(double d)
+double VirtualDrSynth::setSynthFreq(double d)
 {
 	d_currentSynthFreq = d;
 	return readFreq();
 }
 
-double VirtualFtmSynth::readSynthFreq()
+double VirtualDrSynth::readSynthFreq()
 {
 	return d_currentSynthFreq;
 }
 
-double VirtualFtmSynth::setSynthPower(double d)
+double VirtualDrSynth::setSynthPower(double d)
 {
 	d_currentSynthPower = d;
 	return readPower();
 }
 
-double VirtualFtmSynth::readSynthPower()
+double VirtualDrSynth::readSynthPower()
 {
 	return d_currentSynthPower;
 }
