@@ -199,7 +199,7 @@ void HardwareManager::initializeHardware()
         {
             connect(thread,&QThread::started,obj,&HardwareObject::initialize);
             connect(thread,&QThread::finished,obj,&HardwareObject::deleteLater);
-            if(obj->parent() != nullptr)
+		  if(obj->parent() == nullptr)
                 obj->moveToThread(thread);
         }
         else

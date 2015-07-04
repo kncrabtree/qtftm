@@ -18,7 +18,8 @@ HEADERS += \
     $$PWD/virtualpindelaygenerator.h \
     $$PWD/virtualftmsynth.h \
     $$PWD/virtualdrsynth.h \
-    $$PWD/virtualpulsegenerator.h
+    $$PWD/virtualpulsegenerator.h \
+    $$PWD/virtualmotordriver.h
 
 SOURCES += \
     $$PWD/dpo3012.cpp \
@@ -40,4 +41,5 @@ SOURCES += \
     $$PWD/virtualpindelaygenerator.cpp \
     $$PWD/virtualftmsynth.cpp \
     $$PWD/virtualdrsynth.cpp \
-    $$PWD/virtualpulsegenerator.cpp
+    $$PWD/virtualpulsegenerator.cpp \
+    $$PWD/virtualmotordriver.cpp
