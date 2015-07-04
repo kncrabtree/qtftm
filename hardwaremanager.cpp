@@ -61,6 +61,7 @@ void HardwareManager::initializeHardware()
 	connect(attn,&Attenuator::attnUpdate,this,&HardwareManager::attenUpdate);
     connect(attn,&Attenuator::attenFileParseSuccess,this,&HardwareManager::attnLoadSuccess);
     connect(attn,&Attenuator::taattnUpdate,this,&HardwareManager::taattenUpdate);
+    connect(this,&HardwareManager::setAttnFromUI,attn,&Attenuator::setAttn);
     d_hardwareList.append(qMakePair(attn,nullptr));
 
     pin = new PDGHardware();
@@ -228,8 +229,6 @@ void HardwareManager::initializeHardware()
         }
     }
 
-
-
 }
 
 void HardwareManager::connectionResult(HardwareObject *obj, bool success, QString msg)
@@ -277,7 +276,12 @@ void HardwareManager::testObjectConnection(QString type, QString key)
 	if(obj == nullptr)
 	    emit testComplete(key,false,QString("Device not found!"));
 	else
-	    QMetaObject::invokeMethod(obj,"testConnection");
+	{
+		if(obj->thread() == thread())
+			obj->testConnection();
+		else
+			QMetaObject::invokeMethod(obj,"testConnection");
+	}
 
 }
 
@@ -304,15 +308,12 @@ void HardwareManager::hardwareFailure(HardwareObject *obj)
 	checkStatus();
 }
 
-void HardwareManager::setAttnFromUI(int a)
-{
-    attn->setAttn(a);
-}
-
-
 void HardwareManager::changeAttnFile(QString fileName)
 {
-    attn->changeAttenFile(fileName);
+	if(attn->thread() == thread())
+		attn->changeAttenFile(fileName);
+	else
+		QMetaObject::invokeMethod(attn,"changeAttenFile",Q_ARG(QString,fileName));
 }
 
 PulseGenConfig HardwareManager::configurePGenForTuning()
@@ -353,91 +354,202 @@ PulseGenConfig HardwareManager::setPulseConfig(const PulseGenConfig c)
 
 double HardwareManager::goToFtmSynthProbeFreq()
 {
-	double out = 0.0;
-    QMetaObject::invokeMethod(gpib,"goToFtmProbeFreq",Qt::BlockingQueuedConnection,Q_RETURN_ARG(double,out));
-	return out;
+	if(p_ftmSynth->thread() == thread())
+		return p_ftmSynth->goToProbeFreq();
+	else
+	{
+		double out = 0.0;
+		QMetaObject::invokeMethod(p_ftmSynth,"goToProbeFreq",Qt::BlockingQueuedConnection,Q_RETURN_ARG(double,out));
+		return out;
+	}
 }
 
 bool HardwareManager::goToFtmSynthCavityFreq()
 {
-	bool success = false;
-    QMetaObject::invokeMethod(gpib,"goToFtmCavityFreq",Qt::BlockingQueuedConnection,Q_RETURN_ARG(bool,success));
-	return success;
+	if(p_ftmSynth->thread() == thread())
+		return p_ftmSynth->goToCavityFreq();
+	else
+	{
+		bool success = false;
+		QMetaObject::invokeMethod(p_ftmSynth,"goToCavityFreq",Qt::BlockingQueuedConnection,Q_RETURN_ARG(bool,success));
+		return success;
+	}
 }
 
 bool HardwareManager::setFtmSynthCavityFreq(double d)
 {
-    bool success = false;
-    QMetaObject::invokeMethod(gpib,"setFtmCavityFreq",Qt::BlockingQueuedConnection,Q_RETURN_ARG(bool,success),Q_ARG(double,d));
-    return success;
+	if(p_ftmSynth->thread() == thread())
+		return p_ftmSynth->setCavityFreq(d);
+	else
+	{
+		bool success = false;
+		QMetaObject::invokeMethod(p_ftmSynth,"setCavityFreq",Qt::BlockingQueuedConnection,Q_RETURN_ARG(bool,success),Q_ARG(double,d));
+		return success;
+	}
+}
+
+bool HardwareManager::canSkipTune(double f)
+{
+	if(md->thread() == thread())
+		return md->canSkipTune(f);
+	else
+	{
+		bool out;
+		QMetaObject::invokeMethod(md,"canSkipTune",Qt::BlockingQueuedConnection,Q_RETURN_ARG(bool,out),Q_ARG(double,f));
+		return out;
+	}
+}
+
+void HardwareManager::startTune(double freq, int attn, int mode)
+{
+	if(md->thread() == thread())
+		md->tune(freq,attn,mode);
+	else
+		QMetaObject::invokeMethod(md,"tune",Q_ARG(double,freq),Q_ARG(int,attn),Q_ARG(int,mode));
+}
+
+int HardwareManager::measureCavityVoltage()
+{
+	if(md->thread() == thread())
+		return md->measureVoltageNoTune();
+	else
+	{
+		int out;
+		QMetaObject::invokeMethod(md,"measureVoltageNoTune",Qt::BlockingQueuedConnection,Q_RETURN_ARG(int,out));
+		return out;
+	}
+}
+
+void HardwareManager::startCalibration()
+{
+	if(md->thread() == thread())
+		md->calibrate();
+	else
+		QMetaObject::invokeMethod(md,"calibrate");
+}
+
+void HardwareManager::shutUpMotorDriver(bool quiet)
+{
+	if(md->thread() == thread())
+		md->shutUp(quiet);
+	else
+		QMetaObject::invokeMethod(md,"shutUp",Qt::BlockingQueuedConnection,Q_ARG(bool,quiet));
 }
 
 int HardwareManager::readCavityTuningVoltage()
 {
-    int out = -1;
-    QMetaObject::invokeMethod(md,"lastTuneVoltage",Qt::BlockingQueuedConnection,Q_RETURN_ARG(int,out));
-    return out;
+	if(md->thread() == thread())
+		return md->lastTuneVoltage();
+	else
+	{
+		int out = -1;
+		QMetaObject::invokeMethod(md,"lastTuneVoltage",Qt::BlockingQueuedConnection,Q_RETURN_ARG(int,out));
+		return out;
+	}
 }
 
 int HardwareManager::readTuneAttenuation()
 {
-    int out = -1;
-    QMetaObject::invokeMethod(md,"lastTuneAttenuation",Qt::BlockingQueuedConnection,Q_RETURN_ARG(int,out));
-    return out;
+	if(md->thread() == thread())
+		return md->lastTuneAttenuation();
+	else
+	{
+		int out = -1;
+		QMetaObject::invokeMethod(md,"lastTuneAttenuation",Qt::BlockingQueuedConnection,Q_RETURN_ARG(int,out));
+		return out;
+	}
 }
 
 int HardwareManager::setProtectionDelay(int a)
 {
-    int out = -1;
-    QMetaObject::invokeMethod(pin,"setProtectionDelay",Qt::BlockingQueuedConnection,Q_RETURN_ARG(int,out),Q_ARG(int, a));
-    return out;
+	if(pin->thread() == thread())
+		return pin->setProtectionDelay(a);
+	else
+	{
+		int out = -1;
+		QMetaObject::invokeMethod(pin,"setProtectionDelay",Qt::BlockingQueuedConnection,Q_RETURN_ARG(int,out),Q_ARG(int, a));
+		return out;
+	}
 }
 
 int HardwareManager::setScopeDelay(int a)
 {
-    int out = -1;
-    QMetaObject::invokeMethod(pin,"setScopeDelay",Qt::BlockingQueuedConnection,Q_RETURN_ARG(int,out),Q_ARG(int, a));
-    return out;
+	if(pin->thread() == thread())
+		return pin->setScopeDelay(a);
+	else
+	{
+		int out = -1;
+		QMetaObject::invokeMethod(pin,"setScopeDelay",Qt::BlockingQueuedConnection,Q_RETURN_ARG(int,out),Q_ARG(int, a));
+		return out;
+	}
 }
 
 int HardwareManager::readCalVoltage()
 {
-    int out = -1;
-    QMetaObject::invokeMethod(md,"lastCalVoltage",Qt::BlockingQueuedConnection,Q_RETURN_ARG(int,out));
-    return out;
+	if(md->thread() == thread())
+		return md->lastCalVoltage();
+	else
+	{
+		int out = -1;
+		QMetaObject::invokeMethod(md,"lastCalVoltage",Qt::BlockingQueuedConnection,Q_RETURN_ARG(int,out));
+		return out;
+	}
 }
 
 double HardwareManager::setDrSynthFreq(double f)
 {
-	double out = 0.0;
-    QMetaObject::invokeMethod(gpib,"setDrSynthFreq",Qt::BlockingQueuedConnection,Q_RETURN_ARG(double,out),Q_ARG(double,f));
-	return out;
+	if(p_drSynth->thread() == thread())
+		return p_drSynth->setFreq(f);
+	else
+	{
+		double out = 0.0;
+		QMetaObject::invokeMethod(p_drSynth,"setFreq",Qt::BlockingQueuedConnection,Q_RETURN_ARG(double,out),Q_ARG(double,f));
+		return out;
+	}
 }
 
 double HardwareManager::setDrSynthPwr(double p)
 {
-	double out = 0.0;
-    QMetaObject::invokeMethod(gpib,"setDrSynthPower",Qt::BlockingQueuedConnection,Q_RETURN_ARG(double,out),Q_ARG(double,p));
-    return out;
+	if(p_drSynth->thread() == thread())
+		return p_drSynth->setPower(p);
+	else
+	{
+		double out = 0.0;
+		QMetaObject::invokeMethod(p_drSynth,"setPower",Qt::BlockingQueuedConnection,Q_RETURN_ARG(double,out),Q_ARG(double,p));
+		return out;
+	}
 }
 
 int HardwareManager::setCwMode(bool cw)
 {
-    long out = -1;
-    QMetaObject::invokeMethod(iob,"setCwMode",Qt::BlockingQueuedConnection,Q_RETURN_ARG(long,out),Q_ARG(bool,cw));
-    return (int)out;
+	if(iob->thread() == thread())
+		return iob->setCwMode(cw);
+	else
+	{
+		long out = -1;
+		QMetaObject::invokeMethod(iob,"setCwMode",Qt::BlockingQueuedConnection,Q_RETURN_ARG(long,out),Q_ARG(bool,cw));
+		return (int)out;
+	}
 }
 
 int HardwareManager::setMagnetMode(bool mag)
 {
-	long out = -1;
-	QMetaObject::invokeMethod(iob,"setMagnet",Qt::BlockingQueuedConnection,Q_RETURN_ARG(long,out),Q_ARG(bool,mag));
-	return out;
+	if(iob->thread() == thread())
+		return iob->setMagnet(mag);
+	else
+	{
+		long out = -1;
+		QMetaObject::invokeMethod(iob,"setMagnet",Qt::BlockingQueuedConnection,Q_RETURN_ARG(long,out),Q_ARG(bool,mag));
+		return out;
+	}
 }
 
 void HardwareManager::pauseScope(bool pause)
 {
-    QMetaObject::invokeMethod(scope,"setActive",Qt::BlockingQueuedConnection,Q_ARG(bool,!pause));
+	if(scope->thread() == this->thread())
+		scope->setActive(!pause);
+	else
+		QMetaObject::invokeMethod(scope,"setActive",Qt::BlockingQueuedConnection,Q_ARG(bool,!pause));
 }
 
 const FlowConfig HardwareManager::readFlowConfig()
@@ -459,23 +571,24 @@ void HardwareManager::prepareForScan(Scan s)
 	//If there is a hardware failure, then emit the scanInitialized signal without calling Scan::initializationComplete
     //this will cause the scan to abort without saving, and will kill any batch process
     d_currentScan = s;
+    d_waitingForScanTune = true;
+    pauseScope(true);
     if(s.tuningVoltageTakenWithScan())
     {
 
         bool skipTune = false;
-        pauseScope(true);
         if(!d_currentScan.skipTune())
         {
-            QMetaObject::invokeMethod(md,"canSkipTune",Qt::BlockingQueuedConnection,Q_RETURN_ARG(bool,skipTune),Q_ARG(double,s.ftFreq()));
+		   skipTune = canSkipTune(s.ftFreq());
+
             if(skipTune)
                 d_currentScan.setSkiptune(true);
         }
 
-        d_waitingForScanTune = true;
+
         tuneCavity(d_currentScan.ftFreq(),-1,d_currentScan.skipTune());
     }
     else { // the equivalent of "emit"ing tuningComplete from motordriver  PRAA
-        d_waitingForScanTune = true;    // this has to be set true or it won't call "finishPreparation
         cavityTuneComplete(true);   // this will set the tuning voltage by reading d_lastTuneVoltage from motor driver, which should be fine.
     }
 }
@@ -696,14 +809,12 @@ void HardwareManager::tuneCavity(double freq, int mode, bool measureOnly)
 
     //4.) Tune cavity
     if(!measureOnly)
-    {
-	    if(mode>0)
-		    QMetaObject::invokeMethod(md,"tune",Q_ARG(double,freq),Q_ARG(int,a),Q_ARG(int,mode));
-	    else
-		    QMetaObject::invokeMethod(md,"tune",Q_ARG(double,freq),Q_ARG(int,a));
-    }
+	    startTune(freq,a,mode);
     else
-	    QMetaObject::invokeMethod(md,"measureVoltageNoTune");
+    {
+	    int v = measureCavityVoltage();
+	    cavityTuneComplete(v>0);
+    }
 
 }
 
@@ -779,13 +890,18 @@ void HardwareManager::calibrateCavity()
     d_waitingForCalibration = true;
 
     //4.) Tune cavity
-    QMetaObject::invokeMethod(md,"calibrate");
+    startCalibration();
 }
 
 void HardwareManager::changeCavityMode(double freq, bool above)
 {
-    int mode = -1;
-    QMetaObject::invokeMethod(md,"calcNextMode",Qt::BlockingQueuedConnection,Q_RETURN_ARG(int,mode),Q_ARG(double,freq),Q_ARG(bool,above));
+	int mode = -1;
+	if(md->thread() == thread())
+		mode = md->calcNextMode(freq,above);
+	else
+		QMetaObject::invokeMethod(md,"calcNextMode",Qt::BlockingQueuedConnection,
+							 Q_RETURN_ARG(int,mode),Q_ARG(double,freq),Q_ARG(bool,above));
+
     if(mode>0)
         tuneCavity(freq,mode);
 }
@@ -802,7 +918,7 @@ void HardwareManager::prepareForAttnTableGeneration(int a)
     attn->clearAttenData();
     d_tuningOldA = attn->setAttn(a);
     d_waitingForCalibration = true;
-    QMetaObject::invokeMethod(md,"shutUp",Q_ARG(bool,true));
+    shutUpMotorDriver(true);
 
     calibrateCavity();
 }
@@ -880,7 +996,7 @@ void HardwareManager::attnTablePrepTuneComplete(bool success)
 void HardwareManager::restoreSettingsAfterAttnPrep(bool success)
 {
     //restore configuration
-    QMetaObject::invokeMethod(md,"shutUp",Q_ARG(bool,false));
+    shutUpMotorDriver(false);
     setCwMode(false);
     if(!d_tuningOldPulseConfig.isEmpty())
 	    setPulseConfig(d_tuningOldPulseConfig);

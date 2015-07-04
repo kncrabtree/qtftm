@@ -17,9 +17,6 @@ public slots:
     // MotorDriver interface
 public slots:
     void tune(double freq, int currentAttn, int mode);
-    QStringList roughTune(int posGuess, bool calibrating = false, double freq = -1); // let roughTune know freq so it can change if F in top region Mar 20 PRAA
-    QByteArray intermediateTune();
-    bool fineTune(int targetVoltage, int width, double freq, int currentMode, int currentAttn);
     void calibrate();
 
     // MotorDriver interface
@@ -30,6 +27,11 @@ protected:
     int readPos();
 
     int getAnalogReading();
+
+private:
+    QStringList roughTune(int posGuess, bool calibrating = false, double freq = -1); // let roughTune know freq so it can change if F in top region Mar 20 PRAA
+    QByteArray intermediateTune();
+    bool fineTune(int targetVoltage, int width, double freq, int currentMode, int currentAttn);
 
 };
 

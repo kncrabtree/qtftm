@@ -295,6 +295,12 @@ signals:
     void setFtmCavityFreqFromUI(double f);
 
     /*!
+	* \brief Sets attenuation from UI control box
+	* \param a New attenuation
+	*/
+	void setAttnFromUI(int a);
+
+    /*!
      * \brief Invoked to set DR frequency from UI control box
      * \param f New DR frequency
      */
@@ -376,11 +382,7 @@ public slots:
      */
     void setNumGpibInstruments(int i){ d_numGpib = i; }
 
-    /*!
-     * \brief Sets attenuation from UI control box
-     * \param a New attenuation
-     */
-	void setAttnFromUI(int a);
+
 
     /*!
     * \param fileName The full path of the file to be loaded
@@ -631,6 +633,12 @@ private:
 
     int d_numGpib;
     bool d_firstInitialization;
+
+    bool canSkipTune(double f);
+    void startTune(double freq, int attn, int mode = -1);
+    int measureCavityVoltage();
+    void startCalibration();
+    void shutUpMotorDriver(bool quiet);
 	
 };
 

@@ -50,12 +50,14 @@ public slots:
     bool canSkipTune(double freq);
     int calcNextMode(double freq, bool above);
     void cavityFreqChanged(double freq);
+    virtual void tune(double freq, int currentAttn, int mode) =0;
+    virtual void calibrate() =0;
 
     int lastTuneVoltage() const;
     int lastTuneAttenuation() const;
     int lastCalVoltage() const;
     void shutUp(bool quiet) { d_quiet = quiet; }
-    void measureVoltageNoTune();
+    int measureVoltageNoTune();
 
 protected:
     double d_lastTuneFreq;

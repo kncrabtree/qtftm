@@ -175,12 +175,9 @@ int MotorDriver::lastCalVoltage() const
 	return d_lastCalVoltage;
 }
 
-void MotorDriver::measureVoltageNoTune()
+int MotorDriver::measureVoltageNoTune()
 {
     d_lastTuneVoltage = readAnalog();
     emit voltageChanged(d_lastTuneVoltage);
-	if(d_lastTuneVoltage < 0)
-		emit tuningComplete(false);
-	else
-        emit tuningComplete(true);
+    return d_lastTuneVoltage;
 }

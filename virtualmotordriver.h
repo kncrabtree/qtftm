@@ -20,6 +20,11 @@ protected:
 	bool stepMotor(int motorSteps);
 	int readAnalog();
 	int readPos();
+
+	// MotorDriver interface
+public slots:
+	void tune(double freq, int currentAttn, int mode);
+	void calibrate();
 };
 
 #endif // VIRTUALMOTORDRIVER_H

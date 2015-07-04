@@ -48,3 +48,24 @@ int VirtualMotorDriver::readPos()
 {
 	return 0;
 }
+
+
+void VirtualMotorDriver::tune(double freq, int currentAttn, int mode)
+{
+	d_lastTuneFreq = freq;
+	d_lastTuneAtten = currentAttn;
+	Q_UNUSED(mode)
+
+	d_lastTuneVoltage = readAnalog();
+	emit voltageChanged(d_lastTuneVoltage);
+
+	emit tuningComplete(true);
+}
+
+void VirtualMotorDriver::calibrate()
+{
+	d_lastCalVoltage = readAnalog();
+	emit voltageChanged(d_lastCalVoltage);
+
+	emit tuningComplete(true);
+}
