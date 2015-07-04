@@ -26,7 +26,7 @@
 #include "lorentziandopplerlmsfitter.h"
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent), ui(new Ui::MainWindow), d_hardwareConnected(false), d_logCount(0)
+    QMainWindow(parent), ui(new Ui::MainWindow), d_hardwareConnected(false), d_logCount(0), d_logIcon(QtFTM::LogNormal)
 {
 
 	//build UI and make trivial connections
@@ -1154,19 +1154,27 @@ void MainWindow::setLogIcon(QtFTM::LogMessageCode c)
 	{
 		switch(c) {
 		case QtFTM::LogWarning:
-			if(QVariant(ui->tabWidget->tabIcon(ui->tabWidget->count()-1)) != QVariant(QIcon(QString(":/icons/error.png"))))
+			if(d_logIcon != QtFTM::LogError)
+			{
 				ui->tabWidget->setTabIcon(ui->tabWidget->count()-1,QIcon(QString(":/icons/warning.png")));
+				d_logIcon = c;
+			}
 			break;
 		case QtFTM::LogError:
 			ui->tabWidget->setTabIcon(ui->tabWidget->count()-1,QIcon(QString(":/icons/error.png")));
+			d_logIcon = c;
 			break;
 		default:
+			d_logIcon = c;
 			ui->tabWidget->setTabIcon(ui->tabWidget->count()-1,QIcon());
 			break;
 		}
 	}
 	else
+	{
+		d_logIcon = QtFTM::LogNormal;
 		ui->tabWidget->setTabIcon(ui->tabWidget->count()-1,QIcon());
+	}
 }
 
 void MainWindow::updatePulseLeds(const PulseGenConfig cc)

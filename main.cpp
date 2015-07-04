@@ -12,83 +12,97 @@
 
 int main(int argc, char *argv[])
 {
+	//all files (besides lock file) created with this program should have 664 permissions (directories 775)
+ #ifdef Q_OS_UNIX
+	umask(S_IWOTH);
+	signal(SIGPIPE,SIG_IGN);
+ #endif
+
 	QApplication a(argc, argv);
 
-    //QSettings information
-    QApplication::setApplicationName(QString("QtFTM"));
-    QApplication::setOrganizationDomain(QString("cfa.harvard.edu"));
-    QApplication::setOrganizationName(QString("CfA Spectroscopy Lab"));
-    QSettings::setPath(QSettings::NativeFormat,QSettings::SystemScope,QString("/home/data"));
+	//QSettings information
+	const QString appName = QString("QtFTM");
+	const QString lockFileName = QString("qtftm.lock");
+	const QString appDataPath = QString("/home/data");
 
-    //test to make sure /home/data is writable
-    QDir home(QString("/home/data"));
-    if(!home.exists())
-    {
-	    QMessageBox::critical(nullptr,QString("QtFTM Error"),QString("The directory /home/data does not exist!\n\nIn order to run QtFTM, the directory /home/data must exist and be writable by all users."));
+	QApplication::setApplicationName(appName);
+	QApplication::setOrganizationDomain(QString("cfa.harvard.edu"));
+	QApplication::setOrganizationName(QString("CfA Spectroscopy Lab"));
+	QSettings::setPath(QSettings::NativeFormat,QSettings::SystemScope,appDataPath);
+	const QString lockFilePath = QString("%1/%2").arg(appDataPath).arg(QApplication::organizationName());
+
+	//test to make sure data path is writable
+	QDir home(appDataPath);
+	if(!home.exists())
+	{
+	    QMessageBox::critical(nullptr,QString("%1 Error").arg(appName),QString("The directory %1 does not exist!\n\nIn order to run %2, the directory %1 must exist and be writable by all users.").arg(appDataPath).arg(appName));
 	    return -1;
-    }
+	}
 
-    QFile testFile(QString("%1/test").arg(home.absolutePath()));
-    if(!testFile.open(QIODevice::WriteOnly))
-    {
-	    QMessageBox::critical(nullptr,QString("QtFTM Error"),QString("Could not write to directory /home/data!\n\nIn order to run QtFTM, the directory /home/data must exist and be writable by all users."));
+	QFile testFile(QString("%1/test").arg(home.absolutePath()));
+	if(!testFile.open(QIODevice::WriteOnly))
+	{
+	    QMessageBox::critical(nullptr,QString("%1 Error").arg(appName),QString("Could not write to directory %1!\n\nIn order to run %2, the directory %1 must exist and be writable by all users.").arg(appDataPath).arg(appName));
 	    return -1;
-    }
-    testFile.close();
-    testFile.remove();
+	}
+	testFile.close();
+	testFile.remove();
 
-    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
-    QDir d(s.fileName());
-    d.cdUp();
-    QString fileName = QString("%1/bbacq.lock").arg(d.absolutePath());
+	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+	s.setValue(QString("lastRun"),QDateTime::currentDateTime().toString(Qt::ISODate));
+	s.setValue(QString("savePath"),QString("%1/%2").arg(appDataPath).arg(appName));
 
-    QFile lockFile(fileName);
-    qint64 pid = 0;
-    bool ok = false;
-    if(lockFile.exists())
-    {
-        QString uName = QFileInfo(lockFile).owner();        
+	//create needed directories
+	QDir saveDir(s.value(QString("savePath")).toString());
+	saveDir.mkpath(QString("log"));
 
-        if(lockFile.open(QIODevice::ReadOnly))
-            pid = lockFile.readLine().trimmed().toInt(&ok);
+	//look for lock files from other applications that need same hardware resources
 
-        if(!ok)
-		  QMessageBox::critical(nullptr,QString("QtFTM Error"),QString("An instance of Broadband FT Acquisition is running as user %1, and it must be closed before QtFTM be started.\n\nIf you are sure no other instance is running, delete the lock file (%2) and restart.").arg(uName).arg(fileName));
-        else
-		  QMessageBox::critical(nullptr,QString("QtFTM Error"),QString("An instance of Broadband FT Acquisition is running under PID %1 as user %2, and it must be closed before QtFTM can be started.\n\nIf process %1 has been terminated, delete the lock file (%3) and restart.").arg(pid).arg(uName).arg(fileName));
+	//list containing lockfile names and application names
+	QList<QPair<QString,QString> > incompatibleApps;
+	//add other apps here
+	incompatibleApps.append(qMakePair(lockFileName,appName));
+	incompatibleApps.append(qMakePair(QString("bbacq.lock"),QString("BBAcq")));
 
-        return -1;
-    }
-    else
-    {
-	    fileName = QString("%1/qtftm.lock").arg(d.absolutePath());
+
+	QFile lockFile;
+	for(int i=0;i<incompatibleApps.size();i++)
+	{
+	    QString title = incompatibleApps.at(i).second;
+	    QString fileName = QString("%1/%2").arg(lockFilePath).arg(incompatibleApps.at(i).first);
+
 	    lockFile.setFileName(fileName);
-
-	    if(lockFile.open(QIODevice::ReadOnly))
+	    qint64 pid = 0;
+	    bool ok = false;
+	    if(lockFile.exists())
 	    {
-		    pid = lockFile.readLine().trimmed().toInt(&ok);
-            QString uName = QFileInfo(lockFile).owner();
+		   QString uName = QFileInfo(lockFile).owner();
 
-		    if(!ok)
-			    QMessageBox::critical(nullptr,QString("QtFTM Error"),QString("Another instance of QtFTM is already running as user %1, and it must be closed before a new one can be started.\n\nIf you are sure no other instance is running, delete the lock file (%2) and restart.").arg(uName).arg(fileName));
-		    else
-			    QMessageBox::critical(nullptr,QString("QtFTM Error"),QString("Another instance of QtFTM is already running under PID %1 as user %2, and it must be closed before a new one can be started.\n\nIf process %1 has been terminated, delete the lock file (%3) and restart.").arg(pid).arg(uName).arg(fileName));
+		   if(lockFile.open(QIODevice::ReadOnly))
+			  pid = lockFile.readLine().trimmed().toInt(&ok);
 
-		    return -1;
+		   if(!ok)
+			  QMessageBox::critical(nullptr,QString("%1 Error").arg(appName),QString("An instance of %1 is running as user %2, and it must be closed before %3 be started.\n\nIf you are sure no other instance is running, delete the lock file (%4) and restart.").arg(title).arg(uName).arg(appName).arg(fileName));
+		   else
+			  QMessageBox::critical(nullptr,QString("%1 Error").arg(appName),QString("An instance of %1 is running under PID %2 as user %3, and it must be closed before %4 can be started.\n\nIf process %2 has been terminated, delete the lock file (%5) and restart.").arg(title).arg(pid).arg(uName).arg(appName).arg(fileName));
+
+		   if(lockFile.isOpen())
+			  lockFile.close();
+
+		   return -1;
 	    }
-	    else
-	    {
-		    lockFile.open(QIODevice::WriteOnly);
-		    lockFile.write(QString("%1\n\nStarted by user %2 at %3.").arg(a.applicationPid()).arg(QFileInfo(lockFile).owner()).arg(QDateTime::currentDateTime().toString(Qt::ISODate)).toLatin1());
-		    lockFile.close();
-	    }
-    }
+	}
 
-    //all other files (besides lock file) created with this program should have 664 permissions (directories 775)
-#ifdef Q_OS_UNIX
-    umask(S_IWOTH);
-    signal(SIGPIPE,SIG_IGN);
-#endif
+	QString fileName = QString("%1/%2").arg(lockFilePath).arg(lockFileName);
+
+	if(!lockFile.open(QIODevice::WriteOnly))
+	{
+	    QMessageBox::critical(nullptr,QString("%1 Error").arg(appName),QString("Could not write lock file to %1. Ensure this location has write permissions enabled for your user.").arg(fileName));
+	    return -1;
+	}
+	lockFile.write(QString("%1\n\nStarted by user %2 at %3.").arg(a.applicationPid()).arg(QFileInfo(lockFile).owner()).arg(QDateTime::currentDateTime().toString(Qt::ISODate)).toLatin1());
+	lockFile.setPermissions(QFileDevice::ReadOwner|QFileDevice::WriteOwner|QFileDevice::ReadGroup|QFileDevice::ReadOther);
+	lockFile.close();
 
     //register custom types with meta object system
     qRegisterMetaType<QVector<QPointF> >("QVector<QPointF>");

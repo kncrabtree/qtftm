@@ -119,6 +119,7 @@ private:
 	bool d_hardwareConnected;
     bool noHardwareMode;
     int d_logCount;
+    QtFTM::LogMessageCode d_logIcon;
 
     void makeBatchConnections(BatchManager *bm, bool sleep = false);
 	void launchSettingsDialog(SettingsWidget *w);

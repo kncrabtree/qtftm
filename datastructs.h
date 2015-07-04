@@ -10,7 +10,8 @@ enum LogMessageCode {
     LogNormal,
     LogWarning,
     LogError,
-    LogHighlight
+    LogHighlight,
+	LogDebug
 };
 
 enum PulseActiveLevel {
