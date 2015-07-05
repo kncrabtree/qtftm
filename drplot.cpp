@@ -52,8 +52,7 @@ void DrPlot::receiveData(QtFTM::BatchPlotMetaData md, QList<QVector<QPointF> > d
 
             setAxisAutoScaleRange(QwtPlot::xBottom,md.minXVal,md.maxXVal);
 
-            d_plotCurveData.append(QVector<QPointF>());
-
+		  d_plotCurveData.append(QVector<QPointF>());
         }
         s.endGroup();
     }
@@ -61,6 +60,9 @@ void DrPlot::receiveData(QtFTM::BatchPlotMetaData md, QList<QVector<QPointF> > d
     //only add the data if this is not a calibration!
     if(!md.isCal)
     {
+	    bool first = false;
+	    if(d_plotCurveData.first().isEmpty())
+		    first = true;
         for(int i=0; i<d.size() && i<d_plotCurves.size(); i++)
         {
             for(int j=d_plotCurveData.at(i).size(); j<d.at(i).size(); j++)
@@ -68,8 +70,13 @@ void DrPlot::receiveData(QtFTM::BatchPlotMetaData md, QList<QVector<QPointF> > d
                 d_plotCurveMetaData[i].yMin = qMin(d_plotCurveMetaData.at(i).yMin,d.at(i).at(j).y());
                 d_plotCurveMetaData[i].yMax = qMax(d_plotCurveMetaData.at(i).yMax,d.at(i).at(j).y());
             }
-            d_plotCurves[i]->setSamples(d.at(i));
-            expandAutoScaleRange(QwtPlot::yLeft,d_plotCurveMetaData.at(i).yMin,d_plotCurveMetaData.at(i).yMax);
+
+		  if(first)
+			  setAxisAutoScaleRange(QwtPlot::yLeft,d_plotCurveMetaData.at(i).yMin,d_plotCurveMetaData.at(i).yMax);
+		  else
+			  expandAutoScaleRange(QwtPlot::yLeft,d_plotCurveMetaData.at(i).yMin,d_plotCurveMetaData.at(i).yMax);
+
+		  d_plotCurves[i]->setSamples(d.at(i));
         }
 
         expandAutoScaleRange(QwtPlot::xBottom,md.minXVal,md.maxXVal);
