@@ -420,9 +420,8 @@ QString Scan::scanHeader() const
 	QTextStream t(&out);
 
     t.setRealNumberPrecision(12);
-    QString yesOrNo;
 
-	t << QString("#Scan\t") << number() << QString("\t\n");
+	t << QString("#Scan\t") << number() << QString("\tFTM%1\n").arg(QTFTM_SPECTROMETER);
 	t << QString("#Date\t") << timeStamp().toString() << QString("\t\n");
 	t << QString("#Shots\t") << completedShots() << QString("\t\n");
 	t << QString("#Cavity freq\t") << ftFreq() << QString("\tMHz\n");
