@@ -24,6 +24,7 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include "lorentziandopplerlmsfitter.h"
+#include <QWidgetAction>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent), ui(new Ui::MainWindow), d_hardwareConnected(false), d_logCount(0), d_logIcon(QtFTM::LogNormal)

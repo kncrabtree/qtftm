@@ -17,8 +17,8 @@ public:
 	QIODevice *device();
 
 public slots:
-	void initialize();
-	bool testConnection();
+	virtual void initialize();
+	virtual bool testConnection();
 };
 
 #endif // VIRTUALINSTRUMENT_H

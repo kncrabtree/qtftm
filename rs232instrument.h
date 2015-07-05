@@ -31,8 +31,8 @@ public:
 
 
 public slots:
-    void initialize();
-    bool testConnection();
+    virtual void initialize();
+    virtual bool testConnection();
 
 protected:
     QSerialPort *p_sp;

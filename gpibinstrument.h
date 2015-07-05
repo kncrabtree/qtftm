@@ -26,8 +26,8 @@ public:
     QByteArray queryCmd(QString cmd);
 
 public slots:
-    void initialize();
-    bool testConnection();
+    virtual void initialize();
+    virtual bool testConnection();
 };
 
 #endif // GPIBINSTRUMENT_H

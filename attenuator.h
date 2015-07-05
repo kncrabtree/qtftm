@@ -16,7 +16,7 @@ signals:
     void attenFileParseSuccess(bool);
 
 public slots:
-    void initialize();
+    virtual void initialize();
     void changeAttenFile(QString fileName);
 
     int setTuningAttn(double freq);

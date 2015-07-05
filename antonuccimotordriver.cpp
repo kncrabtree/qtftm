@@ -22,6 +22,8 @@ AntonucciMotorDriver::AntonucciMotorDriver(QObject *parent) :
 
 void AntonucciMotorDriver::initialize()
 {
+	MotorDriver::initialize();
+
     //note that read options will need to change for fine tuning, since that takes over 1 second to finish
     p_comm->setReadOptions(1500,true,QByteArray("\n\r"));
     p_comm->initialize();

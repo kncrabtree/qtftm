@@ -47,6 +47,7 @@ signals:
     void voltageChanged(int);
 	
 public slots:
+    virtual void initialize();
     bool canSkipTune(double freq);
     int calcNextMode(double freq, bool above);
     void cavityFreqChanged(double freq);
