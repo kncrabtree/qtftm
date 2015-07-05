@@ -1,7 +1,7 @@
 #include "batchsingle.h"
 
 BatchSingle::BatchSingle(Scan s, AbstractFitter *ftr) :
-	BatchManager(SingleScan,false,ftr), d_completed(false), d_scan(s)
+	BatchManager(QtFTM::SingleScan,false,ftr), d_completed(false), d_scan(s)
 {
 	d_totalShots = s.targetShots();
 }

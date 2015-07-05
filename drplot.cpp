@@ -20,7 +20,7 @@ DrPlot::DrPlot(int num, QWidget *parent) :
 
 
 
-void DrPlot::receiveData(BatchManager::BatchPlotMetaData md, QList<QVector<QPointF> > d)
+void DrPlot::receiveData(QtFTM::BatchPlotMetaData md, QList<QVector<QPointF> > d)
 {
     if(d_metaDataList.isEmpty())
     {

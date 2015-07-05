@@ -49,5 +49,4 @@ FORMS    += mainwindow.ui \
     peaklistwidget.ui \
     $$PWD/pulseconfigwidget.ui
 
-OTHER_FILES += \
-    led.qml
+OTHER_FILES +=

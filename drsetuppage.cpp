@@ -64,6 +64,7 @@ DrSetupPage::DrSetupPage(QWidget *parent) :
     scansBetweenTuningVoltageReadings->setSingleStep(1);
     scansBetweenTuningVoltageReadings->setSuffix(QString(" scans"));
     scansBetweenTuningVoltageReadings->setValue(0);
+    scansBetweenTuningVoltageReadings->setSpecialValueText(QString("Always Tune"));
     scansBetweenTuningVoltageReadings->setToolTip(QString("Zero means every scan will read it. one=every other scan, etc."));
     scansBetweenTuningVoltageReadings->setKeyboardTracking(false);
 
@@ -84,7 +85,7 @@ DrSetupPage::DrSetupPage(QWidget *parent) :
 	pBoxLayout->addRow(QString("Start"),startBox);
 	pBoxLayout->addRow(QString("Stop"),stopBox);
 	pBoxLayout->addRow(QString("Step size"),stepBox);
-    pBoxLayout->addRow(QString("Scans between Tuning Voltage Reads (0=read every scan)"),scansBetweenTuningVoltageReadings);
+    pBoxLayout->addRow(QString("Scans b/t tuning"),scansBetweenTuningVoltageReadings);
 	pBoxLayout->addRow(QString("Calibration?"),calCheckBox);
 
 	paramsBox->setLayout(pBoxLayout);

@@ -3,7 +3,8 @@
 #include <QApplication>
 
 HardwareManager::HardwareManager(QObject *parent) :
-    QObject(parent), d_waitingForScanTune(false), d_waitingForCalibration(false), d_tuningOldA(-1), d_numGpib(-1), d_firstInitialization(true)
+    QObject(parent), d_waitingForScanTune(false), d_waitingForCalibration(false), d_tuningOldA(-1), d_responseCount(0),
+    d_firstInitialization(true), d_scanActive(false)
 {
 }
 
@@ -201,7 +202,6 @@ void HardwareManager::initializeHardware()
             emit logMessage(QString("%1: %2").arg(obj->name()).arg(msg),mc);
         });
         connect(obj,&HardwareObject::connected,[=](bool success, QString msg){ connectionResult(obj,success,msg); });
-        connect(obj,&HardwareObject::hardwareFailure,[=](){ hardwareFailure(obj); });
         if(thread != nullptr)
         {
             connect(thread,&QThread::started,obj,&HardwareObject::initialize);
@@ -238,8 +238,12 @@ void HardwareManager::initializeHardware()
 
 void HardwareManager::connectionResult(HardwareObject *obj, bool success, QString msg)
 {
+	if(d_responseCount < d_hardwareList.size())
+		d_responseCount++;
+
 	if(success)
 	{
+		connect(obj,&HardwareObject::hardwareFailure,this,&HardwareManager::hardwareFailure,Qt::UniqueConnection);
 		emit logMessage(obj->name().append(QString(": Connected successfully.")));
 		if(obj->type() == CommunicationProtocol::Virtual)
 			emit logMessage(QString("%1 is a virtual instrument. Be cautious about taking real measurements!")
@@ -247,19 +251,13 @@ void HardwareManager::connectionResult(HardwareObject *obj, bool success, QStrin
 	}
 	else
 	{
+		disconnect(obj,&HardwareObject::hardwareFailure,this,&HardwareManager::hardwareFailure);
 		emit logMessage(obj->name().append(QString(": Connection failed!")),QtFTM::LogError);
 		if(!msg.isEmpty())
 			emit logMessage(QString("%1: %2").arg(obj->name()).arg(msg),QtFTM::LogError);
 	}
 
-	bool ok = success;
-	if(!obj->isCritical())
-		ok = true;
-
-	if(d_status.contains(obj->key()))
-		d_status[obj->key()] = ok;
-	else
-		d_status.insert(obj->key(),ok);
+	obj->setConnected(success);
 
 	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
 	s.setValue(QString("%1/connected").arg(obj->key()),success);
@@ -290,27 +288,29 @@ void HardwareManager::testObjectConnection(QString type, QString key)
 
 }
 
-void HardwareManager::hardwareFailure(HardwareObject *obj)
-{
-    //re-test connection
+void HardwareManager::hardwareFailure()
+{	
+	HardwareObject *obj = dynamic_cast<HardwareObject*>(sender());
+	if(obj == nullptr)
+		return;
+
+	disconnect(obj,&HardwareObject::hardwareFailure,this,&HardwareManager::hardwareFailure);
     bool success = false;
+    emit logMessage(QString("%1: Hardware failure detected. Automatically retrying connection...").arg(obj->name()),QtFTM::LogWarning);
     if(obj->thread() == thread())
         success = obj->testConnection();
     else
         QMetaObject::invokeMethod(obj,"testConnection",Qt::BlockingQueuedConnection,Q_RETURN_ARG(bool,success));
 
-    if(!success)
+    if(d_scanActive)
     {
-	    if(obj->isCritical())
-		    d_status[obj->key()] = false;
-
-        if(!d_firstInitialization)
-            emit failure();
+	    if(!success)
+		    emit failure();
+	    else
+		    emit retryScan();
     }
-    else
-        emit retryScan();
 
-	checkStatus();
+    //checkStatus will be called when the connectionResult slot is invoked
 }
 
 void HardwareManager::changeAttnFile(QString fileName)
@@ -390,18 +390,6 @@ bool HardwareManager::setFtmSynthCavityFreq(double d)
 		bool success = false;
 		QMetaObject::invokeMethod(p_ftmSynth,"setCavityFreq",Qt::BlockingQueuedConnection,Q_RETURN_ARG(bool,success),Q_ARG(double,d));
 		return success;
-	}
-}
-
-bool HardwareManager::canSkipTune(double f)
-{
-	if(md->thread() == thread())
-		return md->canSkipTune(f);
-	else
-	{
-		bool out;
-		QMetaObject::invokeMethod(md,"canSkipTune",Qt::BlockingQueuedConnection,Q_RETURN_ARG(bool,out),Q_ARG(double,f));
-		return out;
 	}
 }
 
@@ -589,15 +577,8 @@ void HardwareManager::prepareForScan(Scan s)
     //this will cause the scan to abort without saving, and will kill any batch process
     d_currentScan = s;
     d_waitingForScanTune = true;
+    d_scanActive = true;
     pauseScope(true);
-    bool skipTune = false;
-    if(!d_currentScan.skipTune())
-    {
-	    skipTune = canSkipTune(s.ftFreq());
-
-	    if(skipTune)
-		    d_currentScan.setSkiptune(true);
-    }
 
     tuneCavity(d_currentScan.ftFreq(),-1,d_currentScan.skipTune());
 
@@ -606,160 +587,143 @@ void HardwareManager::prepareForScan(Scan s)
 void HardwareManager::finishPreparation(bool tuneSuccess)
 {
     d_waitingForScanTune = false;
-    if(!tuneSuccess)
+    bool success = tuneSuccess;
+
+    if(success)
     {
-        emit scanInitialized(d_currentScan);
-        d_currentScan = Scan();
-        pauseScope(false);
-        return;
+	    int v = readCavityTuningVoltage();
+	    if(v<0)
+		    success = false;
+	    else
+	    {
+		    d_currentScan.setTuningVoltage(v);
+
+		    // need this in dipole Moment calcs. Also used for cavity voltage
+		    int ta = readTuneAttenuation();
+		    if(ta < 0)
+			    success = false;
+		    else
+		    {
+			    double tvvalue = static_cast<double>(v);
+			    double tavalue = static_cast<double>(ta);
+
+			    double currentDipoleMoment = d_currentScan.dipoleMoment();
+			    int new_attenuation = d_currentScan.attenuation();
+			    if(currentDipoleMoment > .005)
+				    new_attenuation = qMax(qRound(tavalue - 10.0*log10((1.0/currentDipoleMoment)*(1000.0/tvvalue))),0);
+			    //set attenuation for acquisition
+			    int a = attn->setAttn(new_attenuation);
+			    if(a<0)
+				    success = false;
+			    else
+			    {
+				    d_currentScan.setAttenuation(a);
+				    double cavalue = static_cast<double>(a);
+				    double cvvalue = qMax(-1.0,tvvalue*pow(10.0,(tavalue-cavalue)/10.0));
+
+				    //don't abort if cavity voltage < 0
+				    //in a batch, it will be matked as a bad tune
+				    d_currentScan.setCavityVoltage(qRound(cvvalue));
+			    }
+		    }
+	    }
     }
 
-    int v = readCavityTuningVoltage();
-    if(v<0)
+    if(success)
     {
-        emit scanInitialized(d_currentScan);
-        d_currentScan = Scan();
-        pauseScope(false);
-        return;
+	    //set dc voltage, but only if connected
+	    if(p_hvps->isConnected())
+	    {
+		    int dc = setDcVoltage(d_currentScan.dcVoltage());
+		    if(dc < 0)
+			    success = false;
+		    else
+			    d_currentScan.setDcVoltage(dc);
+	    }
     }
-    d_currentScan.setTuningVoltage(v);
 
-    // need this in dipole Moment calcs. Also used for cavity voltage
-    int ta = readTuneAttenuation();
-    double currentDipoleMoment = d_currentScan.dipoleMoment();
-    int new_attenuation;
-    if(currentDipoleMoment>=.01)
-        new_attenuation =   qMax((int) round(  ((double) ta - 10.0 * log10((1.0/currentDipoleMoment) *( 1000.0/(double)v) ))), 0);
-    else new_attenuation = d_currentScan.attenuation();
-    //set attenuation for acquisition
-    ///TODO: Use dipole moment and convert...
-    int a = attn->setAttn(new_attenuation);
-    if(a<0)
+    if(success)
     {
-        emit scanInitialized(d_currentScan);
-        d_currentScan = Scan();
-        pauseScope(false);
-        return;
+	    // set current delays  into current scan object  -
+	    // first, get protection delay from either the pin module or the UI
+	    int pd = setProtectionDelay(d_currentScan.protectionDelayTime());
+	    if(pd<0)
+		    success = false;
+	    else
+		    d_currentScan.setProtectionDelayTime(pd);
     }
-    d_currentScan.setAttenuation(a);
 
-    // Calculate and save cavity voltage. Needs attenuation, tuning attenuation, and tuning voltage
-    //double tuningVoltage,tuningAttenuation, currentAttenuation;// bubble,toil,trouble;
-    double tvvalue,tavalue,cavalue,cvvalue;
-
-    tvvalue= (double) v;
-    tavalue= (double) ta;
-    cavalue= (double) a;
-
-   cvvalue= tvvalue*pow(10.0,(tavalue-cavalue)/10.0);
-
-   if(cvvalue<0)
-   {
-       emit scanInitialized(d_currentScan);
-       d_currentScan = Scan();
-       pauseScope(false);
-       return;
-   }
-
-    d_currentScan.setCavityVoltage( (int) cvvalue);
-
-    //set dc voltage
-    int dc = setDcVoltage(d_currentScan.dcVoltage());
-    if(dc < 0)
+    if(success)
     {
-	    emit scanInitialized(d_currentScan);
-	    d_currentScan = Scan();
-	    pauseScope(false);
-	    return;
+	    // then do the same thing for scope delay
+	    int sd = setScopeDelay(d_currentScan.scopeDelayTime());
+	    if(sd<0)
+		    success = false;
+	    else
+		    d_currentScan.setScopeDelayTime(sd);
     }
-    d_currentScan.setDcVoltage(dc);
 
-    // set current delays  into current scan object  -
-    // first, get protection delay from either the pin module or the UI
-    int pd = setProtectionDelay(d_currentScan.protectionDelayTime());
-    if(pd<0)
+
+    if(success)
     {
-        emit scanInitialized(d_currentScan);
-        d_currentScan = Scan();
-        pauseScope(false);
-        return;
+	    //set synthesizer to probe frequency
+	    double f = goToFtmSynthProbeFreq();
+	    if(f<0.0)
+		    success = false;
+	    else
+		    d_currentScan.setProbeFreq(f);
     }
-    d_currentScan.setProtectionDelayTime( (int) pd);
 
-    // then do the same thing for scope delay
-    int sd = setScopeDelay(d_currentScan.scopeDelayTime());
-    if(sd<0)
+    if(success)
     {
-        emit scanInitialized(d_currentScan);
-        d_currentScan = Scan();
-        pauseScope(false);
-        return;
+	    //set DR synthesizer
+	    double f = setDrSynthFreq(d_currentScan.drFreq());
+	    if(f < 0.0)
+		    success = false;
+	    else
+		    d_currentScan.setDrFreq(f);
     }
-    d_currentScan.setScopeDelayTime( (int) sd);
 
-
-    //set synthesizer to probe frequency
-    double f = goToFtmSynthProbeFreq();
-    if(f<0.0)
+    if(success)
     {
-        emit scanInitialized(d_currentScan);
-        d_currentScan = Scan();
-        pauseScope(false);
-        return;
+	    double p = setDrSynthPwr(d_currentScan.drPower());
+	    if(p<-1e10)
+		    success = false;
+	    else
+		    d_currentScan.setDrPower(p);
     }
-    d_currentScan.setProbeFreq(f);
 
-    //set DR synthesizer
-    f = setDrSynthFreq(d_currentScan.drFreq());
-    if(f < 0.0)
+    if(success)
     {
-        emit scanInitialized(d_currentScan);
-        d_currentScan = Scan();
-        pauseScope(false);
-        return;
+	    //set pulse generator configuration
+	    PulseGenConfig pc = setPulseConfig(d_currentScan.pulseConfiguration());
+	    if(pc.isEmpty())
+		    success = false;
+	    else
+		    d_currentScan.setPulseConfiguration(pc);
     }
-    d_currentScan.setDrFreq(f);
-
-    f = setDrSynthPwr(d_currentScan.drPower());
-    if(f<-1e10)
-    {
-        emit scanInitialized(d_currentScan);
-        d_currentScan = Scan();
-        pauseScope(false);
-        return;
-    }
-    d_currentScan.setDrPower(f);
-
-    //set pulse generator configuration
-    PulseGenConfig pc = setPulseConfig(d_currentScan.pulseConfiguration());
-    if(pc.isEmpty())
-    {
-        emit scanInitialized(d_currentScan);
-        d_currentScan = Scan();
-        pauseScope(false);
-        return;
-    }
-    d_currentScan.setPulseConfiguration(pc);
 
     //set magnet mode
-    int mag = setMagnetMode(d_currentScan.magnet());
-    if(mag < 0)
+    if(success)
     {
-	    emit scanInitialized(d_currentScan);
-	    d_currentScan = Scan();
-	    pauseScope(false);
-	    return;
+	    int mag = setMagnetMode(d_currentScan.magnet());
+	    if(mag < 0)
+		    success = false;
+	    else
+		    d_currentScan.setMagnet(mag);
     }
-    d_currentScan.setMagnet(mag);
 
     //read flows and pressure
     FlowConfig c = readFlowConfig();
     d_currentScan.setFlowConfig(c);
 
-    d_currentScan.initializationComplete();
-    emit scanInitialized(d_currentScan);
-    d_currentScan = Scan();
-    pauseScope(false);
+    if(success)
+    {
+	    d_currentScan.initializationComplete();
+	    emit scanInitialized(d_currentScan);
+    }
+
+    restoreSettingsAfterScanPrep();
 
 }
 
@@ -767,8 +731,14 @@ void HardwareManager::sleep(bool b)
 {
 	for(int i=0;i<d_hardwareList.size();i++)
     {
-        if(d_status.value(d_hardwareList.at(i).first->key()))
-            QMetaObject::invokeMethod(d_hardwareList.at(i).first,"sleep",Q_ARG(bool,b));
+		HardwareObject *obj = d_hardwareList.at(i).first;
+		if(obj->isConnected())
+		{
+			if(obj->thread() == thread())
+				obj->sleep(b);
+			else
+				QMetaObject::invokeMethod(d_hardwareList.at(i).first,"sleep",Q_ARG(bool,b));
+		}
     }
 }
 
@@ -800,11 +770,20 @@ void HardwareManager::tuneCavity(double freq, int mode, bool measureOnly)
 
     //2.) Set attenuation for tuning
     d_tuningOldA = attn->readAttn();
+    if(d_tuningOldA < 0)
+    {
+	    emit statusMessage(QString("Tuning failed"));
+	    goToFtmSynthProbeFreq();
+	    d_tuningOldA = -1;
+	    if(d_waitingForScanTune)
+		   finishPreparation(false);
+	    return;
+    }
+
     int a = attn->setTuningAttn(freq);
     if(a<0)
     {
         emit statusMessage(QString("Tuning failed"));
-        attn->setAttn(d_tuningOldA);
         goToFtmSynthProbeFreq();
         d_tuningOldA = -1;
         if(d_waitingForScanTune)
@@ -1027,17 +1006,34 @@ void HardwareManager::restoreSettingsAfterAttnPrep(bool success)
     emit attnTablePrepComplete(success);
 }
 
+void HardwareManager::restoreSettingsAfterScanPrep()
+{
+	d_tuningOldA = 0;
+	d_tuningOldPulseConfig = PulseGenConfig();
+	pauseScope(false);
+	d_currentScan = Scan();
+	return;
+}
+
+void HardwareManager::scanComplete(const Scan s)
+{
+	Q_UNUSED(s)
+	d_scanActive = false;
+}
+
 void HardwareManager::checkStatus()
 {
 	//gotta wait until all instruments have responded
-	if(d_status.size() < d_hardwareList.size())
+	if(d_responseCount < d_hardwareList.size())
 	    return;
 
 	bool success = true;
-	foreach (bool b, d_status)
+
+	for(int i=0; i<d_hardwareList.size(); i++)
 	{
-	    if(!b)
-		   success = false;
+		HardwareObject *obj = d_hardwareList.at(i).first;
+		if(!obj->isConnected() && obj->isCritical())
+			success = false;
 	}
 
 	emit allHardwareConnected(success);

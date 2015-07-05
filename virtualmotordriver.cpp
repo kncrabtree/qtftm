@@ -24,7 +24,6 @@ bool VirtualMotorDriver::testConnection()
 
 void VirtualMotorDriver::initialize()
 {
-	MotorDriver::initialize();
 	testConnection();
 }
 

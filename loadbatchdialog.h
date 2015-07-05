@@ -2,7 +2,7 @@
 #define LOADBATCHDIALOG_H
 
 #include <QDialog>
-#include "batchmanager.h"
+#include "datastructs.h"
 
 namespace Ui {
 class LoadBatchDialog;
@@ -16,7 +16,7 @@ public:
     explicit LoadBatchDialog(QWidget *parent = nullptr);
     ~LoadBatchDialog();
 
-    QPair<BatchManager::BatchType,int> selection() const;
+    QPair<QtFTM::BatchType,int> selection() const;
     double delay() const;
     int hpf() const;
     double exp() const;

@@ -120,33 +120,6 @@ bool MotorDriver::isModeValid(double f, int mode)
     return false;
 }
 
-void MotorDriver::initialize()
-{
-	QSettings s(QSettings::SystemScope, QApplication::organizationName(), QApplication::applicationName());
-	s.beginGroup(d_key);
-	s.beginGroup(d_subKey);
-	int retuneInterval = s.value(QString("retuneInterval"),300).toInt();
-	s.setValue(QString("retuneInterval"),retuneInterval);
-	s.endGroup();
-	s.endGroup();
-}
-
-
-bool MotorDriver::canSkipTune(double freq)
-{
-	QSettings s(QSettings::SystemScope, QApplication::organizationName(), QApplication::applicationName());
-	s.beginGroup(d_key);
-	s.beginGroup(d_subKey);
-	int retuneInterval = s.value(QString("retuneInterval"),300).toInt();
-	s.endGroup();
-	s.endGroup();
-
-    if(fabs(freq-d_lastTuneFreq) < 0.01 && d_lastTuneTime.addSecs(retuneInterval) > QDateTime::currentDateTime() && d_lastTuneVoltage>300 && d_lastTuneVoltage<3000)
-        return true;// Note! d_lastTuneTime.addSecs(300) was replaced by 1800  May 15 PRAA
-
-    return false;
-}
-
 int MotorDriver::calcNextMode(double freq, bool above)
 {
     if(fabs(d_lastTuneFreq-freq)>0.01)

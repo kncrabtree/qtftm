@@ -24,8 +24,10 @@ void LogHandler::logMessage(const QString text, const QtFTM::LogMessageCode type
 	QString timeStamp = QDateTime::currentDateTime().toString();
 	writeToFile(text, type, timeStamp);
 
+#ifndef QT_NO_DEBUG
 	if(type == QtFTM::LogDebug)
 		return;
+#endif
 
 	QString out;
 	out.append(QString("<span style=\"font-size:7pt\">%1</span> ").arg(timeStamp));
@@ -42,6 +44,9 @@ void LogHandler::logMessage(const QString text, const QtFTM::LogMessageCode type
 		break;
     case QtFTM::LogHighlight:
 		out.append(QString("<span style=\"font-weight:bold;color:green\">%1</span>").arg(text));
+		break;
+	case QtFTM::LogDebug:
+		out.append(QString("<span style=\"color:blue\">Debug: %1</span>").arg(text));
 		break;
     case QtFTM::LogNormal:
 	default:

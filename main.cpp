@@ -111,12 +111,13 @@ int main(int argc, char *argv[])
     qRegisterMetaType<Scan>("Scan");
     qRegisterMetaType<QtFTM::PulseSetting>("QtFTM::PulseSetting");
     qRegisterMetaType<PulseGenConfig>("PulseGenConfig");
-    qRegisterMetaType<BatchManager::BatchPlotMetaData>("BatchManager::BatchPlotMetaData");
+    qRegisterMetaType<QtFTM::BatchPlotMetaData>("QtFTM::BatchPlotMetaData");
     qRegisterMetaType<QList<QVector<QPointF> > >("QList<QVector<QPointF> >");
     qRegisterMetaType<FlowConfig>("FlowConfig");
     qRegisterMetaType<FitResult>("FitResult");
     qRegisterMetaType<QtFTM::FlowSetting>("QtFTM::FlowSetting");
 
+    qsrand(QTime::currentTime().msec()+QTime::currentTime().second() + QTime::currentTime().minute() + QTime::currentTime().hour());
 	MainWindow w;
 	w.show();
 	

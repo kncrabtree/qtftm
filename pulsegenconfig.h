@@ -33,6 +33,7 @@ public:
     void add(const QString name, const bool enabled, const double delay, const double width, const QtFTM::PulseActiveLevel level);
     void setRepRate(const double r);
 
+    void setDcEnabled(bool en);
     void setDrEnabled(bool en);
 
 private:

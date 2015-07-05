@@ -159,7 +159,12 @@ void PulseGenConfig::add(const QString name, const bool enabled, const double de
 
 void PulseGenConfig::setRepRate(const double r)
 {
-    data->repRate = r;
+	data->repRate = r;
+}
+
+void PulseGenConfig::setDcEnabled(bool en)
+{
+	set(QTFTM_PGEN_DCCHANNEL,QtFTM::PulseEnabled,en);
 }
 
 void PulseGenConfig::setDrEnabled(bool en)

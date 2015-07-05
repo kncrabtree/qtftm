@@ -1,7 +1,7 @@
 #include "batchattenuation.h"
 
 BatchAttenuation::BatchAttenuation(double minFreq, double maxFreq, double stepSize, int atten10GHz, Scan s, QString name) :
-    BatchManager(Attenuation), d_scanUpComplete(false), d_scanDownComplete(false), d_scanUpIndex(0), d_scanDownIndex(0), d_template(s), d_atnFilename(name),
+    BatchManager(QtFTM::Attenuation), d_scanUpComplete(false), d_scanDownComplete(false), d_scanUpIndex(0), d_scanDownIndex(0), d_template(s), d_atnFilename(name),
     d_minFreq(minFreq), d_maxFreq(maxFreq), d_stepSize(stepSize), d_atten10GHz(atten10GHz), d_retrying(false), d_aborted(false), d_nextAttn(atten10GHz)
 {
     d_prettyName = QString("Attenuation Table Batch");
@@ -27,7 +27,7 @@ BatchAttenuation::BatchAttenuation(double minFreq, double maxFreq, double stepSi
 }
 
 BatchAttenuation::BatchAttenuation(int num) :
-    BatchManager(Attenuation,true)
+    BatchManager(QtFTM::Attenuation,true)
 {
     d_batchNum = num;
     d_prettyName = QString("Attenuation Table Batch");
@@ -181,7 +181,7 @@ void BatchAttenuation::processScan(Scan s)
             d_retrying = false;
             d_nextAttn = tv.correctedAttn;
 
-            BatchPlotMetaData md(Attenuation,-1,s.ftFreq()-0.0001,s.ftFreq()+0.0001,false);
+		  QtFTM::BatchPlotMetaData md(QtFTM::Attenuation,-1,s.ftFreq()-0.0001,s.ftFreq()+0.0001,false);
             //all good. Record data and send to plot unless this is a duplicate!
             if(!d_scanUpComplete)
             {

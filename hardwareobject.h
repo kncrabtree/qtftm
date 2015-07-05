@@ -14,20 +14,19 @@
  * \brief Abstract base class for all hardware connected to the instrument.
  *
  * This class establishes a common interface for all hardware.
- * Adding a new piece of hardware to the code involves creating a subclass of HardwareObject (or of one of the existing subclasses: see TcpInstrument, GpibInstrument, and Rs232Instrument)
- * Each hardware object has a name (d_prettyName and name()) that is used in the user interface, and a key (d_key and key()) that is used to refer to the object in the settings file.
+ * Adding a new piece of hardware to the code involves creating a subclass of HardwareObject.
+ * Each hardware object has a name (d_prettyName and name()) that is used in the user interface, a key (d_key and key()) that is used to refer to the object in the settings file, and a subKey (d_subKey and subKey()) that refer to the particular implementation of the hardware.
  * Subclasses must assign strings to these variables in their constructors.
+ * The base class sets d_key, and the implementations set d_subKey and d_prettyName.
  * For communication with the UI, a logMessage() signal exists that can print a message in the log with an optional status code.
- * In general, this should only be used for reporting errors, but it is also useful in debugging.
+ * In general, this should only be used for reporting errors, but it is also useful in debugging (see QtFTM::LogDebug).
  *
- * HardwareObjects are designed to be used in their own threads for the most part.
- * Because of this, the constructor should generally not be called with a parent, and any QObjects that will be created in the child class with this as the parent should NOT be initialized in the constructor.
- * Generally, a HardwareObject is created, signal-slot connections are made, and then the object is pushed into its own thread.
- * The thread's started() signal is connected to the initialize pure virtual slot, which must be implemented for a child class.
- * Any functions that need to be called from outside the class (e.g., from the HardwareManager during a scan) should be declared as slots, and QMetaObject::invokeMethod used to activate them (optionally with the Qt::BlockingQueuedConnection flag set if it returns a value or other actions need to wait until it is complete).
- * If for some reason this is not possible, then data members need to be protected by a QMutex to prevent concurrent access.
- * In the initialize function, any QObjects can be created and other settings made, because the object is already in its new thread.
- * The initialize function must call testConnection() before it returns.
+ * Generally, a HardwareObject is created, signal-slot connections are made, and then the object may optionally pushed into its own thread.
+ * The thread's started() signal is connected to the initialize() pure virtual slot, which must be implemented for a child class.
+ * Any functions that need to be called from outside the class (e.g., from the HardwareManager during a scan) should be declared as slots, so that QMetaObject::invokeMethod used to activate them if the object lives in a different thread from the HardwareManager
+ * It is recommended to write wrapper functions that handle both direct calls and indirect calls through QMetaObject depending on the
+ * object's thread affinity.
+ * The initialize function in an implementation must call testConnection() before it returns.
  *
  * The testConnection() slot should attempt to establish communication with the physical device and perform some sort of test to make sure that the connection works and that the correct device is targeted.
  * Usually, this takes the form of an ID query of some type (e.g., *IDN?).
@@ -35,9 +34,12 @@
  * The testConnection() slot is also called from the communication dialog to re-test a connection that is lost.
  *
  * If at any point during operation, the program loses communication with the device, the hardwareFailure() signal should be emitted with the this pointer.
- * When emitted, any ongoing scan will be terminated and all controls will be frozen until communication is re-established by a successful call to the testConnection() function.
- * Some communication options (timeout, termination chartacters, etc) can be set, but it is up to the subclass to decide how or whether to make use of them.
- * They are provided here for convenience because TCP Instruments and RS232 instruments both use them.
+ * If the object is critical (d_isCritical), any ongoing scan will be terminated and all controls will be frozen until communication is re-established by a successful call to the testConnection() function.
+ * There is an automatic check of testConnection() if this occurs during a scan, and the scan will be automatically resumed if this call is successful.
+ *
+ * Each hardware object has a communication protocol, which MUST be created in the implementation's constructor.
+ * Several types are provided (see CommunicationProtocol for details).
+ * Note that GpibInstruments MUST take a QpibController pointer in their constructors, and the hardware object must live in the same thread as the GPIB controller.
  *
  * Finally, the sleep() function may be implemented in a subclass if anything needs to be done to put the device into an inactive state.
  * For instance, the FlowController turns off gas flows to conserve sample, and the PulseGenerator turns off all pulses.
@@ -69,6 +71,9 @@ public:
     QString subKey() { return d_subKey; }
 
     bool isCritical() { return d_isCritical; }
+
+    bool isConnected() { return d_isConnected; }
+    void setConnected(bool connected) { d_isConnected = connected; }
 
     CommunicationProtocol::CommType type() { return p_comm->type(); }
 	
@@ -120,6 +125,9 @@ protected:
 
     CommunicationProtocol *p_comm;
     bool d_isCritical;
+
+private:
+    bool d_isConnected;
 };
 
 #endif // HARDWAREOBJECT_H

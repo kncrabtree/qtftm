@@ -104,28 +104,28 @@ LoadBatchDialog::~LoadBatchDialog()
     delete ui;
 }
 
-QPair<BatchManager::BatchType, int> LoadBatchDialog::selection() const
+QPair<QtFTM::BatchType, int> LoadBatchDialog::selection() const
 {
-    QPair<BatchManager::BatchType,int> out(BatchManager::SingleScan,0);
+    QPair<QtFTM::BatchType,int> out(QtFTM::SingleScan,0);
 
     if(ui->surveyButton->isChecked())
     {
-        out.first = BatchManager::Survey;
+	   out.first = QtFTM::Survey;
         out.second = ui->surveySpinBox->value();
     }
     else if(ui->drScanButton->isChecked())
     {
-        out.first = BatchManager::DrScan;
+	   out.first = QtFTM::DrScan;
         out.second = ui->drScanSpinBox->value();
     }
     else if(ui->batchButton->isChecked())
     {
-        out.first = BatchManager::Batch;
+	   out.first = QtFTM::Batch;
         out.second = ui->batchSpinBox->value();
     }
     else if(ui->attenuationButton->isChecked())
     {
-        out.first = BatchManager::Attenuation;
+	   out.first = QtFTM::Attenuation;
         out.second = ui->attenuationSpinBox->value();
     }
 

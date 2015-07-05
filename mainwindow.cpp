@@ -530,9 +530,9 @@ void MainWindow::viewBatchCallback()
     if(d.exec() == QDialog::Rejected)
         return;
 
-    QPair<BatchManager::BatchType,int> result = d.selection();
+    QPair<QtFTM::BatchType,int> result = d.selection();
 
-    if(result.first == BatchManager::SingleScan || result.second < 1)
+    if(result.first == QtFTM::SingleScan || result.second < 1)
         return;
 
     //note: in the BatchViewWidget constructor, the Qt::WA_DeleteOnClose flag is set, so it will be deleted when the window is closed!
@@ -1194,18 +1194,18 @@ void MainWindow::startBatchManager(BatchManager *bm)
 	QByteArray state = ui->batchPlotSplitter->saveState();
 	delete ui->batchPlot;
 
-	if(bm->type() == BatchManager::SingleScan)
+	if(bm->type() == QtFTM::SingleScan)
 		ui->batchPlot = new QWidget();
 	else
 	{
 		AbstractBatchPlot *plot = nullptr;
-		if(bm->type() == BatchManager::Attenuation)
+		if(bm->type() == QtFTM::Attenuation)
 			plot = new BatchAttnPlot(bm->number());
-		else if(bm->type() == BatchManager::Batch)
+		else if(bm->type() == QtFTM::Batch)
 			plot = new BatchScanPlot(bm->number());
-		else if(bm->type() == BatchManager::DrScan)
+		else if(bm->type() == QtFTM::DrScan)
 			plot = new DrPlot(bm->number());
-		else if(bm->type() == BatchManager::Survey)
+		else if(bm->type() == QtFTM::Survey)
 			plot = new SurveyPlot(bm->number());
 
 		connect(plot,&AbstractBatchPlot::requestScan,ui->analysisWidget,&AnalysisWidget::loadScan);
@@ -1230,7 +1230,7 @@ void MainWindow::startBatchManager(BatchManager *bm)
     connect(bm,&BatchManager::beginScan,sm,&ScanManager::prepareScan);
 	connect(bm,&BatchManager::logMessage,lh,&LogHandler::logMessage);
 
-	if(bm->type() == BatchManager::Attenuation)
+	if(bm->type() == QtFTM::Attenuation)
 	{
 		connect(bm,&BatchManager::batchComplete,this,&MainWindow::attnTableBatchComplete);
 		connect(sm,&ScanManager::dummyComplete,bm,&BatchManager::scanComplete);
@@ -1243,7 +1243,7 @@ void MainWindow::startBatchManager(BatchManager *bm)
 	else
 	{
 		connect(bm,&BatchManager::batchComplete,this,&MainWindow::batchComplete);
-		connect(sm,&ScanManager::acquisitionComplete,bm,&BatchManager::scanComplete);
+		connect(sm,&ScanManager::scanComplete,bm,&BatchManager::scanComplete);
 	}
 
     ui->batchProgressBar->setValue(0);
@@ -1252,7 +1252,7 @@ void MainWindow::startBatchManager(BatchManager *bm)
     //Don't clear peak list widget!
 //    ui->peakListWidget->clearAll();
 
-	if(bm->type() != BatchManager::SingleScan)
+	if(bm->type() != QtFTM::SingleScan)
 	{
 		if(ui->batchSplitter->sizes().at(1) == 0)
 		{
@@ -1265,7 +1265,7 @@ void MainWindow::startBatchManager(BatchManager *bm)
 
 	ui->analysisWidget->plot()->clearRanges();
 
-	if(bm->type() == BatchManager::DrScan)
+	if(bm->type() == QtFTM::DrScan)
 	{
 		QList<QPair<double,double> > ranges = dynamic_cast<BatchDR*>(bm)->integrationRanges();
 		ui->acqFtPlot->attachIntegrationRanges(ranges);

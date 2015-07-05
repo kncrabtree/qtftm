@@ -46,71 +46,17 @@ class BatchManager : public QObject
 {
 	Q_OBJECT
 public:
-
-	/*!
-	 \brief Type of batch acquisition
-
-	 Each type of batch acquisition needs to have an entry here.
-	 This is used in various places when the program needs to behave differently for each type (e.g., in the BatchPlot class).
-	 Note that a SingleScan is just a special version of a batch that only does one scan, and does not generate an output file.
-	*/
-	enum BatchType {
-		SingleScan,
-		Survey,
-		DrScan,
-        Batch,
-        Attenuation
-	};
-
-     static QList<QPair<QString,BatchManager::BatchType> > typeList();
-
-	/*!
-	 \brief Structure with metadata about each scan in the batch
-
-	 This structure is used extensively in the BatchPlot class to provide convenience functionality in the batch plot.
-	*/
-	struct BatchPlotMetaData {
-		BatchManager::BatchType type; /*!< Type of batch acquisition */
-		int scanNum; /*!< Scan number */
-		double minXVal; /*!< Minimum frequency for this scan. */
-		double maxXVal; /*!< Maximum frequency for this scan */
-		bool isCal; /*!< Is this scan a calibration? */
-        bool badTune;
-		QString text; /*!< Text to be displayed on a plot (see Batch implementation) */
-
-		/*!
-		 * \brief Constructor with default initialization
-		 */
-        BatchPlotMetaData() : type(BatchManager::SingleScan), scanNum(-1), minXVal(0.0), maxXVal(1.0), isCal(false), badTune(false), text(QString()) {}
-
-		/*!
-		 \brief Constructor with explicit initialization
+	static QList<QPair<QString,QtFTM::BatchType> > typeList();
 
 
-		 \param t Type
-		 \param n Scan Number
-		 \param min Minimum frequency
-		 \param max Maximum frequency
-		 \param c Is calibration?
-		 \param s Extra text
-		*/
-        explicit BatchPlotMetaData(BatchManager::BatchType t, int n, double min, double max, bool c, bool b = false, QString s = QString()) :
-            type(t), scanNum(n), minXVal(min), maxXVal(max), isCal(c), badTune(b), text(s) {}
-		/*!
-		 \brief Copy constructor
 
-		 \param other Structure to copy
-		*/
-		BatchPlotMetaData(const BatchPlotMetaData &other) : type(other.type), scanNum(other.scanNum), minXVal(other.minXVal),
-            maxXVal(other.maxXVal), isCal(other.isCal), badTune(other.badTune), text(other.text) {}
-	};
 
 	/*!
 	 \brief Constructor. Initializes batch type
 
 	 \param b Batch type
 	*/
-	explicit BatchManager(BatchType b, bool load = false, AbstractFitter *ftr = new NoFitter());
+	explicit BatchManager(QtFTM::BatchType b, bool load = false, AbstractFitter *ftr = new NoFitter());
 	~BatchManager();
 
 	/*!
@@ -118,7 +64,7 @@ public:
 
 	 \return BatchType Batch type
 	*/
-	BatchType type() const { return d_batchType; }
+	QtFTM::BatchType type() const { return d_batchType; }
 
 	/*!
 	 \brief Access function for number of shots
@@ -182,10 +128,10 @@ signals:
 	/*!
 	 \brief Sends metadata and data to be plotted \sa BatchPlot
 
-	 \param BatchManager::BatchPlotMetaData Metadata
+	 \param QtFTM::BatchPlotMetaData Metadata
 	 \param QList<QVector<QPointF> > Data
 	*/
-	void plotData(const BatchManager::BatchPlotMetaData, const QList<QVector<QPointF> >);
+	void plotData(const QtFTM::BatchPlotMetaData, const QList<QVector<QPointF> >);
 
     void titleReady(QString);
 
@@ -209,7 +155,7 @@ public slots:
 	void beginBatch();
 
 protected:
-	BatchType d_batchType; /*!< Type of acquisition */
+	QtFTM::BatchType d_batchType; /*!< Type of acquisition */
 
 	QString d_numKey; /*!< Key in settings file for the batch count. Used to display batch number on log upon completion. Not needed for SingleScan */
 

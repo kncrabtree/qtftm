@@ -82,6 +82,8 @@ double HP8340FTM::readSynthFreq()
     if(!resp.startsWith("+"))
     {
         emit hardwareFailure();
+	    emit logMessage(QString("Could not parse frequency response. Response = %1 (Hex = %2)").arg(QString(resp))
+					.arg(QString(resp.toHex())),QtFTM::LogError);
         return -1.0;
     }
 

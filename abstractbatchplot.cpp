@@ -52,7 +52,7 @@ void AbstractBatchPlot::launchContextMenu(QPoint pos)
 
     double x = canvasMap(QwtPlot::xBottom).invTransform(canvas()->mapFromGlobal(pos).x());
 
-    if(!d_metaDataList.isEmpty() && d_metaDataList.first().type != BatchManager::Attenuation)
+    if(!d_metaDataList.isEmpty() && d_metaDataList.first().type != QtFTM::Attenuation)
     {
         bool hasCal = false;
         bool hasScan = false;
@@ -111,7 +111,7 @@ void AbstractBatchPlot::loadScan(const double x)
         scanningDown = true;
 
     //make a list of non-cal scans in increasing frequency
-    QList<BatchManager::BatchPlotMetaData> scans;
+    QList<QtFTM::BatchPlotMetaData> scans;
     for(int i=firstScanIndex; i<=lastScanIndex; i++)
     {
         if(!d_metaDataList.at(i).isCal)
@@ -177,7 +177,7 @@ void AbstractBatchPlot::loadCalScan(const double x)
         scanningDown = true;
 
     //make a list of cal scans in increasing frequency
-    QList<BatchManager::BatchPlotMetaData> calScans;
+    QList<QtFTM::BatchPlotMetaData> calScans;
     for(int i=firstCalIndex; i<=lastCalIndex; i++)
     {
         if(d_metaDataList.at(i).isCal)
@@ -268,7 +268,7 @@ void AbstractBatchPlot::formatSelectedZone(int metadataIndex)
     if(metadataIndex < 0 || metadataIndex >= d_metaDataList.size())
         return;
 
-    BatchManager::BatchPlotMetaData md = d_metaDataList.at(metadataIndex);
+    QtFTM::BatchPlotMetaData md = d_metaDataList.at(metadataIndex);
     setZoneWidth(p_selectedZone,md);
     if(md.isCal && p_calCurve != nullptr)
         d_recalcZoneOnResize = true;
@@ -281,7 +281,7 @@ void AbstractBatchPlot::formatSelectedZone(int metadataIndex)
         p_selectedZone->setPen(QPen(QColor(QPalette().color(QPalette::Text))));
 }
 
-void AbstractBatchPlot::setZoneWidth(QwtPlotZoneItem *zone, BatchManager::BatchPlotMetaData md)
+void AbstractBatchPlot::setZoneWidth(QwtPlotZoneItem *zone, QtFTM::BatchPlotMetaData md)
 {
     if(zone == nullptr)
         return;
@@ -505,7 +505,7 @@ void AbstractBatchPlot::toggleHideBadZones(bool hide)
     replot();
 }
 
-void AbstractBatchPlot::addBadZone(BatchManager::BatchPlotMetaData md)
+void AbstractBatchPlot::addBadZone(QtFTM::BatchPlotMetaData md)
 {
     if(!md.badTune)
         return;

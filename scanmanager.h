@@ -121,7 +121,7 @@ signals:
 
 	 \param Scan
 	*/
-	void acquisitionComplete(Scan);
+	void scanComplete(Scan);
 	/*!
 	 \brief Emitted when hardware settings are made for a dummy scan
 
@@ -231,7 +231,7 @@ private:
     Scan d_scanCopyForRetry;
     bool d_paused; /*!< Used to ignore new FIDs during an acquisition */
     bool d_acquiring;
-    bool d_waitingForInitialization; /*!< True for the time between when a scan is sent to HardwareManager for initialization and when it is received in startScan() */
+    int d_numRetries;
     bool d_connectAcqAverageAfterNextFid;
 
 	int d_peakUpAvgs; /*!< Number of FIDs to include in d_peakUpFid */

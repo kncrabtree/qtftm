@@ -3,7 +3,7 @@
 #include <QApplication>
 
 BatchDR::BatchDR(Scan ftScan, double start, double stop, double step, int numScansBetween, QList<QPair<double, double> > ranges, bool doCal, AbstractFitter *f) :
-    BatchManager(DrScan,false,f), d_template(ftScan), d_start(start), d_stop(stop), d_numScansBetween (0), d_integrationRanges(ranges),
+    BatchManager(QtFTM::DrScan,false,f), d_template(ftScan), d_start(start), d_stop(stop), d_numScansBetween (0), d_integrationRanges(ranges),
     d_completedScans(0), d_hasCalibration(doCal)
 {
 	d_prettyName = QString("DR Scan");
@@ -54,7 +54,7 @@ BatchDR::BatchDR(Scan ftScan, double start, double stop, double step, int numSca
     }
 }
 
-BatchDR::BatchDR(int num, AbstractFitter *ftr) : BatchManager(DrScan,true,ftr), d_completedScans(0)
+BatchDR::BatchDR(int num, AbstractFitter *ftr) : BatchManager(QtFTM::DrScan,true,ftr), d_completedScans(0)
 {
     d_prettyName = QString("DR Scan");
     d_batchNum = num;
@@ -369,11 +369,11 @@ void BatchDR::processScan(Scan s)
 				else //this shouldn't happen, but append a 0
 					d_drData[i].append(QPointF(s.drFreq(),0.0));
 			}
-            bool badTune = s.tuningVoltage() < 0;
+		  bool badTune = s.tuningVoltage() <= 0;
 
 			//send out cal and actual data together
-			BatchPlotMetaData md1(DrScan,s.number()-1,plotStart,plotEnd,true);
-            BatchPlotMetaData md2(DrScan,s.number(),plotStart,plotEnd,false,badTune);
+			QtFTM::BatchPlotMetaData md1(QtFTM::DrScan,s.number()-1,plotStart,plotEnd,true);
+		  QtFTM::BatchPlotMetaData md2(QtFTM::DrScan,s.number(),plotStart,plotEnd,false,badTune);
 			emit plotData(md1,d_drData);
 			emit plotData(md2,d_drData);
 		}
@@ -382,7 +382,7 @@ void BatchDR::processScan(Scan s)
 			for(int i=0; i<d_dr.size(); i++)
                 d_drData[i].append(QPointF(s.drFreq(),d_dr.at(i).at(d_completedScans)));
 
-			BatchPlotMetaData md(DrScan,s.number(),plotStart,plotEnd,false);
+			QtFTM::BatchPlotMetaData md(QtFTM::DrScan,s.number(),plotStart,plotEnd,false);
 			emit plotData(md,d_drData);
 		}
 	}

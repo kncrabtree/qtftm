@@ -1,7 +1,7 @@
 #include "hardwareobject.h"
 
 HardwareObject::HardwareObject(QObject *parent) :
-    QObject(parent), d_isCritical(true)
+    QObject(parent), d_isCritical(true), d_isConnected(false)
 {
 }
 

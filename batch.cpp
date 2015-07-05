@@ -3,7 +3,7 @@
 #include <QApplication>
 
 Batch::Batch(QList<QPair<Scan, bool> > l, AbstractFitter *ftr) :
-    BatchManager(BatchManager::Batch,false,ftr), d_scanList(l)
+    BatchManager(QtFTM::Batch,false,ftr), d_scanList(l)
 {
 	//since all scans are already in a list, we just have to calculate total shots
 	d_totalShots = 0;
@@ -14,7 +14,7 @@ Batch::Batch(QList<QPair<Scan, bool> > l, AbstractFitter *ftr) :
 
 }
 
-Batch::Batch(int num) : BatchManager(BatchManager::Batch,true), d_loadingIndex(0)
+Batch::Batch(int num) : BatchManager(QtFTM::Batch,true), d_loadingIndex(0)
 {
     d_prettyName = QString("Batch");
     d_batchNum = num;
@@ -150,8 +150,8 @@ void Batch::processScan(Scan s)
         mdmin = num - ((double)ft.size()/2.0 + 1.0)/(double)ft.size()*0.9;
         mdmax = num - ((double)ft.size()/2.0 - (double)ft.size())/(double)ft.size()*0.9;
     }
-    bool badTune = s.tuningVoltage() < 0;
-    BatchManager::BatchPlotMetaData md(BatchManager::Batch,s.number(),mdmin,mdmax,d_thisScanIsCal,badTune,markerText);
+    bool badTune = s.tuningVoltage() <= 0;
+    QtFTM::BatchPlotMetaData md(QtFTM::Batch,s.number(),mdmin,mdmax,d_thisScanIsCal,badTune,markerText);
 
 	//record the marker text and FT max for saving
 	QPair<double,QString> scanInfo(max,markerText.replace(QString("\n"),QString("; ")));

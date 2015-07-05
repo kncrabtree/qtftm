@@ -25,7 +25,7 @@
  * Conversely, if instrument hardware needs to interact with the user interface, it must also go through this object.
  * The HardwareManager also handles the sequential operations needed to initialize scans, tune the cavity, etc.
  *
- * This object is designed to live in its own thread, and it contains additional threads for each piece of hardware directly attached (see note below on GPIB devices).
+ * This object is designed to live in its own thread, and it can intantiate additional threads for some the actual hardware (see note below on GPIB devices).
  * To allow smooth operation without UI hitches and without missing hardware signals, signals and slots are used to interface with this object and with the hardware.
  * Most of the declared signals and slots are used to pass along information to the UI, or to perform special functions for each piece of hardware.
  * Those will not be covered in much detail here; see the appropriate HardwareObject subclasses for further information.
@@ -33,19 +33,15 @@
  * However, the HardwareManager does have some internal functions that are used to make sure the instrument is in a consistent state.
  * Once the HardwareManager is created and its signals connected, it is pushed into its own thread, and the thread's started() signal is connected to the initializeHardware() slot.
  * This is where the individual HardwareObjects are created, and their respective signal and slot connections made.
- * Each object that is created should be put into its own thread.
- * The HardwareManager keeps a list of the devices (d_hardware), and looks at their subclass information to generate appropriate lists in the settings so that the communication settings dialog can put the devices into the correct categories.
- * The d_hardware list is used to initiate testConnection() calls from the communication dialog, and to do common operations to all devices (e.g. sleep).
+ * The HardwareManager keeps a list of the devices and their threads (d_hardwareList), and looks at their communication protocols to generate appropriate lists in the settings so that the communication settings dialog can put the devices into the correct categories.
+ * The d_hardwareList is used to automatically perform all HarwareObject-related functions, and to determine if the device should be pushed into another thread (if the thread in d_hardwareList is nullptr, then it will not be pushed)
  * As these pieces of hardware come online, their connectionResult() signals are attached to the connectionResult() slot, which keeps track of whether communication is successful in d_status (see checkStatus()).
  * Once they are all successfully tested, the allHardwareConnected() signal is used to configure the UI.
  * In the event of a hardware failure, the hardwareFailure() slot is invoked, and the UI is disabled until a successful connection is re-established.
  *
  * GPIB instruments are handled a little differently than others.
- * Communication with GPIB devices must be routed through the GpibLanController, which is itself a TcpInstrument.
- * Because of this, the GPIB devices are not directly known to the HardwareManager; they are owned by the GpibLanController.
- * When the controller is initialized, it will initialize each of those instruments in turn, but the HardwareManager needs to know how many to expect so that it knows when to emit the allHardwareConnected() signal.
- * The number is stored in d_numGpib, and is set when the GpibLanController emits its numInstruments() signal during its initialize() call.
- * All subsequent GPIB commands and responses go through the controller, which itself contains a QMutex to prevent concurrent access to multiple devices on the bus.
+ * Communication with GPIB devices must be routed through the GpibController.
+ * Any HardwareObject that uses GPIB must be a child of the GpibController, and will therefore live in the same thread.
  *
  * Assuming all hardware is operational, the HardwareManager will pass along control commands from the user interface to the appropriate hardware through queued function calls with QMetaObject::invokeMethod(), and the hardware status is relayed back to the UI with the corresponding signals.
  * Also, any time the oscilloscope completes an acquisition, the HardwareManager passes along the information to the ScanManager object, which handles processing and averaging as needed.
@@ -370,14 +366,7 @@ public slots:
      * \brief Sets hardware status in d_status to false, disables program
      * \param obj The object that failed.
      */
-	void hardwareFailure(HardwareObject *obj);
-
-    /*!
-     * \brief Stores the number of instruments connected to the GPIB-LAN controller
-     * \param i Number of instruments
-     */
-    void setNumGpibInstruments(int i){ d_numGpib = i; }
-
+	void hardwareFailure();
 
 
     /*!
@@ -607,6 +596,10 @@ public slots:
     */
     void restoreSettingsAfterAttnPrep(bool success);
 
+    void restoreSettingsAfterScanPrep();
+
+    void scanComplete(const Scan s);
+
 private:
 	Oscilloscope *scope;
     GpibController *gpib;
@@ -626,14 +619,13 @@ private:
     PulseGenConfig d_tuningOldPulseConfig;
     int d_tuningOldA;
 
-	QHash<QString,bool> d_status;
     QList<QPair<HardwareObject*,QThread*>> d_hardwareList;
 	void checkStatus();
 
-    int d_numGpib;
+    int d_responseCount;
     bool d_firstInitialization;
+    bool d_scanActive;
 
-    bool canSkipTune(double f);
     void startTune(double freq, int attn, int mode = -1);
     int measureCavityVoltage();
     void startCalibration();

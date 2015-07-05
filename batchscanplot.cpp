@@ -17,7 +17,7 @@ BatchScanPlot::BatchScanPlot(int num, QWidget *parent) :
 
 
 
-void BatchScanPlot::receiveData(BatchManager::BatchPlotMetaData md, QList<QVector<QPointF> > d)
+void BatchScanPlot::receiveData(QtFTM::BatchPlotMetaData md, QList<QVector<QPointF> > d)
 {
     if(d_metaDataList.isEmpty())
     {

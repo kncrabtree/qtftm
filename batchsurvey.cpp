@@ -4,7 +4,7 @@
 #include <QApplication>
 
 BatchSurvey::BatchSurvey(Scan first, double step, double end, bool hascal, Scan cal, int scansPerCal, AbstractFitter *af) :
-    BatchManager(Survey,false,af), d_surveyTemplate(first), d_hasCalibration(hascal), d_calTemplate(cal),
+    BatchManager(QtFTM::Survey,false,af), d_surveyTemplate(first), d_hasCalibration(hascal), d_calTemplate(cal),
     d_scansPerCal(scansPerCal), d_currentSurveyIndex(0)
 {
 	d_prettyName = QString("Survey");
@@ -51,7 +51,7 @@ BatchSurvey::BatchSurvey(Scan first, double step, double end, bool hascal, Scan 
 
 }
 
-BatchSurvey::BatchSurvey(int num) : BatchManager(Survey,true)
+BatchSurvey::BatchSurvey(int num) : BatchManager(QtFTM::Survey,true)
 {
     d_prettyName = QString("Survey");
     d_batchNum = num;
@@ -221,7 +221,7 @@ void BatchSurvey::processScan(Scan s)
 	//if the step size is too big, there will be gaps!
 	QVector<QPointF> ft = d_fitter->doStandardFT(s.fid()).first;
 	QList<QVector<QPointF> > out;
-    bool badTune = s.tuningVoltage() < 0;
+    bool badTune = s.tuningVoltage() <= 0;
 
 	if(thisScanWasCal)
 	{
@@ -250,7 +250,7 @@ void BatchSurvey::processScan(Scan s)
         d_calData.append(QPointF(displayFreq,max));
         out.append(d_calData);
 
-        BatchPlotMetaData md(type(),s.number(),displayFreq,displayFreq,true,badTune);
+	   QtFTM::BatchPlotMetaData md(type(),s.number(),displayFreq,displayFreq,true,badTune);
 
 		emit plotData(md, out);
 		return;
@@ -262,7 +262,7 @@ void BatchSurvey::processScan(Scan s)
 
 		double startFreq = s.fid().probeFreq() + d_chunkStart;
 		double endFreq = s.fid().probeFreq() + d_chunkEnd;
-        BatchPlotMetaData md(type(),s.number(),startFreq,endFreq,false,badTune);
+	   QtFTM::BatchPlotMetaData md(type(),s.number(),startFreq,endFreq,false,badTune);
 
 		//if we're scanning down, the survey data will be ordered from highest to lowest frequency
 		if(d_step < 0.0)

@@ -100,6 +100,8 @@ double HP8673FTM::readSynthFreq()
     if(!resp.startsWith("CF"))
     {
         emit hardwareFailure();
+	    emit logMessage(QString("Could not parse frequency response. Response = %1 (Hex = %2)").arg(QString(resp))
+					.arg(QString(resp.toHex())),QtFTM::LogError);
         return -1.0;
     }
 

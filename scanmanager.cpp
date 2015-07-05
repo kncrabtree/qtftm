@@ -6,7 +6,7 @@
 #include "analysis.h"
 
 ScanManager::ScanManager(QObject *parent) :
-    QObject(parent), d_paused(false), d_acquiring(false), d_waitingForInitialization(false),
+    QObject(parent), d_paused(false), d_acquiring(false), d_numRetries(0),
     d_connectAcqAverageAfterNextFid(false)
 {
 
@@ -46,19 +46,18 @@ void ScanManager::fidReceived(const QByteArray d)
 void ScanManager::prepareScan(Scan s)
 {
 
-    if(d_waitingForInitialization)
+    if(d_acquiring)
 	{
 		//this would be really bad... let's just hope it never happens.
 		//we'll just ignore this scan, Perhaps there's a better idea?
-		emit logMessage(QString("A new scan was started while hardware is being initialized for another scan. The new scan is being ignored."),QtFTM::LogWarning);
+		emit logMessage(QString("A new scan was started another is active. The new scan is being ignored."),QtFTM::LogWarning);
 		return;
 	}
 
     d_scanCopyForRetry = s;
 
 	//Start hardware initialization
-	d_waitingForInitialization = true;
-    d_acquiring = true;
+	d_acquiring = true;
 	emit initializeHardwareForScan(s);
 
 }
@@ -71,34 +70,30 @@ void ScanManager::startScan(Scan s)
 	//and show a plot that lets the user see the signal, adjust filtering settings, and set integration ranges
 	if(s.isDummy())
 	{
-		d_waitingForInitialization = false;
+		d_acquiring = false;
 		resetPeakUpAvgs();
-        emit dummyComplete(s);
+		emit dummyComplete(s);
 		return;
 	}
 
-	if(!d_waitingForInitialization)
+	if(!d_acquiring)
 	{
 		//scan has been aborted during hardware initialization!
 		s.abortScan();
-		emit acquisitionComplete(s);
+		emit scanComplete(s);
 		return;
 	}
-	d_waitingForInitialization = false;
 	d_currentScan = s;
 
 	//the Hardware manager will set the scan to initialized if it was successful
 	if(d_currentScan.isInitialized())
 	{
 		emit initializationComplete();
-        d_connectAcqAverageAfterNextFid = true;
+		d_connectAcqAverageAfterNextFid = true;
 	}
-	else
-	{
-        d_acquiring = false;
-		d_currentScan.abortScan();
-		emit acquisitionComplete(d_currentScan);
-	}
+	//if there was a failure, the hardware manager will attempt to reconnect
+	//it will emit either the retryScan or failure signal
+	//the retryScan and failure slots here handle those two cases
 }
 
 void ScanManager::peakUpAverage(const Fid f)
@@ -189,22 +184,24 @@ void ScanManager::acqAverage(const Fid f)
 		{
 			emit logMessage(QString("Could not open file for saving scan %1").arg(d_currentScan.number()),QtFTM::LogError);
 			emit fatalSaveError();
-        }
-		emit acquisitionComplete(d_currentScan);
+		}
+		d_acquiring = false;
+		emit scanComplete(d_currentScan);
+		d_numRetries = 0;
 	}
 
 }
 
 void ScanManager::abortScan()
 {
-	//in case this happens during hardware initialization, set this flag so that the scan is ignored when it comes back
-	d_waitingForInitialization = false;
 	d_paused = false;
+	d_acquiring = false;
+	disconnect(this,&ScanManager::newFid,this,&ScanManager::acqAverage);
 
 	//only do the following if the scan has been initialized, but not yet saved
 	if(d_currentScan.isInitialized() && !d_currentScan.isSaved())
 	{
-		disconnect(this,&ScanManager::newFid,this,&ScanManager::acqAverage);
+
 		d_currentScan.abortScan();
 		d_currentScan.save();
 		if(!d_currentScan.isSaved())
@@ -212,26 +209,44 @@ void ScanManager::abortScan()
 			emit logMessage(QString("Could not open file for saving scan %1").arg(d_currentScan.number()),QtFTM::LogError);
 			emit fatalSaveError();
 		}
-        d_acquiring = false;
-		emit acquisitionComplete(d_currentScan);
     }
+
+	emit scanComplete(d_currentScan);
+	d_numRetries = 0;
 }
 
 void ScanManager::failure()
 {
-    if(d_currentScan.isInitialized() && !d_currentScan.isSaved())
-        abortScan();
+	if(d_acquiring)
+	{
+		if(d_currentScan.isInitialized())
+		{
+			if(!d_currentScan.isSaved())
+				abortScan();
+		}
+		else
+			emit scanComplete(d_currentScan);
+	}
 }
 
 void ScanManager::retryScan()
 {
     if(d_acquiring)
     {
-        d_waitingForInitialization = false;
-        d_paused = false;
-        disconnect(this,&ScanManager::newFid,this,&ScanManager::acqAverage);
-
-        emit logMessage(QString("Automatic error recovery invoked, retrying curent scan."),QtFTM::LogHighlight);
-        prepareScan(d_scanCopyForRetry);
+	    d_acquiring = false;
+	    d_paused = false;
+	    disconnect(this,&ScanManager::newFid,this,&ScanManager::acqAverage);
+	    if(d_numRetries < 3)
+	    {
+		    d_numRetries++;
+		    emit logMessage(QString("Automatic error recovery invoked, retrying curent scan (%1/3).")
+						.arg(d_numRetries),QtFTM::LogHighlight);
+		    prepareScan(d_scanCopyForRetry);
+	    }
+	    else
+	    {
+		    d_numRetries = 0;
+		    emit scanComplete(d_scanCopyForRetry);
+	    }
     }
 }

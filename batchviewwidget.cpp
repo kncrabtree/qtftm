@@ -10,23 +10,23 @@
 #include "batchattnplot.h"
 #include <QThread>
 
-BatchViewWidget::BatchViewWidget(BatchManager::BatchType type, int num, double delay, int hpf, double exp, bool rDC, bool pad, QWidget *parent) :
+BatchViewWidget::BatchViewWidget(QtFTM::BatchType type, int num, double delay, int hpf, double exp, bool rDC, bool pad, QWidget *parent) :
     QWidget(parent), ui(new Ui::BatchViewWidget), d_number(num), d_type(type)
 {
     ui->setupUi(this);
 
     switch(d_type)
     {
-    case BatchManager::Survey:
+    case QtFTM::Survey:
         batchPlot = new SurveyPlot(d_number,this);
         break;
-    case BatchManager::DrScan:
+    case QtFTM::DrScan:
         batchPlot = new DrPlot(d_number,this);
         break;
-    case BatchManager::Batch:
+    case QtFTM::Batch:
         batchPlot = new BatchScanPlot(d_number,this);
         break;
-    case BatchManager::Attenuation:
+    case QtFTM::Attenuation:
         batchPlot = new BatchAttnPlot(d_number,this);
         break;
     default:
@@ -100,19 +100,19 @@ void BatchViewWidget::process()
 
     switch(d_type)
     {
-    case BatchManager::Survey:
+    case QtFTM::Survey:
         bm = new BatchSurvey(d_number);
         break;
-    case BatchManager::DrScan:
+    case QtFTM::DrScan:
         bm = new BatchDR(d_number);
         break;
-    case BatchManager::Batch:
+    case QtFTM::Batch:
         bm = new Batch(d_number);
         break;
-    case BatchManager::Attenuation:
+    case QtFTM::Attenuation:
         bm = new BatchAttenuation(d_number);
         break;
-    case BatchManager::SingleScan:
+    case QtFTM::SingleScan:
     default:
         ui->statusLabel->setText(QString("Somehow, an invalid batch type was selected. Please close and try again."));
         unsetCursor();
@@ -132,7 +132,7 @@ void BatchViewWidget::process()
     ui->analysisWidget->plot()->getPadFidBox()->setChecked(ui->zeroPadFIDsCheckBox->isChecked());
 
     QPair<int,int> range = bm->loadScanRange();
-    if((range.first < 1 || range.second < 1) && d_type != BatchManager::Attenuation)
+    if((range.first < 1 || range.second < 1) && d_type != QtFTM::Attenuation)
     {
         ui->statusLabel->setText(QString("%1 could not be read from disk.").arg(bm->title()));
         unsetCursor();
@@ -155,7 +155,7 @@ void BatchViewWidget::process()
     ui->analysisWidget->plot()->clearRanges();
     ui->peakListWidget->clearAll();
 
-    if(d_type == BatchManager::DrScan)
+    if(d_type == QtFTM::DrScan)
     {
         QList<QPair<double,double> > ranges = dynamic_cast<BatchDR*>(bm)->integrationRanges();
         ui->analysisWidget->plot()->attachIntegrationRanges(ranges);
@@ -167,16 +167,16 @@ void BatchViewWidget::process()
     delete batchPlot;
     switch(d_type)
     {
-    case BatchManager::Survey:
+    case QtFTM::Survey:
         batchPlot = new SurveyPlot(d_number,this);
         break;
-    case BatchManager::DrScan:
+    case QtFTM::DrScan:
         batchPlot = new DrPlot(d_number,this);
         break;
-    case BatchManager::Batch:
+    case QtFTM::Batch:
         batchPlot = new BatchScanPlot(d_number,this);
         break;
-    case BatchManager::Attenuation:
+    case QtFTM::Attenuation:
         batchPlot = new BatchAttnPlot(d_number,this);
         break;
     default:

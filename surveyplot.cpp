@@ -16,7 +16,7 @@ SurveyPlot::SurveyPlot(int num, QWidget *parent) :
 }
 
 
-void SurveyPlot::receiveData(BatchManager::BatchPlotMetaData md, QList<QVector<QPointF> > d)
+void SurveyPlot::receiveData(QtFTM::BatchPlotMetaData md, QList<QVector<QPointF> > d)
 {
     if(d_metaDataList.isEmpty())
     {

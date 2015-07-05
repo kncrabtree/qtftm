@@ -11,6 +11,8 @@
 #include <qwt6/qwt_plot_zoneitem.h>
 #include <qwt6/qwt_plot_grid.h>
 #include <qwt6/qwt_scale_widget.h>
+#include <qwt6/qwt_plot_picker.h>
+#include <qwt6/qwt_plot_marker.h>
 //the following includes are for convenience for making print dialogs for implementations
 #include <QSpinBox>
 #include <QDoubleSpinBox>
@@ -27,7 +29,7 @@
 #include <QPainter>
 #include <QPushButton>
 
-#include "batchmanager.h"
+#include "datastructs.h"
 
 class QPrinter;
 
@@ -47,7 +49,7 @@ public:
 
     struct BadZone {
         QwtPlotZoneItem *zone;
-        BatchManager::BatchPlotMetaData md;
+        QtFTM::BatchPlotMetaData md;
         bool recalcWidthOnResize;
     };
 
@@ -56,14 +58,14 @@ signals:
     void colorChanged(QString,QColor);
 
 public slots:
-    virtual void receiveData(BatchManager::BatchPlotMetaData md, QList<QVector<QPointF> > d) =0;
+    virtual void receiveData(QtFTM::BatchPlotMetaData md, QList<QVector<QPointF> > d) =0;
     virtual void launchContextMenu(QPoint pos);
 
     virtual void loadScan(const double x); //default Implementation; can override
     virtual void loadCalScan(const double x); //default Implementation; can override
     virtual void setSelectedZone(int scanNum); // default implementation; can override for Batch
     virtual void formatSelectedZone(int metadataIndex); // default implementation; can override if needed
-    virtual void setZoneWidth(QwtPlotZoneItem *zone,BatchManager::BatchPlotMetaData md);
+    virtual void setZoneWidth(QwtPlotZoneItem *zone,QtFTM::BatchPlotMetaData md);
     virtual void filterData();
     virtual void print() =0;
     virtual void exportXY();
@@ -81,7 +83,7 @@ protected:
     QVector<QPointF> d_calCurveData;
     QwtPlotZoneItem *p_selectedZone;
     QList<BadZone> d_badTuneZones;
-    QList<BatchManager::BatchPlotMetaData> d_metaDataList;
+    QList<QtFTM::BatchPlotMetaData> d_metaDataList;
     QList<PlotCurveMetaData> d_plotCurveMetaData;
 
     int d_zoneScanNum;
@@ -90,7 +92,7 @@ protected:
     bool d_doNotReplot;
     bool d_hideBadZones;
 
-    void addBadZone(BatchManager::BatchPlotMetaData md);
+    void addBadZone(QtFTM::BatchPlotMetaData md);
     virtual QMenu *contextMenu();
     virtual bool eventFilter(QObject *obj, QEvent *ev);
     virtual void replot();

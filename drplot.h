@@ -12,7 +12,7 @@ public:
 
     // AbstractBatchPlot interface
 public slots:
-    void receiveData(BatchManager::BatchPlotMetaData md, QList<QVector<QPointF> > d);
+    void receiveData(QtFTM::BatchPlotMetaData md, QList<QVector<QPointF> > d);
     void print();
 
 protected:

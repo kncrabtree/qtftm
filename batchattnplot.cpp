@@ -20,7 +20,7 @@ BatchAttnPlot::BatchAttnPlot(int num, QWidget *parent) :
 
 
 
-void BatchAttnPlot::receiveData(BatchManager::BatchPlotMetaData md, QList<QVector<QPointF> > d)
+void BatchAttnPlot::receiveData(QtFTM::BatchPlotMetaData md, QList<QVector<QPointF> > d)
 {
     if(d_metaDataList.isEmpty())
     {

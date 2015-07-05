@@ -2,20 +2,20 @@
 #include <QSettings>
 #include <QApplication>
 
-BatchManager::BatchManager(BatchType b, bool load, AbstractFitter *ftr) :
+BatchManager::BatchManager(QtFTM::BatchType b, bool load, AbstractFitter *ftr) :
     QObject(), d_batchType(b), d_fitter(ftr), d_batchNum(-1), d_loading(load), d_thisScanIsCal(false), d_sleep(false)
 {
 	switch(b) {
-	case BatchManager::Survey:
+	case QtFTM::Survey:
 		d_numKey = QString("surveyNum");
 		break;
-	case BatchManager::DrScan:
+	case QtFTM::DrScan:
 		d_numKey = QString("drNum");
 		break;
-	case BatchManager::Batch:
+	case QtFTM::Batch:
 		d_numKey = QString("batchNum");
 		break;
-	case BatchManager::Attenuation:
+	case QtFTM::Attenuation:
 		d_numKey = QString("batchAttnNum");
 		break;
 	default:
@@ -37,7 +37,7 @@ BatchManager::~BatchManager()
 
 QString BatchManager::title()
 {
-    if(d_batchType != BatchManager::SingleScan)
+    if(d_batchType != QtFTM::SingleScan)
     {
         return QString("%1 %2").arg(d_prettyName).arg(d_batchNum);
     }
@@ -83,7 +83,7 @@ void BatchManager::scanComplete(const Scan s)
 	else
 	{
 		//only send out message if this is not a single scan
-        if(d_batchType != BatchManager::SingleScan && d_batchType != BatchManager::Attenuation)
+	   if(d_batchType != QtFTM::SingleScan && d_batchType != QtFTM::Attenuation)
 		{
             emit logMessage(QString("%1 %2 complete. Final scan: %3.").arg(d_prettyName).arg(d_batchNum).arg(s.number()),
 						 QtFTM::LogHighlight);
@@ -101,10 +101,10 @@ void BatchManager::beginBatch()
 	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
 	int firstScanNum = s.value(QString("scanNum"),0).toInt()+1;
 
-    if(d_batchType != BatchManager::SingleScan && !d_loading)
+    if(d_batchType != QtFTM::SingleScan && !d_loading)
     {
 
-        if(d_batchType != BatchManager::Attenuation)
+	   if(d_batchType != QtFTM::Attenuation)
             emit logMessage(QString("Beginning %1 %2. First scan: %3.").arg(d_prettyName).arg(d_batchNum).arg(firstScanNum),
                             QtFTM::LogHighlight);
     }
@@ -122,7 +122,7 @@ void BatchManager::beginBatch()
 
 void BatchManager::loadBatch()
 {
-    if(d_batchType != BatchManager::Attenuation)
+    if(d_batchType != QtFTM::Attenuation)
     {
         for(int i=0;i<d_loadScanList.size(); i++)
         {
@@ -148,12 +148,12 @@ void BatchManager::loadBatch()
 }
 
 
-QList<QPair<QString, BatchManager::BatchType> > BatchManager::typeList()
+QList<QPair<QString, QtFTM::BatchType> > BatchManager::typeList()
 {
-    QList<QPair<QString, BatchManager::BatchType> > out;
-    out.append(QPair<QString, BatchManager::BatchType>(QString("Survey"),BatchManager::Survey));
-    out.append(QPair<QString, BatchManager::BatchType>(QString("DR Scan"),BatchManager::DrScan));
-    out.append(QPair<QString, BatchManager::BatchType>(QString("Batch"),BatchManager::Batch));
+    QList<QPair<QString, QtFTM::BatchType> > out;
+    out.append(QPair<QString, QtFTM::BatchType>(QString("Survey"),QtFTM::Survey));
+    out.append(QPair<QString, QtFTM::BatchType>(QString("DR Scan"),QtFTM::DrScan));
+    out.append(QPair<QString, QtFTM::BatchType>(QString("Batch"),QtFTM::Batch));
 
     return out;
 }
