@@ -24,7 +24,7 @@ void LogHandler::logMessage(const QString text, const QtFTM::LogMessageCode type
 	QString timeStamp = QDateTime::currentDateTime().toString();
 	writeToFile(text, type, timeStamp);
 
-#ifndef QT_NO_DEBUG
+#ifdef QT_NO_DEBUG
 	if(type == QtFTM::LogDebug)
 		return;
 #endif

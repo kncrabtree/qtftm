@@ -86,7 +86,7 @@ void AbstractBatchPlot::loadScan(const double x)
     if(d_metaDataList.isEmpty())
         return;
 
-    int firstScanIndex, lastScanIndex;
+    int firstScanIndex = -1, lastScanIndex = -1;
     for(int i=0; i<d_metaDataList.size(); i++)
     {
         if(!d_metaDataList.at(i).isCal)
@@ -103,6 +103,9 @@ void AbstractBatchPlot::loadScan(const double x)
             break;
         }
     }
+
+    if(firstScanIndex < 0 || lastScanIndex < 0)
+	    return;
 
     bool scanningDown = false;
     //if this is a survey or DR measurement, it's possible to scan down in frequency
@@ -152,7 +155,7 @@ void AbstractBatchPlot::loadCalScan(const double x)
     if(d_metaDataList.isEmpty())
         return;
 
-    int firstCalIndex, lastCalIndex;
+    int firstCalIndex = -1, lastCalIndex = -1;
     for(int i=0; i<d_metaDataList.size(); i++)
     {
         if(d_metaDataList.at(i).isCal)
@@ -169,6 +172,9 @@ void AbstractBatchPlot::loadCalScan(const double x)
             break;
         }
     }
+
+    if(firstCalIndex < 0 || lastCalIndex < 0)
+	    return;
 
     bool scanningDown = false;
     //if this is a survey or DR measurement, it's possible to scan down in frequency
@@ -192,7 +198,7 @@ void AbstractBatchPlot::loadCalScan(const double x)
     //locate number of nearest cal scan
     if(x<calScans.first().minXVal)
     {
-        emit requestScan(calScans.at(0).scanNum);
+	   emit requestScan(calScans.first().scanNum);
         return;
     }
     else if(x>calScans.last().maxXVal)
@@ -200,9 +206,12 @@ void AbstractBatchPlot::loadCalScan(const double x)
         emit requestScan(calScans.last().scanNum);
         return;
     }
-    for(int i=0; i<calScans.size()-1; i++)
+    for(int i=1; i<calScans.size()-2; i++)
     {
-        if(x >= calScans.at(i).minXVal && x < calScans.at(i+1).minXVal)
+	    double before = qAbs(x - calScans.at(i-1).minXVal);
+	    double thisd = qAbs(x - calScans.at(i).minXVal);
+	    double after = qAbs(x - calScans.at(i-1).minXVal);
+	   if(thisd <= before && thisd <= after)
         {
             emit requestScan(calScans.at(i).scanNum);
             return;
@@ -210,7 +219,7 @@ void AbstractBatchPlot::loadCalScan(const double x)
     }
 
     //if we've made it here, then it must be the last scan in the list
-    emit requestScan(calScans.at(calScans.size()-1).scanNum);
+    emit requestScan(calScans.last().scanNum);
 }
 
 void AbstractBatchPlot::setSelectedZone(int scanNum)

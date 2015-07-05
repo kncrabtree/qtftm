@@ -57,7 +57,7 @@ double MotorDriver::calculateModeFrequency(double position, int mode)
 
 QPair<int, int> MotorDriver::calcRoughTune(double f, int mode)
 {
-    double position; //this will be the cavity length at that mode
+    double position = 0.0; //this will be the cavity length at that mode
 
     if(mode < 0) //if mode < 0 (default), we need to calculate the mode closest to the center ourselves
     {

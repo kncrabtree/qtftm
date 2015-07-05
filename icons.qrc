@@ -16,7 +16,6 @@
         <file>icons/communication.png</file>
         <file>icons/view.png</file>
         <file>icons/open.png</file>
-        <file>led.qml</file>
     </qresource>
     <qresource prefix="/">
         <file>icons/error.png</file>
