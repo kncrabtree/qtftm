@@ -82,7 +82,7 @@ PGEN_GAS=0
 PGEN_DC=1
 PGEN_MW=2
 PGEN_DR=3
-PGEN_CHANNELS=4
+PGEN_CHANNELS=8
 HVPS=0
 ####################################################
 } else {

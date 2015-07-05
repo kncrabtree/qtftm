@@ -3,8 +3,31 @@
 #include <QApplication>
 
 BatchManager::BatchManager(BatchType b, bool load, AbstractFitter *ftr) :
-    QObject(), d_batchType(b), d_fitter(ftr), d_batchNum(-1), d_loading(load), d_thisScanIsCal(false)
+    QObject(), d_batchType(b), d_fitter(ftr), d_batchNum(-1), d_loading(load), d_thisScanIsCal(false), d_sleep(false)
 {
+	switch(b) {
+	case BatchManager::Survey:
+		d_numKey = QString("surveyNum");
+		break;
+	case BatchManager::DrScan:
+		d_numKey = QString("drNum");
+		break;
+	case BatchManager::Batch:
+		d_numKey = QString("batchNum");
+		break;
+	case BatchManager::Attenuation:
+		d_numKey = QString("batchAttnNum");
+		break;
+	default:
+		d_numKey = QString("");
+		break;
+	}
+
+	if(!d_loading && !d_numKey.isEmpty())
+	{
+		QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+		d_batchNum = s.value(d_numKey,1).toInt();
+	}
 }
 
 BatchManager::~BatchManager()
@@ -80,7 +103,7 @@ void BatchManager::beginBatch()
 
     if(d_batchType != BatchManager::SingleScan && !d_loading)
     {
-        d_batchNum = s.value(d_numKey,1).toInt();
+
         if(d_batchType != BatchManager::Attenuation)
             emit logMessage(QString("Beginning %1 %2. First scan: %3.").arg(d_prettyName).arg(d_batchNum).arg(firstScanNum),
                             QtFTM::LogHighlight);

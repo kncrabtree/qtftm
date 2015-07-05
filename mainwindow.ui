@@ -782,7 +782,7 @@
         <enum>QTabWidget::East</enum>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="displayTab">
         <attribute name="title">
@@ -815,11 +815,11 @@
              </property>
             </widget>
            </widget>
-           <widget class="QSplitter" name="splitter_6">
+           <widget class="QSplitter" name="batchPlotSplitter">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
-            <widget class="BatchPlot" name="batchPlot" native="true"/>
+            <widget class="QWidget" name="batchPlot" native="true"/>
             <widget class="PeakListWidget" name="peakListWidget" native="true">
              <property name="minimumSize">
               <size>
@@ -1777,12 +1777,6 @@
    <class>AnalysisWidget</class>
    <extends>QWidget</extends>
    <header>analysiswidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>BatchPlot</class>
-   <extends>QWidget</extends>
-   <header location="global">batchplot.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

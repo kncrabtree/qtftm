@@ -103,7 +103,7 @@ bool SurveySummaryPage::validatePage()
 	else //create survey object without cal
         bs = new BatchSurvey(surveyTemplate,step,stop,false,Scan(),0,wiz->fitter());
 
-    emit sleepWhenComplete(sleepCheckBox->isChecked());
+	bs->setSleepWhenComplete(sleepCheckBox->isChecked());
 	emit batchSurvey(bs);
 
 	return true;

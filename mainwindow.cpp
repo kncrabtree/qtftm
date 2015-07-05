@@ -101,7 +101,6 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(ui->actionPause,&QAction::triggered,this,&MainWindow::pauseAcq);
 	connect(ui->actionResume,&QAction::triggered,this,&MainWindow::resumeAcq);
 	connect(ui->actionPrint_Scan,&QAction::triggered,ui->analysisWidget,&AnalysisWidget::print);
-	connect(ui->actionPrint_Summary,&QAction::triggered,ui->batchPlot,&BatchPlot::printCallback);
 	connect(ui->actionSleep_Mode,&QAction::triggered,this,&MainWindow::sleep);
 	connect(ui->actionCommunication,&QAction::triggered,this,&MainWindow::launchCommunicationDialog);
 	connect(ui->actionFT_Synth,&QAction::triggered,this,&MainWindow::launchFtSettings);
@@ -114,10 +113,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->peakListWidget,&PeakListWidget::scanSelected,ui->analysisWidget,&AnalysisWidget::loadScan);
     connect(ui->analysisWidget,&AnalysisWidget::scanChanged,ui->peakListWidget,&PeakListWidget::selectScan);
     connect(ui->analysisWidget,&AnalysisWidget::peakAddRequested,ui->peakListWidget,&PeakListWidget::addUniqueLine);
-	connect(ui->batchPlot,&BatchPlot::requestScan,ui->analysisWidget,&AnalysisWidget::loadScan);
-	connect(ui->analysisWidget,&AnalysisWidget::scanChanged,ui->batchPlot,&BatchPlot::showZone);
-	connect(ui->batchPlot,&BatchPlot::colorChanged,ui->analysisWidget->plot(),&FtPlot::changeColor);
-	connect(ui->batchPlot,&BatchPlot::colorChanged,ui->acqFtPlot,&FtPlot::changeColor);
 	connect(ui->tabWidget,&QTabWidget::currentChanged,[=](int i){
 		if(i == ui->tabWidget->count()-1)
 		{
@@ -675,13 +670,7 @@ void MainWindow::singleScanCallback()
 
 	BatchManager *bm = new BatchSingle(scan,af);
 
-	makeBatchConnections(bm);
-
-	bm->moveToThread(batchThread);
-	batchThread->start();
-
-	d_uiState = Acquiring;
-	updateUiConfig();
+	startBatchManager(bm);
 
 }
 
@@ -722,13 +711,7 @@ void MainWindow::batchScanCallback()
 	if(bm == nullptr)
 		return;
 
-	makeBatchConnections(bm,wiz.sleepWhenComplete());
-
-	bm->moveToThread(batchThread);
-	batchThread->start();
-
-	d_uiState = Acquiring;
-	updateUiConfig();
+	startBatchManager(bm);
 
 	ssw->deleteLater();
 	aw->deleteLater();
@@ -904,9 +887,13 @@ void MainWindow::setHardwareRanges()
 {
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
 
-    //ftmSynth: note that min and max (freq) are in the ftmSynth entry, not under the subKey
+
     ui->ftmControlDoubleSpinBox->blockSignals(true);
-    ui->ftmControlDoubleSpinBox->setRange(s.value(QString("ftmSynth/min"),5000.0).toDouble(),s.value(QString("ftmSynth/max"),26490.0).toDouble());
+    s.beginGroup(QString("ftmSynth"));
+    s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
+    ui->ftmControlDoubleSpinBox->setRange(s.value(QString("min"),5000.0).toDouble(),s.value(QString("max"),26490.0).toDouble());
+    s.endGroup();
+    s.endGroup();
     ui->ftmControlDoubleSpinBox->blockSignals(false);
 
     //attenuators
@@ -918,12 +905,12 @@ void MainWindow::setHardwareRanges()
     s.endGroup();
     ui->attnControlSpinBox->blockSignals(false);
 
-    //dr synth: note that min and max (freq) are in the drSynth entry; power is under the subKey
+
     ui->drControlDoubleSpinBox->blockSignals(true);
     ui->pwrControlDoubleSpinBox->blockSignals(true);
     s.beginGroup(QString("drSynth"));
-    ui->drControlDoubleSpinBox->setRange(s.value(QString("min"),50.0).toDouble(),s.value(QString("max"),26500.0).toDouble());
     s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
+    ui->drControlDoubleSpinBox->setRange(s.value(QString("min"),50.0).toDouble(),s.value(QString("max"),26500.0).toDouble());
     ui->pwrControlDoubleSpinBox->setRange(s.value(QString("minPower"),-70.0).toDouble(),s.value(QString("maxPower"),17.0).toDouble());
     s.endGroup();
     s.endGroup();
@@ -1113,43 +1100,9 @@ void MainWindow::attnTablePrepComplete(bool success)
     scan.setScopeDelayTime(ui->pulseConfigWidget->scopeDelay());
 
     BatchAttenuation *bm = new BatchAttenuation(minFreqBox->value(),maxFreqBox->value(),stepBox->value(),scan.attenuation(),scan,nameBox->text());
+    bm->setSleepWhenComplete(false);
 
-    //connections for this one are a little bit different...
-    ui->actionPrint_Summary->setEnabled(false);
-    connect(batchThread,&QThread::started,bm,&BatchManager::beginBatch);
-    connect(bm,&BatchManager::titleReady,ui->batchPlot,&BatchPlot::setBatchTitle);
-    connect(bm,&BatchManager::batchComplete,this,&MainWindow::attnTableBatchComplete);
-    connect(bm,&BatchManager::batchComplete,bm,&QObject::deleteLater);
-    connect(bm,&BatchManager::batchComplete,ui->batchPlot,&BatchPlot::enableReplotting);
-    connect(bm,&QObject::destroyed,batchThread,&QThread::quit);
-    connect(bm,&BatchManager::beginScan,sm,&ScanManager::prepareScan);
-    connect(sm,&ScanManager::dummyComplete,bm,&BatchManager::scanComplete);
-    connect(bm,&BatchAttenuation::elementComplete,this,&MainWindow::updateProgressBars);
-    connect(ui->actionAbort,&QAction::triggered,bm,&BatchAttenuation::abort);
-    connect(bm,&BatchManager::logMessage,lh,&LogHandler::logMessage);
-    connect(bm,&BatchManager::plotData,ui->batchPlot,&BatchPlot::receiveData);
-
-    ui->shotsProgressBar->setRange(0,0);
-    ui->shotsProgressBar->setValue(0);
-    ui->batchProgressBar->setValue(0);
-    ui->batchProgressBar->setRange(0,bm->totalShots());
-
-    ui->batchPlot->prepareForNewBatch(bm->type());
-    if(ui->batchSplitter->sizes().at(1) == 0)
-    {
-        QList<int> sizes(ui->batchSplitter->sizes());
-        sizes[0]-=250;
-        sizes[1]+=250;
-        ui->batchSplitter->setSizes(sizes);
-    }
-
-    ui->analysisWidget->plot()->clearRanges();
-
-    d_uiState = Acquiring;
-    updateUiConfig();
-
-    bm->moveToThread(batchThread);
-    batchThread->start();
+    startBatchManager(bm);
 }
 
 void MainWindow::attnTableBatchComplete(bool aborted)
@@ -1236,26 +1189,65 @@ void MainWindow::dcVoltageUpdate(int v)
 	ui->dcControlSpinBox->blockSignals(false);
 }
 
-void MainWindow::makeBatchConnections(BatchManager *bm, bool sleep)
+void MainWindow::startBatchManager(BatchManager *bm)
 {
+	QByteArray state = ui->batchPlotSplitter->saveState();
+	delete ui->batchPlot;
+
+	if(bm->type() == BatchManager::SingleScan)
+		ui->batchPlot = new QWidget();
+	else
+	{
+		AbstractBatchPlot *plot = nullptr;
+		if(bm->type() == BatchManager::Attenuation)
+			plot = new BatchAttnPlot(bm->number());
+		else if(bm->type() == BatchManager::Batch)
+			plot = new BatchScanPlot(bm->number());
+		else if(bm->type() == BatchManager::DrScan)
+			plot = new DrPlot(bm->number());
+		else if(bm->type() == BatchManager::Survey)
+			plot = new SurveyPlot(bm->number());
+
+		connect(plot,&AbstractBatchPlot::requestScan,ui->analysisWidget,&AnalysisWidget::loadScan);
+		connect(ui->analysisWidget,&AnalysisWidget::scanChanged,plot,&AbstractBatchPlot::setSelectedZone);
+		connect(plot,&AbstractBatchPlot::colorChanged,ui->analysisWidget->plot(),&FtPlot::changeColor);
+		connect(plot,&AbstractBatchPlot::colorChanged,ui->acqFtPlot,&FtPlot::changeColor);
+		connect(ui->actionPrint_Summary,&QAction::triggered,plot,&AbstractBatchPlot::print);
+		connect(bm,&BatchManager::plotData,plot,&AbstractBatchPlot::receiveData);
+		connect(bm,&BatchManager::batchComplete,plot,&AbstractBatchPlot::enableReplotting);
+
+		ui->batchPlot = plot;
+		ui->batchPlotSplitter->insertWidget(0,plot);
+		ui->batchPlotSplitter->restoreState(state);
+	}
+
 	ui->actionPrint_Summary->setEnabled(false);
-    connect(bm,&BatchManager::titleReady,ui->batchPlot,&BatchPlot::setBatchTitle);
     connect(bm,&BatchManager::processingComplete,ui->analysisWidget,&AnalysisWidget::newScan);
     connect(bm,&BatchManager::processingComplete,ui->peakListWidget,&PeakListWidget::addScan);
-	connect(bm,&BatchManager::batchComplete,this,&MainWindow::batchComplete);
 	connect(bm,&BatchManager::batchComplete,bm,&QObject::deleteLater);
-    connect(bm,&BatchManager::batchComplete,ui->batchPlot,&BatchPlot::enableReplotting);
 	connect(bm,&QObject::destroyed,batchThread,&QThread::quit);
     connect(bm,&BatchManager::beginScan,this,&MainWindow::scanStarting);
     connect(bm,&BatchManager::beginScan,sm,&ScanManager::prepareScan);
-    connect(sm,&ScanManager::acquisitionComplete,bm,&BatchManager::scanComplete);
 	connect(bm,&BatchManager::logMessage,lh,&LogHandler::logMessage);
-	connect(bm,&BatchManager::plotData,ui->batchPlot,&BatchPlot::receiveData);
+
+	if(bm->type() == BatchManager::Attenuation)
+	{
+		connect(bm,&BatchManager::batchComplete,this,&MainWindow::attnTableBatchComplete);
+		connect(sm,&ScanManager::dummyComplete,bm,&BatchManager::scanComplete);
+		connect(static_cast<BatchAttenuation*>(bm),&BatchAttenuation::elementComplete,this,&MainWindow::updateProgressBars);
+		connect(ui->actionAbort,&QAction::triggered,static_cast<BatchAttenuation*>(bm),&BatchAttenuation::abort);
+
+		ui->shotsProgressBar->setRange(0,0);
+		ui->shotsProgressBar->setValue(0);
+	}
+	else
+	{
+		connect(bm,&BatchManager::batchComplete,this,&MainWindow::batchComplete);
+		connect(sm,&ScanManager::acquisitionComplete,bm,&BatchManager::scanComplete);
+	}
 
     ui->batchProgressBar->setValue(0);
     ui->batchProgressBar->setRange(0,bm->totalShots());
-
-    ui->batchPlot->prepareForNewBatch(bm->type());
 
     //Don't clear peak list widget!
 //    ui->peakListWidget->clearAll();
@@ -1282,10 +1274,16 @@ void MainWindow::makeBatchConnections(BatchManager *bm, bool sleep)
 	}
 
     connect(batchThread,&QThread::started,bm,&BatchManager::beginBatch);
-    if(sleep)
+    if(bm->sleepWhenComplete())
 	    connect(batchThread,&QThread::finished,ui->actionSleep_Mode,&QAction::trigger,Qt::UniqueConnection);
     else
 	   disconnect(batchThread,&QThread::finished,ui->actionSleep_Mode,&QAction::trigger);
+
+    bm->moveToThread(batchThread);
+    batchThread->start();
+
+    d_uiState = Acquiring;
+    updateUiConfig();
 
 }
 

@@ -7,7 +7,6 @@ BatchSurvey::BatchSurvey(Scan first, double step, double end, bool hascal, Scan 
     BatchManager(Survey,false,af), d_surveyTemplate(first), d_hasCalibration(hascal), d_calTemplate(cal),
     d_scansPerCal(scansPerCal), d_currentSurveyIndex(0)
 {
-	d_numKey = QString("surveyNum");
 	d_prettyName = QString("Survey");
 
 	//10 kHz is smallest allowed step size for a survey!
@@ -54,7 +53,6 @@ BatchSurvey::BatchSurvey(Scan first, double step, double end, bool hascal, Scan 
 
 BatchSurvey::BatchSurvey(int num) : BatchManager(Survey,true)
 {
-    d_numKey = QString("surveyNum");
     d_prettyName = QString("Survey");
     d_batchNum = num;
     d_thisScanIsCal = false;

@@ -15,8 +15,12 @@ SurveySetupPage::SurveySetupPage(AutoFitWidget *afw, QWidget *parent) :
     surAfw = new AutoFitWidget(afw->bufferGas().name,afw->delay(),afw->hpf(),afw->exp(),afw->zeroPad(),afw->temperature());
 
 	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+	s.beginGroup(QString("ftmSynth"));
+	s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
 	double synthMin = s.value(QString("ftmSynth/min"),5000.0).toDouble();
 	double synthMax = s.value(QString("ftmSynth/max"),43000.0).toDouble();
+	s.endGroup();
+	s.endGroup();
 
 	QVBoxLayout *vl = new QVBoxLayout(this);
 

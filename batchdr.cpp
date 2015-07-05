@@ -6,7 +6,6 @@ BatchDR::BatchDR(Scan ftScan, double start, double stop, double step, int numSca
     BatchManager(DrScan,false,f), d_template(ftScan), d_start(start), d_stop(stop), d_numScansBetween (0), d_integrationRanges(ranges),
     d_completedScans(0), d_hasCalibration(doCal)
 {
-	d_numKey = QString("drNum");
 	d_prettyName = QString("DR Scan");
 
 	//figure out scan direction
@@ -57,7 +56,6 @@ BatchDR::BatchDR(Scan ftScan, double start, double stop, double step, int numSca
 
 BatchDR::BatchDR(int num, AbstractFitter *ftr) : BatchManager(DrScan,true,ftr), d_completedScans(0)
 {
-    d_numKey = QString("drNum");
     d_prettyName = QString("DR Scan");
     d_batchNum = num;
 

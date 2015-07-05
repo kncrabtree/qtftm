@@ -58,7 +58,7 @@ void DrSummaryPage::initializePage()
 	text.append(QString("<tr><td>Start freq </td><td align='right'> %1 </td><td> MHz</td></tr>").arg(start,0,'f',3));
 	text.append(QString("<tr><td>Stop freq </td><td align='right'> %1 </td><td> MHz</td></tr>").arg(stop,0,'f',3));
 	text.append(QString("<tr><td>Step size </td><td align='right'> %1 </td><td> kHz</td></tr>").arg(step));
-    text.append(QString("<tr><td>Scans between Tuning Voltage Readings (0=every scan)</td><td> align='right'> %1 </td><td> scans</td><tr>").arg((numScans)));
+    text.append(QString("<tr><td>Scans between tunes</td><td align='right'> %1 </td><td> scans</td><tr>").arg((numScans)));
 	if(hasCal)
 		text.append(QString("<tr><td>Has calibration? </td><td align='right'> Yes </td><td></td></tr>"));
 	else
@@ -122,10 +122,10 @@ bool DrSummaryPage::validatePage()
 	fitter->setRemoveDC(rDC);
 	fitter->setAutoPad(padFid);
 
-    emit sleepWhenComplete(sleepCheckBox->isChecked());
 
 	//make BatchDR
     bdr = new BatchDR(s,start,stop,step,numScansBetween,r,hasCal,fitter);
+    bdr->setSleepWhenComplete(sleepCheckBox->isChecked());
 	emit batchDr(bdr);
 
 	return true;

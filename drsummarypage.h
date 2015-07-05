@@ -17,7 +17,6 @@ public:
 	
 signals:
 	void batchDr(BatchManager*);
-    void sleepWhenComplete(bool);
 
 private:
 	QLabel *label;

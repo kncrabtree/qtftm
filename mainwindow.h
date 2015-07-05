@@ -13,6 +13,10 @@
 #include "batchmanager.h"
 #include "settingswidget.h"
 #include "led.h"
+#include "batchscanplot.h"
+#include "batchattnplot.h"
+#include "drplot.h"
+#include "surveyplot.h"
 
 namespace Ui {
 class MainWindow;
@@ -122,7 +126,7 @@ private:
     int d_logCount;
     QtFTM::LogMessageCode d_logIcon;
 
-    void makeBatchConnections(BatchManager *bm, bool sleep = false);
+    void startBatchManager(BatchManager *bm);
 	void launchSettingsDialog(SettingsWidget *w);
 	QString guessBufferString();
 

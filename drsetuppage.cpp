@@ -13,8 +13,12 @@ DrSetupPage::DrSetupPage(QWidget *parent) :
 	setSubTitle(QString("Fill in the DR scan parameters. You will be able to configure the details of the scan and the integration ranges on the following pages."));
 
 	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
-	double synthMin = s.value(QString("drSynth/min"),1000.0).toDouble();
-	double synthMax = s.value(QString("drSynth/max"),95000.0).toDouble();
+	s.beginGroup(QString("drSynth"));
+	s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
+	double synthMin = s.value(QString("min"),1000.0).toDouble();
+	double synthMax = s.value(QString("max"),95000.0).toDouble();
+	s.endGroup();
+	s.endGroup();
 
 	QVBoxLayout *vl = new QVBoxLayout(this);
 

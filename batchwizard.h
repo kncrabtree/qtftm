@@ -55,7 +55,6 @@ public:
 	BatchManager *batchManager() const { return bm; }
 	AbstractFitter *fitter() const { return ftr; }
 	QList<QPair<double,double> > ranges() const { return d_drRanges; }
-	bool sleepWhenComplete() const { return d_sleep; }
 	
 signals:
 	void setupDr(Scan);
@@ -72,7 +71,6 @@ public slots:
     void setFitter(AbstractFitter *af);
 	void prepareDr(Scan s);
 	void drPrepComplete();
-	void setSleep(bool b){ d_sleep = b; }
 
 private:
 	SingleScanWidget *ssw;
@@ -85,7 +83,6 @@ private:
 	BatchManager *bm;
 	AbstractFitter *ftr;
 	DrIntSetupPage *dip;
-	bool d_sleep;
 	
 };
 

@@ -154,6 +154,10 @@ public:
     bool isLoading() const { return d_loading; }
 
     QPair<int,int> loadScanRange();
+
+    void setSleepWhenComplete(bool sleep) { d_sleep = sleep; }
+    bool sleepWhenComplete() { return d_sleep; }
+    int number() { return d_batchNum; }
 	
 signals:
 	/*!
@@ -252,6 +256,8 @@ protected:
     QList<Scan> d_loadAttnList;
     bool d_loading;
     bool d_thisScanIsCal;
+
+    bool d_sleep;
 
 private:
     void loadBatch();
