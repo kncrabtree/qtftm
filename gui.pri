@@ -5,7 +5,6 @@ SOURCES += mainwindow.cpp \
     analysisplot.cpp \
     singlescanwidget.cpp \
     singlescandialog.cpp \
-    batchplot.cpp \
     loadbatchdialog.cpp \
     batchviewwidget.cpp \
     autofitwidget.cpp \
@@ -26,7 +25,6 @@ HEADERS += mainwindow.h \
     analysisplot.h \
     singlescanwidget.h \
     singlescandialog.h \
-    batchplot.h \
     loadbatchdialog.h \
     batchviewwidget.h \
     autofitwidget.h \

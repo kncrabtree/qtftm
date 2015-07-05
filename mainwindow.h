@@ -122,7 +122,6 @@ private:
 
 	State d_uiState;
 	bool d_hardwareConnected;
-    bool noHardwareMode;
     int d_logCount;
     QtFTM::LogMessageCode d_logIcon;
 

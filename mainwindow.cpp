@@ -296,7 +296,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
 	d_uiState = Idle;
-    noHardwareMode = false;
 	updateUiConfig();
 
 }
@@ -324,7 +323,7 @@ void MainWindow::updateProgressBars()
 
 void MainWindow::updateUiConfig()
 {
-    if(d_hardwareConnected || noHardwareMode)
+    if(d_hardwareConnected)
 	{
 	   ui->actionStart_Single->setDisabled(d_uiState & (Acquiring|Tuning) || d_uiState & Asleep);
 	   ui->actionStart_Batch->setDisabled(d_uiState & (Acquiring|Tuning)  || d_uiState & Asleep);
