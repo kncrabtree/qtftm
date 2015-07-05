@@ -217,20 +217,15 @@ Scan BatchDR::prepareNextScan()
 {
 	//compute DR frequency
 	double drFreq = d_start + (double)d_completedScans*d_step;
-    int scansBetween;
-
 
 	//use template, and set its frequency
 	Scan next(d_template);
 	next.setDrFreq(drFreq);
-    scansBetween = d_completedScans % (d_numScansBetween+1);
-    if( scansBetween == 0) {
-        next.setTuningVoltageTakenWithScan(true);
-        next.setScansSinceTuningVoltageTaken(0);
-    } else {
-        next.setTuningVoltageTakenWithScan(false);
-        next.setScansSinceTuningVoltageTaken(scansBetween);
-    }
+
+    if(d_completedScans % (d_numScansBetween+1))
+	   next.setSkiptune(true);
+    else
+	   next.setSkiptune(false);
 
 	//make sure DR is on
 	PulseGenConfig c = next.pulseConfiguration();

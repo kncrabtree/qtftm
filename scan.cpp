@@ -17,15 +17,14 @@ class ScanData : public QSharedData {
 public:
 	ScanData() : number(-1), ts(QDateTime::currentDateTime()), ftFreq(-1.0), ftAtten(-1), drFreq(-1.0), drPower(-100.0),
 	   targetShots(0), completedShots(0), fid(Fid()), initialized(false), saved(false), aborted(false), dummy(false), skipTune(false),
-       tuningVoltage(-1), tuningVoltageTakenWithScan(true), scansSinceTuningVoltageTaken(0), cavityVoltage(-1), protectionDelayTime (-1),
+	  tuningVoltage(-1), cavityVoltage(-1), protectionDelayTime (-1),
 	  scopeDelayTime(-1), dipoleMoment(0.0), magnet(false), dcVoltage(0) {}
 	ScanData(const ScanData &other) :
 		QSharedData(other), number(other.number), ts(other.ts), ftFreq(other.ftFreq), ftAtten(other.ftAtten), drFreq(other.drFreq),
 	   drPower(other.drPower), flowConfig(other.flowConfig),
 		pulseConfig(other.pulseConfig), targetShots(other.targetShots), completedShots(other.completedShots),
         fid(other.fid), initialized(other.initialized), saved(other.saved), aborted(other.aborted), dummy(other.dummy),
-        skipTune(other.skipTune), tuningVoltage(other.tuningVoltage), tuningVoltageTakenWithScan(other.tuningVoltageTakenWithScan),
-        scansSinceTuningVoltageTaken(other.scansSinceTuningVoltageTaken), cavityVoltage(other.cavityVoltage),
+	   skipTune(other.skipTune), tuningVoltage(other.tuningVoltage), cavityVoltage(other.cavityVoltage),
         protectionDelayTime(other.protectionDelayTime), scopeDelayTime(other.scopeDelayTime), dipoleMoment(other.dipoleMoment),
 	   magnet(other.magnet), dcVoltage(other.dcVoltage) {}
 	~ScanData() {}
@@ -52,8 +51,6 @@ public:
 	bool skipTune;
 
     int tuningVoltage;
-    bool tuningVoltageTakenWithScan;
-    int  scansSinceTuningVoltageTaken;
     int cavityVoltage;
 
     int protectionDelayTime;
@@ -223,16 +220,6 @@ bool Scan::skipTune() const
 int Scan::tuningVoltage() const
 {
     return data->tuningVoltage;
-}
-
-bool Scan::tuningVoltageTakenWithScan() const
-{
-    return data->tuningVoltageTakenWithScan;
-}
-
-int Scan::scansSinceTuningVoltageTaken() const
-{
-    return data->scansSinceTuningVoltageTaken;
 }
 
 int Scan::cavityVoltage() const
@@ -417,16 +404,6 @@ void Scan::setTuningVoltage(int v)
 	data->tuningVoltage = v;
 }
 
-void Scan::setTuningVoltageTakenWithScan(bool yesOrNo)
-{
-    data->tuningVoltageTakenWithScan = yesOrNo;
-}
-
-void Scan::setScansSinceTuningVoltageTaken(int howMany)
-{
-    data->scansSinceTuningVoltageTaken = howMany;
-}
-
 void Scan::setMagnet(bool b)
 {
 	data->magnet = b;
@@ -444,8 +421,6 @@ QString Scan::scanHeader() const
 
     t.setRealNumberPrecision(12);
     QString yesOrNo;
-    if(tuningVoltageTakenWithScan()) yesOrNo = QString("yes");
-    else yesOrNo = QString("no");
 
 	t << QString("#Scan\t") << number() << QString("\t\n");
 	t << QString("#Date\t") << timeStamp().toString() << QString("\t\n");
@@ -453,8 +428,6 @@ QString Scan::scanHeader() const
 	t << QString("#Cavity freq\t") << ftFreq() << QString("\tMHz\n");
 	t << QString("#Skipped Tuning\t") << skipTune() << QString("\t\n");
     t << QString("#Tuning Voltage\t") << tuningVoltage() << QString("\tmV\n");
-    t << QString("#Was Tuning Voltage Taken with Scan\t") << yesOrNo << QString("\t\n");
-    t << QString("#How Many Scans since tuning voltage was taken\t") << scansSinceTuningVoltageTaken() << QString("\t\n");
 	t << QString("#Attenuation\t") << attenuation() << QString("\tdB\n");
     t << QString("#Dipole Moment\t") << dipoleMoment() << QString("\tD\n");
     t << QString("#Cavity Voltage\t") << cavityVoltage() << QString("\tmV\n");
@@ -538,14 +511,6 @@ void Scan::parseFileLine(QString s)
 		data->skipTune = (bool)val.toInt();
     else if(key.startsWith(QString("#Tuning")))
         data->tuningVoltage = val.toInt();
-    else if(key.startsWith(QString("#Was Tuning"))) {
-        if(val == "yes")
-        data->tuningVoltageTakenWithScan = 1;
-        else data->tuningVoltageTakenWithScan = 0;
-    }
-    else if(key.startsWith(QString("#How Many ")))
-        data->scansSinceTuningVoltageTaken = val.toInt();
-
     else if(key.startsWith(QString("#Cavity Voltage"), Qt::CaseInsensitive))
         data->cavityVoltage = val.toInt();
     else if(key.startsWith(QString("#Protection Delay"), Qt::CaseInsensitive))

@@ -590,24 +590,17 @@ void HardwareManager::prepareForScan(Scan s)
     d_currentScan = s;
     d_waitingForScanTune = true;
     pauseScope(true);
-    if(s.tuningVoltageTakenWithScan())
+    bool skipTune = false;
+    if(!d_currentScan.skipTune())
     {
+	    skipTune = canSkipTune(s.ftFreq());
 
-        bool skipTune = false;
-        if(!d_currentScan.skipTune())
-        {
-		   skipTune = canSkipTune(s.ftFreq());
-
-            if(skipTune)
-                d_currentScan.setSkiptune(true);
-        }
-
-
-        tuneCavity(d_currentScan.ftFreq(),-1,d_currentScan.skipTune());
+	    if(skipTune)
+		    d_currentScan.setSkiptune(true);
     }
-    else { // the equivalent of "emit"ing tuningComplete from motordriver  PRAA
-        cavityTuneComplete(true);   // this will set the tuning voltage by reading d_lastTuneVoltage from motor driver, which should be fine.
-    }
+
+    tuneCavity(d_currentScan.ftFreq(),-1,d_currentScan.skipTune());
+
 }
 
 void HardwareManager::finishPreparation(bool tuneSuccess)

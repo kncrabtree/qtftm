@@ -197,10 +197,6 @@ public:
 
     int tuningVoltage() const;
 
-    bool tuningVoltageTakenWithScan() const;
-
-    int scansSinceTuningVoltageTaken() const;
-
     int cavityVoltage() const;
 
     int protectionDelayTime() const;
@@ -331,10 +327,6 @@ public:
 	void setSkiptune(bool b);
 
     void setTuningVoltage(int v);
-
-    void setTuningVoltageTakenWithScan( bool b);
-
-    void setScansSinceTuningVoltageTaken( int i);
 
     void setMagnet(bool b);
 

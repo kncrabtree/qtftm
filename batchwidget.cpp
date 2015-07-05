@@ -217,14 +217,9 @@ void BatchWidget::editScan()
 	//build a dialog, and set the values in the dialog to those of the selected scan
 	SingleScanDialog d(this);
 	SingleScanWidget *ssw = d.ssWidget();
+	ssw->enableSkipTune(true);
 
     ssw->setFromScan(s);
-//	ssw->ui->ssShotsSpinBox->setValue(s.targetShots());
-//	ssw->setFtmFreq(s.ftFreq());
-//	ssw->setAttn(s.attenuation());
-//	ssw->setDrFreq(s.drFreq());
-//	ssw->setDrPower(s.drPower());
-//	ssw->setPulseConfig(s.pulseConfiguration());
 
 	int ret = d.exec();
 
@@ -233,12 +228,6 @@ void BatchWidget::editScan()
 
 	//set the appropriate values in the scan
     s = ssw->toScan();
-//	s.setTargetShots(ssw->shots());
-//	s.setFtFreq(ssw->ftmFreq());
-//	s.setAttenuation(ssw->attn());
-//	s.setDrFreq(ssw->drFreq());
-//	s.setDrPower(ssw->drPower());
-//	s.setPulseConfiguration(ssw->pulseConfig());
 
 	//update the model
 	btm.updateScan(l.at(0).row(),s);
@@ -358,12 +347,6 @@ void BatchWidget::parseFile()
 	//if the file doesn't specify a setting, it will be set to the default value
     //the default scan is initialized to the current settings, or the latest scan that was manually added
     Scan defaultScan = batchSsw->toScan();
-//	defaultScan.setTargetShots(batchSsw->shots());
-//	defaultScan.setFtFreq(batchSsw->ftmFreq());
-//	defaultScan.setAttenuation(batchSsw->attn());
-//	defaultScan.setDrFreq(batchSsw->drFreq());
-//	defaultScan.setDrPower(batchSsw->drPower());
-//	defaultScan.setPulseConfiguration(batchSsw->pulseConfig());
 
 	//set up default calibration scan
 	Scan calScan = btm.getLastCalScan();
@@ -507,31 +490,15 @@ Scan BatchWidget::buildScanFromDialog(bool cal)
 	d.setWindowTitle(QString("Single Scan"));
 
 	SingleScanWidget *ssw = d.ssWidget();
+	ssw->enableSkipTune(true);
 
 	if(cal)
 		ssw->shotsSpinBox()->blockSignals(true);
 
 	if(cal && btm.getLastCalScan().targetShots()>0)
-	{
         ssw->setFromScan(btm.getLastCalScan());
-//		Scan lastCalScan = btm.getLastCalScan();
-//		ssw->ui->ssShotsSpinBox->setValue(lastCalScan.targetShots());
-//		ssw->setFtmFreq(lastCalScan.ftFreq());
-//		ssw->setAttn(lastCalScan.attenuation());
-//		ssw->setDrFreq(lastCalScan.drFreq());
-//		ssw->setDrPower(lastCalScan.drPower());
-//		ssw->setPulseConfig(lastCalScan.pulseConfiguration());
-	}
 	else
-	{
         ssw->setFromScan(batchSsw->toScan());
-//		ssw->ui->ssShotsSpinBox->setValue(batchSsw->shots());
-//		ssw->setFtmFreq(batchSsw->ftmFreq());
-//		ssw->setAttn(batchSsw->attn());
-//		ssw->setDrFreq(batchSsw->drFreq());
-//		ssw->setDrPower(batchSsw->drPower());
-//		ssw->setPulseConfig(batchSsw->pulseConfig());
-	}
 
 	int ret = d.exec();
 
@@ -539,23 +506,9 @@ Scan BatchWidget::buildScanFromDialog(bool cal)
 		return Scan();
 
 	if(!cal)
-	{
         batchSsw->setFromScan(ssw->toScan());
-//		batchSsw->ui->ssShotsSpinBox->setValue(ssw->shots());
-//		batchSsw->setFtmFreq(ssw->ftmFreq());
-//		batchSsw->setAttn(ssw->attn());
-//		batchSsw->setDrFreq(ssw->drFreq());
-//		batchSsw->setDrPower(ssw->drPower());
-//		batchSsw->setPulseConfig(ssw->pulseConfig());
-	}
 
     Scan scan = ssw->toScan();
-//	scan.setTargetShots(ssw->shots());
-//	scan.setFtFreq(ssw->ftmFreq());
-//	scan.setAttenuation(ssw->attn());
-//	scan.setDrFreq(ssw->drFreq());
-//	scan.setDrPower(ssw->drPower());
-//	scan.setPulseConfiguration(ssw->pulseConfig());
 
 	return scan;
 }
@@ -889,6 +842,33 @@ Scan BatchWidget::parseLine(Scan defaultScan, QString line)
 				}
 			}
 		}
+		else if(key.startsWith(QString("sk"),Qt::CaseInsensitive))
+		{
+			bool success = false;
+			bool skip = (bool)val.toInt(&success);
+			if(success)
+			{
+				parseSuccess = true;
+				out.setSkiptune(skip);
+			}
+			else
+			{
+				if(val.contains(QString("yes"),Qt::CaseInsensitive) ||
+						val.contains(QString("on"),Qt::CaseInsensitive) ||
+						val.contains(QString("true"),Qt::CaseInsensitive))
+				{
+					parseSuccess = true;
+					out.setSkiptune(true);
+				}
+				else if(val.contains(QString("no"),Qt::CaseInsensitive) ||
+					   val.contains(QString("off"),Qt::CaseInsensitive) ||
+					   val.contains(QString("false"),Qt::CaseInsensitive))
+				{
+					parseSuccess = true;
+					out.setSkiptune(false);
+				}
+			}
+		}
 
 
 	}
@@ -977,6 +957,14 @@ QString BatchWidget::writeScan(Scan thisScan, Scan ref)
 		    t << QString("magnet:true ");
 	    else
 		    t << QString("magnet:false ");
+    }
+
+    if(thisScan.skipTune() != ref.skipTune() || writeAll)
+    {
+	    if(thisScan.skipTune())
+		    t << QString("skiptune:true ");
+	    else
+		    t << QString("skiptune:false ");
     }
 
 	t.flush();
