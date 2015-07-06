@@ -17,6 +17,9 @@ CONFIG   += qt thread c++11
 #If you want to compile with all virtual hardware, uncomment the following line
 CONFIG += nohardware
 
+#This line should reflect which spectrometer the code is being compiled for
+SPECTROMETER=1
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets serialport printsupport
 
 TARGET = qtftm
@@ -39,8 +42,6 @@ SOURCES += main.cpp
 RESOURCES += \
     icons.qrc
 
-#This line should reflect which spectrometer the code is being compiled for
-DEFINES += QTFTM_SPECTROMETER=1
 
 DISTFILES += \
     Notes.txt
@@ -178,6 +179,8 @@ DEFINES += QTFTM_DRSYNTH=$$DRSYNTH
 DEFINES += QTFTM_PGEN=$$PGEN QTFTM_PGEN_GASCHANNEL=$$PGEN_GAS QTFTM_PGEN_DCCHANNEL=$$PGEN_DC QTFTM_PGEN_MWCHANNEL=$$PGEN_MW \
 	QTFTM_PGEN_DRCHANNEL=$$PGEN_DR QTFTM_PGEN_NUMCHANNELS=$$PGEN_CHANNELS
 DEFINES += QTFTM_HVPS=$$HVPS
+
+DEFINES += QTFTM_SPECTROMETER=$$SPECTROMETER
 
 equals(SCOPE, "0") {
 	RESOURCES += virtualdata.qrc
