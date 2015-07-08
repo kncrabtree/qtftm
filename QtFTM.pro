@@ -27,7 +27,9 @@ INCLUDEPATH += "/usr/Qt/5.4/gcc_64/include"
 INCLUDEPATH += "/usr/Qt/5.4/gcc_64"
 
 
-!include(config.pri) {
+include(config.pri) {
+	DISTFILES += config.pri
+} else {
 	error("Configuration file (config.pri) missing! Build aborted.")
 }
 
