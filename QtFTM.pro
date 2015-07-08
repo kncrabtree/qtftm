@@ -67,7 +67,7 @@ unix:!macx: LIBS += -L/usr/local/lib64 -lqwt -lgsl -lgslcblas -lm -llabjackusb
 ######################################################
 #only modify the lines below if you know what you're doing!
 #For instance, if new hardware is added to program, you
-#should make new variables above for both configurations
+#should make new variables in config.pri for both configurations
 #and add appropriate defines below. See headers of
 #hardware base classes for examples of how to use these
 ######################################################
