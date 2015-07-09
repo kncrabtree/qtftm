@@ -53,7 +53,7 @@ DISTFILES += \
 #note: on linux, /usr/lib64 should have symbolic links set up to point to the qwt library if not using
 #pre-compiled qwt6 libraries (as of openSUSE 13.2, the pre-compiled libraries are built against Qt4,
 #so to use this program the libraries must be built manually against Qt5
-#example links (all in /usr/lib64, e.g, as root, ln -s /usr/local/qwt-6.1.3-svn/lib/libqwt.so /usr/lib64/libswt.so)
+#example links (all in /usr/lib64, e.g, as root, ln -s /usr/local/qwt-6.1.3-svn/lib/libqwt.so /usr/lib64/libqwt.so)
 #libqwt.so -> /usr/local/qwt-6.1.3-svn/lib/libqwt.so
 #libqwt.so.6 -> /usr/local/qwt-6.1.3-svn/lib/libqwt.so
 #libqwt.so.6.1 -> /usr/local/qwt-6.1.3-svn/lib/libqwt.so
