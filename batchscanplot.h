@@ -16,20 +16,6 @@ public:
 public slots:
     void receiveData(QtFTM::BatchPlotMetaData md, QList<QVector<QPointF> > d);
     void print();
-    void toggleBatchLabels(bool on);
-    QMenu *contextMenu();
-
-    void replot();
-
-private:
-    bool d_hideBatchLabels;
-    QList<QwtPlotMarker*> d_plotMarkers;
-    double calculateAxisMaxWithLabel(Axis axis) const;
-    QPair<double,double> calculateMarkerBoundaries(QFontMetrics fm, int index);
-
-    // ZoomPanPlot interface
-protected:
-    void filterData();
 };
 
 #endif // BATCHSCANPLOT_H
