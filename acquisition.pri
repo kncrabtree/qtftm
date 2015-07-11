@@ -4,7 +4,8 @@ SOURCES += batchmanager.cpp \
     scanmanager.cpp \
     batchdr.cpp \
     batch.cpp \
-    batchattenuation.cpp
+    batchattenuation.cpp \
+    $$PWD/drcorrelation.cpp
 
 HEADERS += batchmanager.h \
     batchsingle.h \
@@ -12,4 +13,5 @@ HEADERS += batchmanager.h \
     scanmanager.h \
     batchdr.h \
     batch.h \
-    batchattenuation.h
+    batchattenuation.h \
+    $$PWD/drcorrelation.h

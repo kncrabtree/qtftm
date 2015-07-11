@@ -18,6 +18,9 @@ BatchManager::BatchManager(QtFTM::BatchType b, bool load, AbstractFitter *ftr) :
 	case QtFTM::Attenuation:
 		d_numKey = QString("batchAttnNum");
 		break;
+	case QtFTM::DrCorrelation:
+		d_numKey = QString("drCorrNum");
+		break;
 	default:
 		d_numKey = QString("");
 		break;
