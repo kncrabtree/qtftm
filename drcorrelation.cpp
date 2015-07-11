@@ -234,6 +234,8 @@ void DrCorrelation::processScan(Scan s)
 	bool badTune = s.tuningVoltage() <= 0;
 	QtFTM::BatchPlotMetaData md(QtFTM::Batch,s.number(),mdmin,mdmax,d_thisScanIsCal,badTune,markerText);
 
+	md.drRef = d_thisScanIsRef;
+
 	//if this scan is the reference (DR off), save the voltage. Otherwise, compare the voltage
 	if(!d_thisScanIsCal)
 	{
