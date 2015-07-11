@@ -20,11 +20,15 @@ StartPage::StartPage(QWidget *parent) :
 	batchButton = new QRadioButton(QString("Batch"),this);
 	batchButton->setToolTip(QString("An arbitrary sequence of scans"));
 
+	drCorrButton = new QRadioButton(QString("DR Correlation"),this);
+	drCorrButton->setToolTip(QString("A list of FT scans that will by systematically cross-correlated by double resonance."));
+
 	surveyButton->setChecked(true);
 
 	vl->addWidget(surveyButton);
 	vl->addWidget(drButton);
 	vl->addWidget(batchButton);
+	vl->addWidget(drCorrButton);
 
 	QGroupBox *miscBox = new QGroupBox(QString("Miscellaneous Settings"),this);
 	QVBoxLayout *mbl = new QVBoxLayout(miscBox);
@@ -47,10 +51,22 @@ int StartPage::nextId() const
 	if(batchButton->isChecked())
 		return BatchWizard::Page_BatchProcessing;
 
+	if(drCorrButton->isChecked())
+		return BatchWizard::Page_BatchProcessing;
+
 	return -1;
 }
 
 bool StartPage::validatePage()
 {
+	if(surveyButton->isChecked())
+		emit typeSelected(QtFTM::Survey);
+	else if(drButton->isChecked())
+		emit typeSelected(QtFTM::DrScan);
+	else if(batchButton->isChecked())
+		emit typeSelected(QtFTM::Batch);
+	else if(drCorrButton->isChecked())
+		emit typeSelected(QtFTM::DrCorrelation);
+
 	return true;
 }

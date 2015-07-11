@@ -5,6 +5,8 @@
 #include <QRadioButton>
 #include <QCheckBox>
 
+#include "datastructs.h"
+
 class StartPage : public QWizardPage
 {
 	Q_OBJECT
@@ -12,6 +14,9 @@ public:
 	explicit StartPage(QWidget *parent = nullptr);
 	int nextId() const;
 	bool validatePage();
+
+signals:
+	void typeSelected(QtFTM::BatchType type);
 		
 public slots:
 
@@ -19,6 +24,7 @@ private:
 	QRadioButton *surveyButton;
 	QRadioButton *drButton;
 	QRadioButton *batchButton;
+	QRadioButton *drCorrButton;
 	
 };
 

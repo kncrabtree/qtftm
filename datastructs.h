@@ -110,7 +110,7 @@ struct BatchPlotMetaData {
 	 \param other Structure to copy
 	*/
 	BatchPlotMetaData(const BatchPlotMetaData &other) : type(other.type), scanNum(other.scanNum), minXVal(other.minXVal),
-	  maxXVal(other.maxXVal), isCal(other.isCal), badTune(other.badTune), text(other.text), drMatch(other.drMatch), drRef(false) {}
+	  maxXVal(other.maxXVal), isCal(other.isCal), badTune(other.badTune), text(other.text), drMatch(other.drMatch), drRef(other.drRef) {}
 };
 
 }

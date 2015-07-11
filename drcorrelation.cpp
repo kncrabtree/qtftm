@@ -1,7 +1,9 @@
 #include "drcorrelation.h"
 
-DrCorrelation::DrCorrelation(QList<QPair<Scan,bool>> templateList) :
-	BatchManager(QtFTM::DrCorrelation), d_thisScanIsRef(false), d_loadIndex(0)
+#include "abstractfitter.h"
+
+DrCorrelation::DrCorrelation(QList<QPair<Scan,bool>> templateList, AbstractFitter *ftr) :
+	BatchManager(QtFTM::DrCorrelation,false,ftr), d_thisScanIsRef(false), d_loadIndex(0)
 {
 	d_prettyName = QString("DR Correlation");
 
@@ -65,36 +67,40 @@ DrCorrelation::DrCorrelation(int num) :
 	QDir d(savePath + QString("/drcorr/%1/%2").arg(batchMillions).arg(batchThousands));
 	QFile in(QString("%1/%2.txt").arg(d.absolutePath()).arg(d_batchNum));
 
-	while(!in.atEnd())
+	if(in.open(QIODevice::ReadOnly))
 	{
-		QByteArray line = in.readLine();
+		while(!in.atEnd())
+		{
+			QByteArray line = in.readLine();
 
-		if(line.isEmpty())
-			continue;
+			if(line.isEmpty())
+				continue;
 
-		if(line.startsWith("drc") || line.startsWith("#"))
-			continue;
+			if(line.startsWith("drc") || line.startsWith("#"))
+				continue;
 
-		QByteArrayList l = line.split('\t');
-		if(l.size() != 6)
-			continue;
+			QByteArrayList l = line.split('\t');
+			if(l.size() != 6)
+				continue;
 
-		bool ok = false;
-		int scanNum = l.first().toInt(&ok);
-		if(!ok)
-			continue;
+			bool ok = false;
+			int scanNum = l.first().toInt(&ok);
+			if(!ok)
+				continue;
 
-		bool isCal = static_cast<bool>(l.at(1).toInt(&ok));
-		if(!ok)
-			continue;
+			bool isCal = static_cast<bool>(l.at(1).toInt(&ok));
+			if(!ok)
+				continue;
 
-		bool isRef = static_cast<bool>(l.at(2).toInt(&ok));
-		if(!ok)
-			continue;
+			bool isRef = static_cast<bool>(l.at(2).toInt(&ok));
+			if(!ok)
+				continue;
 
-		d_loadScanList.append(scanNum);
-		d_loadCalList.append(isCal);
-		d_loadRefList.append(isRef);
+			d_loadScanList.append(scanNum);
+			d_loadCalList.append(isCal);
+			d_loadRefList.append(isRef);
+		}
+		in.close();
 	}
 
 }
@@ -247,6 +253,8 @@ void DrCorrelation::processScan(Scan s)
 
 		md.drMatch = drMatch;
 	}
+	else
+		md.drMatch = false;
 
 	 //record data for saving
 	QString tab("\t");
@@ -286,6 +294,9 @@ Scan DrCorrelation::prepareNextScan()
 		else
 			d_thisScanIsRef = false;
 	}
+	else
+		d_thisScanIsRef = false;
+
 	return p.first;
 
 }

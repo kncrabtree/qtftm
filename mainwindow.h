@@ -17,6 +17,7 @@
 #include "batchattnplot.h"
 #include "drplot.h"
 #include "surveyplot.h"
+#include "drcorrplot.h"
 
 namespace Ui {
 class MainWindow;

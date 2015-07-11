@@ -9,7 +9,7 @@
 #include "drsummarypage.h"
 #include "batchtemplatepage.h"
 #include "togglepulsespage.h"
-#include "dr2dtemplatepage.h"
+#include "drcorrpage.h"
 #include "batchsetuppage.h"
 #include "batchprocessingpage.h"
 
@@ -46,10 +46,14 @@ BatchWizard::BatchWizard(SingleScanWidget *w, AutoFitWidget *a, QWidget *parent)
 	connect(dsump,&DrSummaryPage::batchDr,this,&BatchWizard::setBatchManager);
 
     BatchProcessingPage *bpp = new BatchProcessingPage(afw,this);
+    connect(sp,&StartPage::typeSelected,bpp,&BatchProcessingPage::setType);
     connect(bpp,&BatchProcessingPage::fitter,this,&BatchWizard::setFitter);
 
 	BatchSetupPage *bsp = new BatchSetupPage(ssw,this);
 	connect(bsp,&BatchSetupPage::batchManager,this,&BatchWizard::setBatchManager);
+
+	DrCorrPage *drcp = new DrCorrPage(ssw,this);
+	connect(drcp,&DrCorrPage::batchManager,this,&BatchWizard::setBatchManager);
 
 	//insert pages into wizard
 	setPage(Page_Start, sp);
@@ -63,7 +67,7 @@ BatchWizard::BatchWizard(SingleScanWidget *w, AutoFitWidget *a, QWidget *parent)
 	setPage(Page_DrSummary, dsump);
 //	setPage(Page_BatchTemplate, new BatchTemplatePage(this));
 //	setPage(Page_ToggleTemplate, new TogglePulsesPage(this));
-//	setPage(Page_Dr2dTemplate, new Dr2dTemplatePage(this));
+	setPage(Page_DrCorrSetup, drcp);
     setPage(Page_BatchProcessing, bpp);
 	setPage(Page_BatchSetup, bsp);
 

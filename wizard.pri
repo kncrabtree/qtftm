@@ -11,11 +11,11 @@ HEADERS += \
     drsummarypage.h \
     batchtemplatepage.h \
     togglepulsespage.h \
-    dr2dtemplatepage.h \
     batchsetuppage.h \
     batchwidget.h \
     batchtablemodel.h \
-    batchprocessingpage.h
+    batchprocessingpage.h \
+    $$PWD/drcorrpage.h
 
 SOURCES += \
     batchwizard.cpp \
@@ -30,10 +30,10 @@ SOURCES += \
     drsummarypage.cpp \
     batchtemplatepage.cpp \
     togglepulsespage.cpp \
-    dr2dtemplatepage.cpp \
     batchsetuppage.cpp \
     batchwidget.cpp \
     batchtablemodel.cpp \
-    batchprocessingpage.cpp
+    batchprocessingpage.cpp \
+    $$PWD/drcorrpage.cpp
 
 FORMS += batchwidget.ui

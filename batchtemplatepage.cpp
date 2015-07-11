@@ -39,7 +39,7 @@ int BatchTemplatePage::nextId() const
 		return BatchWizard::Page_ToggleTemplate;
 
 	if(field(QString("dr2dTemplate")).toBool())
-		return BatchWizard::Page_Dr2dTemplate;
+		return BatchWizard::Page_DrCorrSetup;
 
 	if(field(QString("customTemplate")).toBool())
 		return BatchWizard::Page_BatchProcessing;

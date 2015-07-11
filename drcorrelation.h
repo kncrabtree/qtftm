@@ -5,11 +5,13 @@
 
 #include "batchmanager.h"
 
+class AutoFitWidget;
+
 class DrCorrelation : public BatchManager
 {
 	Q_OBJECT
 public:
-	explicit DrCorrelation(QList<QPair<Scan,bool>> templateList);
+	explicit DrCorrelation(QList<QPair<Scan,bool>> templateList, AbstractFitter *ftr = new NoFitter());
 	explicit DrCorrelation(int num);
 	~DrCorrelation();
 

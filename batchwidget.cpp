@@ -11,20 +11,15 @@
 #include <QComboBox>
 #include <QDialogButtonBox>
 
-BatchWidget::BatchWidget(SingleScanWidget *ssw, QWidget *parent) :
+BatchWidget::BatchWidget(SingleScanWidget *ssw, QtFTM::BatchType type, QWidget *parent) :
      QWidget(parent),
-     ui(new Ui::BatchWidget)
+	ui(new Ui::BatchWidget), d_type(type)
 {
 	ui->setupUi(this);
 
 	//store scan settings
 	batchSsw = new SingleScanWidget(this);
-    batchSsw->setFromScan(ssw->toScan());
-//	batchSsw->setFtmFreq(ssw->ftmFreq());
-//	batchSsw->setAttn(ssw->attn());
-//	batchSsw->setDrFreq(ssw->drFreq());
-//	batchSsw->setDrPower(ssw->drPower());
-//	batchSsw->setPulseConfig(ssw->pulseConfig());
+	batchSsw->setFromScan(ssw->toScan());
 	batchSsw->setVisible(false);
 
 	ui->batchInsertButton->setEnabled(false);
@@ -94,14 +89,21 @@ void BatchWidget::updateLabel()
 	//get the time esimate and calculate hours, minutes, and seconds
 	int totalTime = btm.timeEstimate();
 	QDateTime dt = QDateTime::currentDateTime().addSecs(totalTime);
-	int h = (int)floor(totalTime/3600.0);
-	int m = (int)totalTime%3600/60;
-	int s = (int)totalTime%60;
+	int h = totalTime/3600;
+	int m = (totalTime%3600)/60;
+	int s = totalTime%60;
 
 	QSettings set(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+	QString name = QString("Batch Scan");
+	QString key = QString("batchNum");
+	if(d_type == QtFTM::DrCorrelation)
+	{
+		name = QString("DR Correlation");
+		key = QString("drCorrNum");
+	}
 
 	QString text;
-	text.append(QString("<table><th colspan=2>Batch Scan Number %1</th></tr>").arg(set.value(QString("batchNum"),1).toInt()));
+	text.append(QString("<table><th colspan=2>%1 Number %2</th></tr>").arg(name).arg(set.value(key,1).toInt()));
 	text.append(QString("<tr><td colspan=2 align=\"center\">Time estimates</td></tr>"));
 	text.append(QString("<tr><td>Total time: </td> <td> %1h %2m %3s</td></tr>").arg(h).arg(m).arg(s));
 	text.append(QString("<tr><td>Completed at: </td> <td> %1</td></tr>").arg(dt.toString()));

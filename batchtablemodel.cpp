@@ -256,24 +256,48 @@ Scan BatchTableModel::getLastCalScan() const
 	return out;
 }
 
-int BatchTableModel::timeEstimate() const
+int BatchTableModel::timeEstimate(QtFTM::BatchType type) const
 {
 	if(scanList.isEmpty())
 		return 0;
 
-	double totalTime = 0.0;
+	int totalTime = 0;
+	int totalShots = 0;
 	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
 	double repRate = s.value(QString("pulseGenerator/repRate"),6.0).toDouble();
 
-	totalTime += scanList.at(0).first.targetShots()/repRate;
-	for(int i=1;i<scanList.size();i++)
+
+	if(type == QtFTM::Batch)
 	{
-		//TODO: update time estimate. Assuming 10 seconds for random tuning
-		if(fabs(scanList.at(i).first.ftFreq() - scanList.at(i-1).first.ftFreq()) > 1.0)
-			totalTime += 10.0;
-		totalTime += scanList.at(i).first.targetShots()/repRate;
+		totalShots += scanList.first().first.targetShots();
+		for(int i=1;i<scanList.size();i++)
+		{
+			if(fabs(scanList.at(i).first.ftFreq() - scanList.at(i-1).first.ftFreq()) > 1.0)
+				totalTime += 10;
+			totalTime += scanList.at(i).first.targetShots();
+		}
 	}
-	return (int)round(totalTime);
+	else if(type == QtFTM::DrCorrelation)
+	{
+		for(int i=0; i<scanList.size(); i++)
+		{
+			totalShots += scanList.at(i).first.targetShots();
+			if((scanList.at(i).second || !qFuzzyCompare(scanList.at(i-1).first.ftFreq(),scanList.at(i).first.ftFreq())) && i>0)
+				totalTime += 10;
+			else
+			{
+				for(int j=i+1; j<scanList.size(); j++)
+				{
+					if(scanList.at(j).second || !qFuzzyCompare(scanList.at(j).first.ftFreq(),scanList.at(i).first.ftFreq()))
+						break;
+
+					totalShots += scanList.at(i).first.targetShots();
+				}
+			}
+		}
+	}
+
+	return totalTime + qRound(static_cast<double>(totalShots)/repRate);
 }
 
 void BatchTableModel::clear()
