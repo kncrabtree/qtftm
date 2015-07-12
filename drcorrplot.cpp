@@ -559,7 +559,7 @@ void DrCorrPlot::doCorrPrint(QPrinter *pr, int firstScan, int lastScan, int grap
 					break;
 				}
 			}
-			if(lastDrScanNum < refIndex)
+			if(lastDrScanNum < d_metaDataList.at(refIndex).scanNum)
 				lastDrScanNum = d_metaDataList.at(lIndex).scanNum;
 
 			//note that if this will be the first scan plotted, newGraph is already set to true above
@@ -589,6 +589,9 @@ void DrCorrPlot::doCorrPrint(QPrinter *pr, int firstScan, int lastScan, int grap
 			currentGraphData.refScanNum = d_metaDataList.at(refIndex).scanNum;
 			currentGraphData.lastDrScanNum = lastDrScanNum;
 		}
+
+		if (currentIndex == lIndex)
+			graphList.append(currentGraphData);
 
 		if(currentPlotScan == 0 && d_metaDataList.at(currentIndex).isCal)
 			firstPlottedWasCal = true;
