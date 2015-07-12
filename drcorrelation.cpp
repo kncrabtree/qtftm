@@ -227,6 +227,9 @@ void DrCorrelation::processScan(Scan s)
 				t << 0;
 		}
 	}
+	if(d_thisScanIsRef)
+		t << QString("\n") << QString("REF");
+
 	t.flush();
 
 	 //make metadata

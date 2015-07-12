@@ -251,13 +251,10 @@ void SurveyPlot::print()
         //if printing in color, make sure the color is darkish
         if(colorCheckBox->isChecked())
         {
-            QColor c = calPen.color();
-            if(c.red()>128)
-                c.setRed(c.red()-128);
-            if(c.blue()>128)
-                c.setBlue(c.blue()-128);
-            if(c.green()>128)
-                c.setGreen(c.green()-128);
+		   QColor c = calPen.color();
+		   c.setRed(c.red()/2);
+		   c.setBlue(c.blue()/2);
+		   c.setGreen(c.green()/2);
 
             p_calCurve->setPen(QPen(c,1.0));
             p_calCurve->setSymbol(new QwtSymbol(QwtSymbol::Ellipse,QBrush(c),QPen(c,1.0),QSize(5,5)));
@@ -344,8 +341,8 @@ void SurveyPlot::print()
     yScale.second = axisScaleDiv(QwtPlot::yLeft).upperBound();
 
     QPair<double,double> yRScale;
-    yScale.first = axisScaleDiv(QwtPlot::yRight).lowerBound();
-    yScale.second = axisScaleDiv(QwtPlot::yRight).upperBound();
+    yRScale.first = axisScaleDiv(QwtPlot::yRight).lowerBound();
+    yRScale.second = axisScaleDiv(QwtPlot::yRight).upperBound();
 
     auto yr = getAxisAutoScaleRange(QwtPlot::yRight);
     setAxisScale(QwtPlot::yRight,yr.first,yr.second);

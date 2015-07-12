@@ -183,7 +183,6 @@ void BatchAttnPlot::print()
     for(int i=0; i<d_plotCurves.size(); i++)
     {
         d_plotCurves[i]->setPen(pens.at(i));
-        d_plotCurves[i]->setRenderHint(QwtPlotItem::RenderAntialiased,false);
         d_plotCurves[i]->setVisible(true);
     }
 

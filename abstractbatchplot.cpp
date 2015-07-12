@@ -788,12 +788,47 @@ void AbstractBatchPlot::doPrint(double start, double end, double xRange, int plo
     QList<QRect> graphRects;
     for(int i=0; i<plotsPerPage; i++)
     {
-        QRect r;
-        r.setWidth(pr->pageRect().width());
-        r.setHeight((pr->pageRect().height()-titleHeight)/plotsPerPage);
-        r.moveTop(i*r.height() + titleHeight);
-        graphRects.append(r);
+	   QRect r;
+	   r.setWidth(pr->pageRect().width());
+	   r.setHeight((pr->pageRect().height()-titleHeight)/plotsPerPage);
+	   r.moveTop(i*r.height() + titleHeight);
+	   graphRects.append(r);
     }
+
+    if(!d_plotMarkers.isEmpty() && d_plotMarkers.first()->isVisible())
+    {
+	    QFontMetrics fm3(d_plotMarkers.at(0)->label().font(),pr);
+	    int lheight = 0, rheight = 0;
+	    for(int i=0;i<d_plotMarkers.size();i++)
+	    {
+		    if(!d_metaDataList.at(i).isCal)
+		    {
+			    QString text = d_plotMarkers.at(i)->label().text();
+			    int numLines = text.split(QString("\n"),QString::SkipEmptyParts).size();
+			    lheight = qMax(lheight,fm3.boundingRect(text).height()*numLines);
+		    }
+		    else
+		    {
+			    QString text = d_plotMarkers.at(i)->label().text();
+			    int numLines = text.split(QString("\n"),QString::SkipEmptyParts).size();
+			    rheight = qMax(rheight,fm3.boundingRect(text).height()*numLines);
+		    }
+	    }
+
+	    QwtPlot::replot();
+	    auto ldiv = axisScaleDiv(QwtPlot::yLeft);
+	    auto rdiv = axisScaleDiv(QwtPlot::yRight);
+
+	    //x axis takes up ~1000 pts (printer scale)
+	    double lscaling = (ldiv.upperBound()-ldiv.lowerBound())/((double)graphRects.first().height()-1000);
+	    double lyMax = static_cast<double>(lheight+150)*lscaling + ldiv.upperBound();
+	    setAxisScale(QwtPlot::yLeft,ldiv.lowerBound(),lyMax);
+
+	    double rscaling = (rdiv.upperBound()-rdiv.lowerBound())/((double)graphRects.first().height()-1000);
+	    double ryMax = static_cast<double>(rheight+150)*rscaling + rdiv.upperBound();
+	    setAxisScale(QwtPlot::yRight,rdiv.lowerBound(),ryMax);
+    }
+
 
     int curveIndex = 0, curveCount = 0;
     QwtLegend *leg = static_cast<QwtLegend*>(legend());

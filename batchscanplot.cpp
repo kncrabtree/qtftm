@@ -122,6 +122,7 @@ void BatchScanPlot::print()
     d.setWindowTitle(QString("Batch Printing Options"));
 
     QPair<double,double> autoScaleYRange = getAxisAutoScaleRange(QwtPlot::yLeft);
+    double ym = d_plotCurveMetaData.first().yMax;
 
     //graph-related options
     QGroupBox *graphBox = new QGroupBox(QString("Graph setup"),&d);
@@ -162,18 +163,18 @@ void BatchScanPlot::print()
     yMinBox->setToolTip(QString("Minimum value on y axis of each graph"));
     yMinBox->setDecimals(3);
     yMinBox->setMinimum(0.0);
-    yMinBox->setMaximum(autoScaleYRange.second*0.9);
+    yMinBox->setMaximum(ym*0.9);
     yMinBox->setValue(0.0);
-    yMinBox->setSingleStep(autoScaleYRange.second*0.1);
+    yMinBox->setSingleStep(ym*0.1);
     gbl->addRow(QString("Y min"),yMinBox);
 
     QDoubleSpinBox *yMaxBox = new QDoubleSpinBox(graphBox);
     yMaxBox->setToolTip(QString("Maximum value on y axis of each graph"));
     yMaxBox->setDecimals(3);
     yMaxBox->setMinimum(0.0);
-    yMaxBox->setMaximum(autoScaleYRange.second);
-    yMaxBox->setValue(autoScaleYRange.second);
-    yMaxBox->setSingleStep(autoScaleYRange.second*0.1);
+    yMaxBox->setMaximum(ym);
+    yMaxBox->setValue(ym);
+    yMaxBox->setSingleStep(ym*0.1);
     gbl->addRow(QString("Y max"),yMaxBox);
 
     graphBox->setLayout(gbl);
@@ -241,7 +242,7 @@ void BatchScanPlot::print()
     if(yMin == yMax)
     {
         yMin = autoScaleYRange.first;
-        yMax = autoScaleYRange.second;
+	   yMax = ym;
     }
     if(yMin > yMax)
         qSwap(yMin,yMax);
@@ -266,12 +267,9 @@ void BatchScanPlot::print()
         if(colorCheckBox->isChecked())
         {
             QColor c = calPen.color();
-            if(c.red()>128)
-                c.setRed(c.red()-128);
-            if(c.blue()>128)
-                c.setBlue(c.blue()-128);
-            if(c.green()>128)
-                c.setGreen(c.green()-128);
+		  c.setRed(c.red()/2);
+		  c.setBlue(c.blue()/2);
+		  c.setGreen(c.green()/2);
 
             p_calCurve->setPen(QPen(c,1.0));
             p_calCurve->setSymbol(new QwtSymbol(QwtSymbol::Ellipse,QBrush(c),QPen(c,1.0),QSize(5,5)));
@@ -322,8 +320,8 @@ void BatchScanPlot::print()
     yScale.second = axisScaleDiv(QwtPlot::yLeft).upperBound();
 
     QPair<double,double> yRScale;
-    yScale.first = axisScaleDiv(QwtPlot::yRight).lowerBound();
-    yScale.second = axisScaleDiv(QwtPlot::yRight).upperBound();
+    yRScale.first = axisScaleDiv(QwtPlot::yRight).lowerBound();
+    yRScale.second = axisScaleDiv(QwtPlot::yRight).upperBound();
 
     auto yr = getAxisAutoScaleRange(QwtPlot::yRight);
     setAxisScale(QwtPlot::yRight,yr.first,yr.second);
@@ -374,7 +372,6 @@ void BatchScanPlot::print()
         p_selectedZone->setVisible(true);
 
     d_plotCurves[0]->setPen(curvePen);
-    d_plotCurves[0]->setRenderHint(QwtPlotItem::RenderAntialiased,false);
 
     for(int i=0; i<d_plotMarkers.size(); i++)
     {
@@ -382,7 +379,6 @@ void BatchScanPlot::print()
         t.setBackgroundBrush(QBrush());
         t.setColor(textColor);
         d_plotMarkers[i]->setLabel(t);
-        d_plotMarkers[i]->setRenderHint(QwtPlotItem::RenderAntialiased,false);
     }
 
     if(!d_calCurveData.isEmpty())
