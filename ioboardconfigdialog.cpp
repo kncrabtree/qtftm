@@ -11,6 +11,7 @@ IOBoardConfigDialog::IOBoardConfigDialog(QWidget *parent) :
 
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
     s.beginGroup(d_key);
+    s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
 
     ui->serialNoSpinBox->setValue(s.value(QString("serialNo"),3).toInt());
     ui->cwLineSpinBox->setValue(s.value(QString("cwLine"),16).toInt()-16);
@@ -18,6 +19,7 @@ IOBoardConfigDialog::IOBoardConfigDialog(QWidget *parent) :
     ui->magnetLineSpinBox->setValue(s.value(QString("magnetLine"),18).toInt()-16);
     ui->counterTimerOffsetSpinBox->setValue(s.value(QString("counterOffset"),4).toInt());
 
+    s.endGroup();
     s.endGroup();
 
     auto intVc = static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged);
@@ -99,7 +101,9 @@ void IOBoardConfigDialog::testConnectionCallback()
 {
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
     s.beginGroup(d_key);
+    s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
     s.setValue(QString("serialNo"),ui->serialNoSpinBox->value());
+    s.endGroup();
     s.endGroup();
     s.sync();
 
@@ -127,10 +131,12 @@ void IOBoardConfigDialog::accept()
 {
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
     s.beginGroup(d_key);
+    s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
     s.setValue(QString("cwLine"),ui->cwLineSpinBox->value()+16);
     s.setValue(QString("highBandLine"),ui->highBandLineSpinBox->value()+16);
     s.setValue(QString("magnetLine"),ui->magnetLineSpinBox->value()+16);
     s.setValue(QString("counterOffset"),ui->counterTimerOffsetSpinBox->value());
+    s.endGroup();
     s.endGroup();
     s.sync();
 

@@ -61,7 +61,7 @@ DISTFILES += \
 
 #headers for qwt6 should be linked in /usr/local/include/qwt6:
 #example: ln -s /usr/local/qwt-6.1.3/include /usr/local/include/qwt6
-unix:!macx: LIBS += -L/usr/local/lib64 -lqwt -lgsl -lgslcblas -lm -llabjackusb
+unix:!macx: LIBS += -L/usr/local/lib64 -lqwt -lgsl -lgslcblas -lm
 
 
 ######################################################

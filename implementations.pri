@@ -5,7 +5,6 @@ HEADERS += \
     $$PWD/pindelaygeneratorpa.h \
     $$PWD/antonuccimotordriver.h \
     $$PWD/mks647c.h \
-    $$PWD/labjacku3.h \
     $$PWD/hp8340ftm.h \
     $$PWD/hp8340dr.h \
     $$PWD/hp8673ftm.h \
@@ -30,7 +29,6 @@ SOURCES += \
     $$PWD/pindelaygeneratorpa.cpp \
     $$PWD/antonuccimotordriver.cpp \
     $$PWD/mks647c.cpp \
-    $$PWD/labjacku3.cpp \
     $$PWD/hp8340ftm.cpp \
     $$PWD/hp8340dr.cpp \
     $$PWD/hp8673ftm.cpp \
@@ -47,3 +45,13 @@ SOURCES += \
     $$PWD/virtualmotordriver.cpp \
     $$PWD/virtualflowcontroller.cpp \
     $$PWD/virtualhvps.cpp
+
+equals(IOB, 1) {
+HEADERS += labjacku3.h \
+    u3.h
+
+SOURCES += labjacku3.cpp \
+    u3.cpp
+
+LIBS += -llabjackusb
+}

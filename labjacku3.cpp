@@ -25,7 +25,11 @@ bool LabjackU3::testConnection()
         closeConnection();
 
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
-    d_serialNo = s.value(QString("%1/serialNo").arg(d_key),3).toInt();
+    s.beginGroup(d_key);
+    s.beginGroup(d_subKey);
+    d_serialNo = s.value(QString("serialNo"),3).toInt();
+    s.endGroup();
+    s.endGroup();
 
     //open labjack device with indicated serial number. If serial number is 3, this will open the first LabJack U3 device found.
     d_handle = openUSBConnection(d_serialNo);
@@ -188,6 +192,8 @@ void LabjackU3::configure()
     d_highBandLine = s.value(QString("highBandLine"),17).toInt();
     d_magnetLine = s.value(QString("magnetLine"),18).toInt();
     d_counterPinOffset = s.value(QString("counterOffset"),4).toInt();
+    s.endGroup();
+    s.endGroup();
 
 
     //enable counter on indicated line

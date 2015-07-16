@@ -11,7 +11,6 @@ SOURCES += hardwaremanager.cpp \
     rs232instrument.cpp \
     motordriver.cpp \
     ioboard.cpp \
-    u3.cpp \
     synthesizer.cpp \
     pinswitchdrivedelaygenerator.cpp \
     $$PWD/communicationprotocol.cpp \
@@ -32,7 +31,6 @@ HEADERS += hardwaremanager.h \
     attenuator.h \
     rs232instrument.h \
     motordriver.h \
-    u3.h \
     ioboard.h \
     synthesizer.h \
     pinswitchdrivedelaygenerator.h \
