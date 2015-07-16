@@ -35,6 +35,8 @@ public:
 
     void setDcEnabled(bool en);
     void setDrEnabled(bool en);
+    bool isDcEnabled() const;
+    bool isDrEnabled() const;
 
 private:
     QSharedDataPointer<PulseGenConfigData> data;

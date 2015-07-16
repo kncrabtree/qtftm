@@ -261,12 +261,9 @@ void DrPlot::print()
         if(colorCheckBox->isChecked())
         {
             QColor c = pens.at(i).color();
-            if(c.red()>128)
-                c.setRed(c.red()-128);
-            if(c.blue()>128)
-                c.setBlue(c.blue()-128);
-            if(c.green()>128)
-                c.setGreen(c.green()-128);
+		  c.setRed(c.red()/2);
+		  c.setBlue(c.blue()/2);
+		  c.setGreen(c.green()/2);
 
             d_plotCurves[i]->setPen(QPen(c,1.0));
         }

@@ -10,7 +10,7 @@
 #include <qwt6/qwt_symbol.h>
 
 AbstractBatchPlot::AbstractBatchPlot(QString name, QWidget *parent) :
-    ZoomPanPlot(name,parent), d_zoneScanNum(0), d_showZonePending(false), d_recalcZoneOnResize(false), d_doNotReplot(false), d_hideBadZones(false)
+    ZoomPanPlot(name,parent), d_zoneScanNum(0), d_showZonePending(false), d_recalcZoneOnResize(false), d_doNotReplot(false), d_hideBadZones(false), d_hidePlotLabels(false)
 {
     QFont labelFont(QString("sans serif"),8);
     setAxisFont(QwtPlot::xBottom,labelFont);
@@ -323,6 +323,50 @@ void AbstractBatchPlot::filterData()
     if(d_plotCurveData.isEmpty())
         return;
 
+    if(!d_plotMarkers.isEmpty() && !d_hidePlotLabels)
+    {
+	   //loop over labels, seeing if the next will overlap
+	   int activeIndex = 0;
+
+	   QFontMetrics fm(d_plotMarkers.at(0)->label().font());
+	   double min = axisScaleDiv(QwtPlot::xBottom).lowerBound();
+	   double max = axisScaleDiv(QwtPlot::xBottom).upperBound();
+
+
+	   for(int i=0; i<d_plotMarkers.size(); i++)
+	   {
+		  auto thisRange = calculateMarkerBoundaries(fm,i);
+		  if(thisRange.first < min)
+			 d_plotMarkers[i]->setVisible(false);
+		  else
+		  {
+			 activeIndex = i;
+			 d_plotMarkers[i]->setVisible(true);
+			 break;
+		  }
+	   }
+
+	   auto activeRange = calculateMarkerBoundaries(fm,activeIndex);
+	   for(int i=activeIndex+1; i<d_plotMarkers.size(); i++)
+	   {
+		  //calculate right edge of active marker, and left edge of current marker
+		  //get widest text line
+		  auto thisRange = calculateMarkerBoundaries(fm,i);
+
+		  //hide this label if it overlaps with the active label
+		  if(thisRange.first < activeRange.second || thisRange.second > max)
+			 d_plotMarkers[i]->setVisible(false);
+		  else //otherwise, it is visible, and will be the reference for the next iteration of the loop
+		  {
+			 activeRange = thisRange;
+			 d_plotMarkers[i]->setVisible(true);
+			 activeIndex = i;
+		  }
+
+	   }
+
+    }
+
     if(d_plotCurveData.size() < 2*canvas()->width())
         return;
 
@@ -514,6 +558,16 @@ void AbstractBatchPlot::toggleHideBadZones(bool hide)
     replot();
 }
 
+void AbstractBatchPlot::togglePlotLabels(bool on)
+{
+    d_hidePlotLabels = on;
+
+    for(int i=0; i<d_plotMarkers.size(); i++)
+	   d_plotMarkers[i]->setVisible(!d_hidePlotLabels);
+
+    replot();
+}
+
 void AbstractBatchPlot::addBadZone(QtFTM::BatchPlotMetaData md)
 {
     if(!md.badTune)
@@ -560,6 +614,14 @@ QMenu *AbstractBatchPlot::contextMenu()
     hideAction->setChecked(d_hideBadZones);
     connect(hideAction,&QAction::toggled,this,&AbstractBatchPlot::toggleHideBadZones);
 
+    if(!d_plotMarkers.isEmpty())
+    {
+	    QAction *hideLabelsAction = out->addAction(QString("Hide labels"));
+	    hideLabelsAction->setCheckable(true);
+	    hideLabelsAction->setChecked(d_hidePlotLabels);
+	    connect(hideLabelsAction,&QAction::triggered,[=](){ togglePlotLabels(!d_hidePlotLabels); });
+    }
+
     return out;
 }
 
@@ -572,6 +634,28 @@ void AbstractBatchPlot::replot()
 {
     if(!d_doNotReplot)
     {
+	    if(!d_plotMarkers.isEmpty())
+	    {
+		    if(d_hidePlotLabels)
+		    {
+			    //get max height for left and right axes
+			    double lmax = 0.0;
+			    for(int i=0; i<d_plotCurveMetaData.size(); i++)
+				    lmax = qMax(d_plotCurveMetaData.at(i).yMax,lmax);
+			    double rMax = 0.0;
+			    for(int i=0; i<d_calCurveData.size(); i++)
+				    rMax = qMax(d_calCurveData.at(i).y(),rMax);
+
+			    setAxisAutoScaleRange(QwtPlot::yLeft,0.0,lmax);
+			    setAxisAutoScaleRange(QwtPlot::yRight,0.0,rMax);
+		    }
+		    else
+		    {
+			    setAxisAutoScaleRange(QwtPlot::yLeft,0.0,calculateAxisMaxWithLabel(QwtPlot::yLeft));
+			    setAxisAutoScaleRange(QwtPlot::yRight,0.0,calculateAxisMaxWithLabel(QwtPlot::yRight));
+		    }
+	    }
+
         ZoomPanPlot::replot();
         bool replotAgain = false;
         if(d_recalcZoneOnResize && !d_metaDataList.isEmpty())
@@ -599,6 +683,61 @@ void AbstractBatchPlot::replot()
             ZoomPanPlot::replot();
 
     }
+}
+
+double AbstractBatchPlot::calculateAxisMaxWithLabel(QwtPlot::Axis axis) const
+{
+	QPair<double,double> yRange = qMakePair(0.0,0.0);
+	if(axis == QwtPlot::yLeft)
+	{
+	    for(int i=0; i <d_plotCurveMetaData.size();i++)
+		   yRange.second = qMax(yRange.second,d_plotCurveMetaData.at(i).yMax);
+	}
+	else
+	{
+	    for(int i=0; i<d_calCurveData.size(); i++)
+		   yRange.second = qMax(yRange.second,d_calCurveData.at(i).y());
+	}
+
+	if(d_plotMarkers.isEmpty())
+		return yRange.second;
+
+	int height = 0;
+	QFontMetrics fm(d_plotMarkers.at(0)->label().font());
+	for(int i=0;i<d_plotMarkers.size();i++)
+	{
+		if((axis == QwtPlot::yLeft && !d_metaDataList.at(i).isCal) ||
+				(axis == QwtPlot::yRight && d_metaDataList.at(i).isCal))
+		{
+			QString text = d_plotMarkers.at(i)->label().text();
+			int numLines = text.split(QString("\n"),QString::SkipEmptyParts).size();
+			height = qMax(height,fm.boundingRect(text).height()*numLines);
+		}
+	}
+
+	double scaling = (yRange.second - yRange.first)/(double)canvas()->height();
+	return static_cast<double>(height+20)*scaling + yRange.second;
+
+}
+
+QPair<double, double> AbstractBatchPlot::calculateMarkerBoundaries(QFontMetrics fm, int index)
+{
+    if(index < 0 || index >= d_plotMarkers.size())
+	   return qMakePair(-1.0,-1.0);
+
+    double scaleMin = axisScaleDiv(QwtPlot::xBottom).lowerBound();
+    double scaleMax = axisScaleDiv(QwtPlot::xBottom).upperBound();
+    double scaling = (scaleMax-scaleMin)/static_cast<double>(canvas()->width());
+
+    QStringList lines = d_plotMarkers.at(index)->label().text().split(QString("\n"),QString::SkipEmptyParts);
+    int w = 0;
+    for(int j=0; j<lines.size(); j++)
+	   w = qMax(w,fm.boundingRect(lines.at(j)).width())+5;
+
+    double min = (double)d_metaDataList.at(index).scanNum - (double)w*scaling/2.0;
+    double max = (double)d_metaDataList.at(index).scanNum + (double)w*scaling/2.0;
+
+    return qMakePair(min,max);
 }
 
 void AbstractBatchPlot::doPrint(double start, double end, double xRange, int plotsPerPage, QString title, QPrinter *pr, bool oneCurvePerPlot, bool autoYRanges)
@@ -649,12 +788,47 @@ void AbstractBatchPlot::doPrint(double start, double end, double xRange, int plo
     QList<QRect> graphRects;
     for(int i=0; i<plotsPerPage; i++)
     {
-        QRect r;
-        r.setWidth(pr->pageRect().width());
-        r.setHeight((pr->pageRect().height()-titleHeight)/plotsPerPage);
-        r.moveTop(i*r.height() + titleHeight);
-        graphRects.append(r);
+	   QRect r;
+	   r.setWidth(pr->pageRect().width());
+	   r.setHeight((pr->pageRect().height()-titleHeight)/plotsPerPage);
+	   r.moveTop(i*r.height() + titleHeight);
+	   graphRects.append(r);
     }
+
+    if(!d_plotMarkers.isEmpty() && d_plotMarkers.first()->isVisible())
+    {
+	    QFontMetrics fm3(d_plotMarkers.at(0)->label().font(),pr);
+	    int lheight = 0, rheight = 0;
+	    for(int i=0;i<d_plotMarkers.size();i++)
+	    {
+		    if(!d_metaDataList.at(i).isCal)
+		    {
+			    QString text = d_plotMarkers.at(i)->label().text();
+			    int numLines = text.split(QString("\n"),QString::SkipEmptyParts).size();
+			    lheight = qMax(lheight,fm3.boundingRect(text).height()*numLines);
+		    }
+		    else
+		    {
+			    QString text = d_plotMarkers.at(i)->label().text();
+			    int numLines = text.split(QString("\n"),QString::SkipEmptyParts).size();
+			    rheight = qMax(rheight,fm3.boundingRect(text).height()*numLines);
+		    }
+	    }
+
+	    QwtPlot::replot();
+	    auto ldiv = axisScaleDiv(QwtPlot::yLeft);
+	    auto rdiv = axisScaleDiv(QwtPlot::yRight);
+
+	    //x axis takes up ~1000 pts (printer scale)
+	    double lscaling = (ldiv.upperBound()-ldiv.lowerBound())/((double)graphRects.first().height()-1000);
+	    double lyMax = static_cast<double>(lheight+150)*lscaling + ldiv.upperBound();
+	    setAxisScale(QwtPlot::yLeft,ldiv.lowerBound(),lyMax);
+
+	    double rscaling = (rdiv.upperBound()-rdiv.lowerBound())/((double)graphRects.first().height()-1000);
+	    double ryMax = static_cast<double>(rheight+150)*rscaling + rdiv.upperBound();
+	    setAxisScale(QwtPlot::yRight,rdiv.lowerBound(),ryMax);
+    }
+
 
     int curveIndex = 0, curveCount = 0;
     QwtLegend *leg = static_cast<QwtLegend*>(legend());

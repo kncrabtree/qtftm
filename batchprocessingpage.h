@@ -17,8 +17,10 @@ signals:
     void fitter(AbstractFitter*);
 	
 public slots:
+    void setType(QtFTM::BatchType type);
 
 private:
+    QtFTM::BatchType d_type;
     AutoFitWidget *batchAfw;
 	
 };

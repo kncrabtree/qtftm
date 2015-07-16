@@ -17,7 +17,7 @@ class BatchWidget : public QWidget
 	Q_OBJECT
 	
 public:
-	explicit BatchWidget(SingleScanWidget *ssw, QWidget *parent = nullptr);
+	explicit BatchWidget(SingleScanWidget *ssw, QtFTM::BatchType type = QtFTM::Batch, QWidget *parent = nullptr);
 	~BatchWidget();
 
 	bool isEmpty();
@@ -47,6 +47,7 @@ private:
 	Ui::BatchWidget *ui;
 	SingleScanWidget *batchSsw;
 	BatchTableModel btm;
+	QtFTM::BatchType d_type;
 	Scan buildScanFromDialog(bool cal = false);
 	bool isSelectionContiguous(QModelIndexList l);
 	Scan parseLine(Scan defaultScan, QString line);

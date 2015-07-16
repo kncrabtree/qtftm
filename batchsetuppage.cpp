@@ -8,7 +8,7 @@ BatchSetupPage::BatchSetupPage(SingleScanWidget *ssw, QWidget *parent) :
 	setSubTitle(QString("Configure your batch scan by adding individual scans to the table."));
 
 	QVBoxLayout *vl = new QVBoxLayout(this);
-	bw = new BatchWidget(ssw,this);
+	bw = new BatchWidget(ssw,QtFTM::Batch,this);
 	connect(bw,&BatchWidget::scansChanged,this,&QWizardPage::completeChanged);
 	vl->addWidget(bw);
 

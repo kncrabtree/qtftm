@@ -12,6 +12,7 @@ LoadBatchDialog::LoadBatchDialog(QWidget *parent) :
     int surveyMax = s.value(QString("surveyNum"),0).toInt()-1;
     if(surveyMax > 0)
     {
+	    ui->surveySpinBox->setSpecialValueText(QString(""));
         ui->surveySpinBox->setRange(1,surveyMax);
         ui->surveySpinBox->setValue(surveyMax);
     }
@@ -27,6 +28,7 @@ LoadBatchDialog::LoadBatchDialog(QWidget *parent) :
     int drMax = s.value(QString("drNum"),0).toInt()-1;
     if(drMax > 0)
     {
+	    ui->drScanSpinBox->setSpecialValueText(QString(""));
         ui->drScanSpinBox->setRange(1,drMax);
         ui->drScanSpinBox->setValue(drMax);
     }
@@ -43,6 +45,7 @@ LoadBatchDialog::LoadBatchDialog(QWidget *parent) :
     int batchMax = s.value(QString("batchNum"),0).toInt()-1;
     if(batchMax > 0)
     {
+	    ui->batchSpinBox->setSpecialValueText(QString(""));
         ui->batchSpinBox->setRange(1,batchMax);
         ui->batchSpinBox->setValue(batchMax);
     }
@@ -59,6 +62,7 @@ LoadBatchDialog::LoadBatchDialog(QWidget *parent) :
     int attenMax = s.value(QString("batchAttnNum"),0).toInt()-1;
     if(attenMax > 0)
     {
+	    ui->attenuationSpinBox->setSpecialValueText(QString(""));
         ui->attenuationSpinBox->setRange(1,attenMax);
         ui->attenuationSpinBox->setValue(attenMax);
     }
@@ -68,6 +72,21 @@ LoadBatchDialog::LoadBatchDialog(QWidget *parent) :
         ui->attenuationSpinBox->setValue(0);
         ui->attenuationButton->setChecked(false);
         ui->attenuationButton->setCheckable(false);
+    }
+
+    int drCorrMax = s.value(QString("drCorrNum"),0).toInt()-1;
+    if(drCorrMax > 0)
+    {
+	    ui->drCorrSpinBox->setSpecialValueText(QString(""));
+	    ui->drCorrSpinBox->setValue(drCorrMax);
+	    ui->drCorrSpinBox->setRange(1,drCorrMax);
+    }
+    else
+    {
+	    ui->drCorrSpinBox->setRange(0,0);
+	    ui->drCorrSpinBox->setValue(0);
+	    ui->drCorrButton->setChecked(false);
+	    ui->drCorrButton->setCheckable(false);
     }
 
     if(ui->surveyButton->isChecked())
@@ -90,11 +109,17 @@ LoadBatchDialog::LoadBatchDialog(QWidget *parent) :
     else
         ui->attenuationSpinBox->setEnabled(false);
 
+    if(ui->drCorrButton->isChecked())
+	    ui->drCorrSpinBox->setEnabled(true);
+    else
+	    ui->drCorrSpinBox->setEnabled(false);
+
 
     connect(ui->surveyButton,&QAbstractButton::toggled,ui->surveySpinBox,&QWidget::setEnabled);
     connect(ui->drScanButton,&QAbstractButton::toggled,ui->drScanSpinBox,&QWidget::setEnabled);
     connect(ui->batchButton,&QAbstractButton::toggled,ui->batchSpinBox,&QWidget::setEnabled);
     connect(ui->attenuationButton,&QAbstractButton::toggled,ui->attenuationSpinBox,&QWidget::setEnabled);
+    connect(ui->drCorrButton,&QAbstractButton::toggled,ui->drCorrSpinBox,&QWidget::setEnabled);
 
     ui->removeDCCheckBox->setChecked(true);
 }
@@ -127,6 +152,11 @@ QPair<QtFTM::BatchType, int> LoadBatchDialog::selection() const
     {
 	   out.first = QtFTM::Attenuation;
         out.second = ui->attenuationSpinBox->value();
+    }
+    else if(ui->drCorrButton->isChecked())
+    {
+	    out.first = QtFTM::DrCorrelation;
+	    out.second = ui->drCorrSpinBox->value();
     }
 
     return out;

@@ -6,7 +6,7 @@
 #include "batchwizard.h"
 
 BatchProcessingPage::BatchProcessingPage(AutoFitWidget *afw, QWidget *parent) :
-     QWizardPage(parent)
+	QWizardPage(parent), d_type(QtFTM::Batch)
 {
 	setTitle(QString("Batch Processing Settings"));
 	setSubTitle(QString("Enter the default settings to be used for processing batch scans."));
@@ -21,11 +21,22 @@ BatchProcessingPage::BatchProcessingPage(AutoFitWidget *afw, QWidget *parent) :
 
 int BatchProcessingPage::nextId() const
 {
-    return BatchWizard::Page_BatchSetup;
+	if(d_type == QtFTM::Batch)
+		return BatchWizard::Page_BatchSetup;
+
+	if(d_type == QtFTM::DrCorrelation)
+		return BatchWizard::Page_DrCorrSetup;
+
+	return BatchWizard::Page_BatchSetup;
 }
 
 bool BatchProcessingPage::validatePage()
 {
     emit fitter(batchAfw->toFitter());
-    return true;
+	return true;
+}
+
+void BatchProcessingPage::setType(QtFTM::BatchType type)
+{
+	d_type = type;
 }

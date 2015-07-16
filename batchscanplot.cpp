@@ -3,7 +3,7 @@
 #include <qwt6/qwt_symbol.h>
 
 BatchScanPlot::BatchScanPlot(int num, QWidget *parent) :
-    AbstractBatchPlot(QString("batchScanPlot"),parent), d_hideBatchLabels(false)
+    AbstractBatchPlot(QString("batchScanPlot"),parent)
 {
     QFont labelFont(QString("sans serif"),8);
     QwtText plotTitle(QString("Batch Scan %1").arg(num));
@@ -64,7 +64,7 @@ void BatchScanPlot::receiveData(QtFTM::BatchPlotMetaData md, QList<QVector<QPoin
     m->setLabel(t);
     m->setLabelAlignment(Qt::AlignTop|Qt::AlignHCenter);
     m->setXValue((double)md.scanNum);
-    if(!d_hideBatchLabels)
+    if(!d_hidePlotLabels)
         m->attach(this);
     d_plotMarkers.append(m);
 
@@ -122,6 +122,7 @@ void BatchScanPlot::print()
     d.setWindowTitle(QString("Batch Printing Options"));
 
     QPair<double,double> autoScaleYRange = getAxisAutoScaleRange(QwtPlot::yLeft);
+    double ym = d_plotCurveMetaData.first().yMax;
 
     //graph-related options
     QGroupBox *graphBox = new QGroupBox(QString("Graph setup"),&d);
@@ -162,18 +163,18 @@ void BatchScanPlot::print()
     yMinBox->setToolTip(QString("Minimum value on y axis of each graph"));
     yMinBox->setDecimals(3);
     yMinBox->setMinimum(0.0);
-    yMinBox->setMaximum(autoScaleYRange.second*0.9);
+    yMinBox->setMaximum(ym*0.9);
     yMinBox->setValue(0.0);
-    yMinBox->setSingleStep(autoScaleYRange.second*0.1);
+    yMinBox->setSingleStep(ym*0.1);
     gbl->addRow(QString("Y min"),yMinBox);
 
     QDoubleSpinBox *yMaxBox = new QDoubleSpinBox(graphBox);
     yMaxBox->setToolTip(QString("Maximum value on y axis of each graph"));
     yMaxBox->setDecimals(3);
     yMaxBox->setMinimum(0.0);
-    yMaxBox->setMaximum(autoScaleYRange.second);
-    yMaxBox->setValue(autoScaleYRange.second);
-    yMaxBox->setSingleStep(autoScaleYRange.second*0.1);
+    yMaxBox->setMaximum(ym);
+    yMaxBox->setValue(ym);
+    yMaxBox->setSingleStep(ym*0.1);
     gbl->addRow(QString("Y max"),yMaxBox);
 
     graphBox->setLayout(gbl);
@@ -241,7 +242,7 @@ void BatchScanPlot::print()
     if(yMin == yMax)
     {
         yMin = autoScaleYRange.first;
-        yMax = autoScaleYRange.second;
+	   yMax = ym;
     }
     if(yMin > yMax)
         qSwap(yMin,yMax);
@@ -266,12 +267,9 @@ void BatchScanPlot::print()
         if(colorCheckBox->isChecked())
         {
             QColor c = calPen.color();
-            if(c.red()>128)
-                c.setRed(c.red()-128);
-            if(c.blue()>128)
-                c.setBlue(c.blue()-128);
-            if(c.green()>128)
-                c.setGreen(c.green()-128);
+		  c.setRed(c.red()/2);
+		  c.setBlue(c.blue()/2);
+		  c.setGreen(c.green()/2);
 
             p_calCurve->setPen(QPen(c,1.0));
             p_calCurve->setSymbol(new QwtSymbol(QwtSymbol::Ellipse,QBrush(c),QPen(c,1.0),QSize(5,5)));
@@ -300,7 +298,7 @@ void BatchScanPlot::print()
 
     for(int i=0; i<d_plotMarkers.size(); i++)
     {
-        if(!d_hideBatchLabels)
+	   if(!d_hidePlotLabels)
         {
             d_plotMarkers[i]->setVisible(true);
             QwtText t = d_plotMarkers.at(i)->label();
@@ -322,8 +320,8 @@ void BatchScanPlot::print()
     yScale.second = axisScaleDiv(QwtPlot::yLeft).upperBound();
 
     QPair<double,double> yRScale;
-    yScale.first = axisScaleDiv(QwtPlot::yRight).lowerBound();
-    yScale.second = axisScaleDiv(QwtPlot::yRight).upperBound();
+    yRScale.first = axisScaleDiv(QwtPlot::yRight).lowerBound();
+    yRScale.second = axisScaleDiv(QwtPlot::yRight).upperBound();
 
     auto yr = getAxisAutoScaleRange(QwtPlot::yRight);
     setAxisScale(QwtPlot::yRight,yr.first,yr.second);
@@ -374,7 +372,6 @@ void BatchScanPlot::print()
         p_selectedZone->setVisible(true);
 
     d_plotCurves[0]->setPen(curvePen);
-    d_plotCurves[0]->setRenderHint(QwtPlotItem::RenderAntialiased,false);
 
     for(int i=0; i<d_plotMarkers.size(); i++)
     {
@@ -382,7 +379,6 @@ void BatchScanPlot::print()
         t.setBackgroundBrush(QBrush());
         t.setColor(textColor);
         d_plotMarkers[i]->setLabel(t);
-        d_plotMarkers[i]->setRenderHint(QwtPlotItem::RenderAntialiased,false);
     }
 
     if(!d_calCurveData.isEmpty())
@@ -396,155 +392,4 @@ void BatchScanPlot::print()
 
     QApplication::restoreOverrideCursor();
 
-}
-
-void BatchScanPlot::toggleBatchLabels(bool on)
-{
-    d_hideBatchLabels = on;
-
-    for(int i=0; i<d_plotMarkers.size(); i++)
-        d_plotMarkers[i]->setVisible(!d_hideBatchLabels);
-
-    replot();
-}
-
-QMenu *BatchScanPlot::contextMenu()
-{
-    QMenu *out = AbstractBatchPlot::contextMenu();
-
-    //move to Batch implementation
-    QAction *hideLabelsAction = out->addAction(QString("Hide labels"));
-    hideLabelsAction->setCheckable(true);
-    hideLabelsAction->setChecked(d_hideBatchLabels);
-    connect(hideLabelsAction,&QAction::triggered,[=](){ toggleBatchLabels(!d_hideBatchLabels); });
-
-    return out;
-}
-
-void BatchScanPlot::replot()
-{
-    if(!d_plotMarkers.isEmpty())
-    {
-        if(d_hideBatchLabels)
-        {
-            //get max height for left and right axes
-            double lmax = 0.0;
-            for(int i=0; i<d_plotCurveMetaData.size(); i++)
-                lmax = qMax(d_plotCurveMetaData.at(i).yMax,lmax);
-            double rMax = 0.0;
-            for(int i=0; i<d_calCurveData.size(); i++)
-                rMax = qMax(d_calCurveData.at(i).y(),rMax);
-
-            setAxisAutoScaleRange(QwtPlot::yLeft,0.0,lmax);
-            setAxisAutoScaleRange(QwtPlot::yRight,0.0,rMax);
-        }
-        else
-        {
-            setAxisAutoScaleRange(QwtPlot::yLeft,0.0,calculateAxisMaxWithLabel(QwtPlot::yLeft));
-            setAxisAutoScaleRange(QwtPlot::yRight,0.0,calculateAxisMaxWithLabel(QwtPlot::yRight));
-        }
-    }
-
-    AbstractBatchPlot::replot();
-}
-
-double BatchScanPlot::calculateAxisMaxWithLabel(QwtPlot::Axis axis) const
-{
-    int height = 0;
-    QFontMetrics fm(d_plotMarkers.at(0)->label().font());
-    for(int i=0;i<d_plotMarkers.size();i++)
-    {
-        if((axis == QwtPlot::yLeft && !d_metaDataList.at(i).isCal) ||
-                (axis == QwtPlot::yRight && d_metaDataList.at(i).isCal))
-        {
-            QString text = d_plotMarkers.at(i)->label().text();
-            int numLines = text.split(QString("\n"),QString::SkipEmptyParts).size();
-            height = qMax(height,fm.boundingRect(text).height()*numLines);
-        }
-    }
-
-    QPair<double,double> yRange = qMakePair(0.0,0.0);
-    if(axis == QwtPlot::yLeft)
-    {
-        for(int i=0; i <d_plotCurveMetaData.size();i++)
-            yRange.second = qMax(yRange.second,d_plotCurveMetaData.at(i).yMax);
-    }
-    else
-    {
-        for(int i=0; i<d_calCurveData.size(); i++)
-            yRange.second = qMax(yRange.second,d_calCurveData.at(i).y());
-    }
-    double scaling = (yRange.second - yRange.first)/(double)canvas()->height();
-    return static_cast<double>(height+20)*scaling + yRange.second;
-
-}
-
-QPair<double, double> BatchScanPlot::calculateMarkerBoundaries(QFontMetrics fm, int index)
-{
-    if(index < 0 || index >= d_plotMarkers.size())
-        return qMakePair(-1.0,-1.0);
-
-    double scaleMin = axisScaleDiv(QwtPlot::xBottom).lowerBound();
-    double scaleMax = axisScaleDiv(QwtPlot::xBottom).upperBound();
-    double scaling = (scaleMax-scaleMin)/static_cast<double>(canvas()->width());
-
-    QStringList lines = d_plotMarkers.at(index)->label().text().split(QString("\n"),QString::SkipEmptyParts);
-    int w = 0;
-    for(int j=0; j<lines.size(); j++)
-        w = qMax(w,fm.boundingRect(lines.at(j)).width())+5;
-
-    double min = (double)d_metaDataList.at(index).scanNum - (double)w*scaling/2.0;
-    double max = (double)d_metaDataList.at(index).scanNum + (double)w*scaling/2.0;
-
-    return qMakePair(min,max);
-}
-
-
-void BatchScanPlot::filterData()
-{
-    if(!d_plotMarkers.isEmpty() && !d_hideBatchLabels)
-    {
-        //loop over labels, seeing if the next will overlap
-        int activeIndex = 0;
-
-        QFontMetrics fm(d_plotMarkers.at(0)->label().font());
-        double min = axisScaleDiv(QwtPlot::xBottom).lowerBound();
-        double max = axisScaleDiv(QwtPlot::xBottom).upperBound();
-
-
-        for(int i=0; i<d_plotMarkers.size(); i++)
-        {
-            auto thisRange = calculateMarkerBoundaries(fm,i);
-            if(thisRange.first < min)
-                d_plotMarkers[i]->setVisible(false);
-            else
-            {
-                activeIndex = i;
-                d_plotMarkers[i]->setVisible(true);
-                break;
-            }
-        }
-
-        auto activeRange = calculateMarkerBoundaries(fm,activeIndex);
-        for(int i=activeIndex+1; i<d_plotMarkers.size(); i++)
-        {
-            //calculate right edge of active marker, and left edge of current marker
-            //get widest text line
-            auto thisRange = calculateMarkerBoundaries(fm,i);
-
-            //hide this label if it overlaps with the active label
-            if(thisRange.first < activeRange.second || thisRange.second > max)
-                d_plotMarkers[i]->setVisible(false);
-            else //otherwise, it is visible, and will be the reference for the next iteration of the loop
-            {
-                activeRange = thisRange;
-                d_plotMarkers[i]->setVisible(true);
-                activeIndex = i;
-            }
-
-        }
-
-    }
-
-    AbstractBatchPlot::filterData();
 }

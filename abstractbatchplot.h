@@ -75,6 +75,7 @@ public slots:
 
     void toggleCurve(QVariant item, bool hide, int index);
     void toggleHideBadZones(bool hide);
+    void togglePlotLabels(bool on);
 
 protected:
     QList<QwtPlotCurve*> d_plotCurves;
@@ -85,17 +86,21 @@ protected:
     QList<BadZone> d_badTuneZones;
     QList<QtFTM::BatchPlotMetaData> d_metaDataList;
     QList<PlotCurveMetaData> d_plotCurveMetaData;
+    QList<QwtPlotMarker*> d_plotMarkers;
 
     int d_zoneScanNum;
     bool d_showZonePending;
     bool d_recalcZoneOnResize;
     bool d_doNotReplot;
     bool d_hideBadZones;
+    bool d_hidePlotLabels;
 
     void addBadZone(QtFTM::BatchPlotMetaData md);
     virtual QMenu *contextMenu();
     virtual bool eventFilter(QObject *obj, QEvent *ev);
     virtual void replot();
+    double calculateAxisMaxWithLabel(Axis axis) const;
+    QPair<double,double> calculateMarkerBoundaries(QFontMetrics fm, int index);
 
     void doPrint(double start, double end, double xRange, int plotsPerPage, QString title, QPrinter *pr, bool oneCurvePerPlot = false, bool autoYRanges = false);
 

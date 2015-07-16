@@ -169,6 +169,16 @@ void PulseGenConfig::setDcEnabled(bool en)
 
 void PulseGenConfig::setDrEnabled(bool en)
 {
-    set(QTFTM_PGEN_DRCHANNEL,QtFTM::PulseEnabled,en);
+	set(QTFTM_PGEN_DRCHANNEL,QtFTM::PulseEnabled,en);
+}
+
+bool PulseGenConfig::isDcEnabled() const
+{
+	return setting(QTFTM_PGEN_DCCHANNEL,QtFTM::PulseEnabled).toBool();
+}
+
+bool PulseGenConfig::isDrEnabled() const
+{
+	return setting(QTFTM_PGEN_DRCHANNEL,QtFTM::PulseEnabled).toBool();
 }
 
