@@ -7,6 +7,11 @@ DrSynthesizer::DrSynthesizer(QObject *parent) :
     d_key = QString("drSynth");
 }
 
+DrSynthesizer::~DrSynthesizer()
+{
+
+}
+
 void DrSynthesizer::initialize()
 {
     Synthesizer::initialize();

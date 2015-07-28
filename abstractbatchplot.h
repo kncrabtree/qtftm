@@ -38,7 +38,7 @@ class AbstractBatchPlot : public ZoomPanPlot
     Q_OBJECT
 public:
     explicit AbstractBatchPlot(QString name, QWidget *parent = nullptr);
-    ~AbstractBatchPlot();
+    virtual ~AbstractBatchPlot();
 
     struct PlotCurveMetaData {
         QwtPlotCurve *curve;

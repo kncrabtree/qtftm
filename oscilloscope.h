@@ -11,7 +11,7 @@ class Oscilloscope : public HardwareObject
 	Q_OBJECT
 public:
 	explicit Oscilloscope(QObject *parent = nullptr);	
-    ~Oscilloscope();
+    virtual ~Oscilloscope();
 
 signals:
 	void fidAcquired(const QByteArray d);

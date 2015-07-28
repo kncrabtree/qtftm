@@ -4,3 +4,8 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
      QWidget(parent)
 {
 }
+
+SettingsWidget::~SettingsWidget()
+{
+
+}

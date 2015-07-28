@@ -13,6 +13,7 @@ public:
     };
 
     explicit PinSwitchDriveDelayGenerator(QObject *parent = nullptr);
+    virtual ~PinSwitchDriveDelayGenerator();
 
 
 signals:

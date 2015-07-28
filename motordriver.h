@@ -31,6 +31,7 @@ class MotorDriver : public HardwareObject
 	Q_OBJECT
 public:
 	explicit MotorDriver(QObject *parent = nullptr);
+    virtual ~MotorDriver();
 
     static double calculateModePosition(double f, int mode);
     static double calculateModeFrequency(double position, int mode);

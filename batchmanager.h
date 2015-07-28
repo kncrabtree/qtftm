@@ -57,7 +57,7 @@ public:
 	 \param b Batch type
 	*/
 	explicit BatchManager(QtFTM::BatchType b, bool load = false, AbstractFitter *ftr = new NoFitter());
-	~BatchManager();
+    virtual ~BatchManager();
 
 	/*!
 	 \brief Access function for type of batch acquisition

@@ -9,6 +9,11 @@ FtmSynthesizer::FtmSynthesizer(QObject *parent) :
     d_key = QString("ftmSynth");
 }
 
+FtmSynthesizer::~FtmSynthesizer()
+{
+
+}
+
 void FtmSynthesizer::initialize()
 {
     Synthesizer::initialize();

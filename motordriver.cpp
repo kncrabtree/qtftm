@@ -8,7 +8,12 @@ MotorDriver::MotorDriver(QObject *parent) :
     HardwareObject(parent), d_lastTuneFreq(0.0),
     d_lastTuneAtten(0), d_lastTuneVoltage(0), d_lastTuneMode(0), d_lastTuneWidth(0), d_lastCalVoltage(0), d_quiet(false)
 {
-	d_key = QString("motorDriver");
+    d_key = QString("motorDriver");
+}
+
+MotorDriver::~MotorDriver()
+{
+
 }
 
 double MotorDriver::calculateModePosition(double f, int mode)

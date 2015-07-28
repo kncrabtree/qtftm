@@ -8,5 +8,10 @@ PinSwitchDriveDelayGenerator::PinSwitchDriveDelayGenerator (QObject *parent) :
     d_key = QString("pdg");
 }
 
+PinSwitchDriveDelayGenerator::~PinSwitchDriveDelayGenerator()
+{
+
+}
+
 
 

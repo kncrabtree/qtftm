@@ -8,6 +8,7 @@ class FtmSynthesizer : public Synthesizer
 	Q_OBJECT
 public:
     explicit FtmSynthesizer(QObject *parent = nullptr);
+    virtual ~FtmSynthesizer();
 	
 signals:
     void newCavityFreq(double);

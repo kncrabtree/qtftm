@@ -8,7 +8,7 @@ class HvPowerSupply : public HardwareObject
 	Q_OBJECT
 public:
 	explicit HvPowerSupply(QObject *parent = nullptr);
-	~HvPowerSupply();
+    virtual ~HvPowerSupply();
 
 signals:
 	void voltageUpdate(int);

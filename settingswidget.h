@@ -10,6 +10,7 @@ class SettingsWidget : public QWidget
 	Q_OBJECT
 public:
 	explicit SettingsWidget(QWidget *parent = nullptr);
+    virtual ~SettingsWidget();
 	QString title(){ return d_title; }
 	
 signals:

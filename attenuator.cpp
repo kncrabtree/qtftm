@@ -8,6 +8,11 @@ Attenuator::Attenuator(QObject *parent) :
     d_key = QString("attn");
 }
 
+Attenuator::~Attenuator()
+{
+
+}
+
 void Attenuator::initialize()
 {
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());

@@ -9,6 +9,7 @@ class Attenuator : public HardwareObject
 	Q_OBJECT
 public:
 	explicit Attenuator(QObject *parent = nullptr);
+    virtual ~Attenuator();
 	
 signals:
 	void attnUpdate(int);

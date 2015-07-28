@@ -7,7 +7,7 @@ class VirtualInstrument : public CommunicationProtocol
 {
 public:
 	explicit VirtualInstrument(QString key, QString subKey, QObject *parent = nullptr);
-	~VirtualInstrument();
+    virtual ~VirtualInstrument();
 
 	// CommunicationProtocol interface
 public:

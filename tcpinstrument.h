@@ -10,7 +10,7 @@ class TcpInstrument : public CommunicationProtocol
     Q_OBJECT
 public:
     explicit TcpInstrument(QString key, QString subKey, QObject *parent = nullptr);
-    ~TcpInstrument();
+    virtual ~TcpInstrument();
 
     bool writeCmd(QString cmd);
     bool writeBinary(QByteArray dat);

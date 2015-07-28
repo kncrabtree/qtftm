@@ -20,7 +20,7 @@ class FtPlot : public QwtPlot
 	Q_OBJECT
 public:
 	explicit FtPlot(QWidget *parent = nullptr);
-	~FtPlot();
+    virtual ~FtPlot();
 
 	enum DisplayType { ShowFid, ShowFt };
 	enum DisplayZoom { Detail, All };

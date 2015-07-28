@@ -8,6 +8,7 @@ class DrSynthesizer : public Synthesizer
 	Q_OBJECT
 public:
     explicit DrSynthesizer(QObject *parent = nullptr);
+    virtual ~DrSynthesizer();
 	
 public slots:
     virtual void initialize();

@@ -5,6 +5,11 @@ Synthesizer::Synthesizer(QObject *parent) :
 {
 }
 
+Synthesizer::~Synthesizer()
+{
+
+}
+
 
 void Synthesizer::initialize()
 {

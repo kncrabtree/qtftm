@@ -55,6 +55,7 @@ public:
      * \param parent Pointer to parent QObject. Should be 0 if it will be in its own thread.
      */
     explicit HardwareObject(QObject *parent = nullptr);
+    virtual ~HardwareObject();
 
     /*!
      * \brief Access function for pretty name.

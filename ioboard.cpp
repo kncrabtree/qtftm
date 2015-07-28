@@ -8,3 +8,8 @@ IOBoard::IOBoard(QObject *parent) :
     p_readTimer = new QTimer(this);
     connect(p_readTimer,&QTimer::timeout,this,&IOBoard::checkForTrigger);
 }
+
+IOBoard::~IOBoard()
+{
+
+}

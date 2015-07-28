@@ -9,7 +9,7 @@ class GpibInstrument : public CommunicationProtocol
     Q_OBJECT
 public:
     explicit GpibInstrument(QString key, QString subKey, GpibController *c, QObject *parent = nullptr);
-    ~GpibInstrument();
+    virtual ~GpibInstrument();
     void setAddress(int a);
     int address() const;
 

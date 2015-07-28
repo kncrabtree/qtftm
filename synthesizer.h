@@ -8,6 +8,7 @@ class Synthesizer : public HardwareObject
     Q_OBJECT
 public:
     explicit Synthesizer(QObject *parent = nullptr);
+    virtual ~Synthesizer();
     
 signals:
     void rangeChanged();
