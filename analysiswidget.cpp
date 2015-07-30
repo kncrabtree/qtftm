@@ -40,6 +40,7 @@ AnalysisWidget::AnalysisWidget(QWidget *parent) :
 	connect(ui->analysisPlot,&AnalysisPlot::exportFt,this,&AnalysisWidget::exportFt);
 	connect(ui->analysisPlot,&AnalysisPlot::exportFid,this,&AnalysisWidget::exportFid);
 	connect(ui->analysisPlot,&AnalysisPlot::autoFitRequested,this,&AnalysisWidget::autoFit);
+    connect(ui->analysisPlot,&AnalysisPlot::autoFitDeleteRequested,this,&AnalysisWidget::deleteAutoFit);
 	connect(ui->analysisPlot,&AnalysisPlot::fitParametersRequested,this,&AnalysisWidget::viewFitResults);
 	connect(ui->analysisPlot,&AnalysisPlot::fitLogRequested,this,&AnalysisWidget::viewFitLog);
 
@@ -492,7 +493,16 @@ void AnalysisWidget::autoFitComplete(const FitResult &res)
 {
 	Q_UNUSED(res)
 	QApplication::restoreOverrideCursor();
-	loadScanMetaData();
+    loadScanMetaData();
+}
+
+void AnalysisWidget::deleteAutoFit()
+{
+    if(fitThread->isRunning())
+        return;
+
+    FitResult::deleteFitResult(d_currentScan.number());
+    loadScanMetaData();
 }
 
 void AnalysisWidget::viewFitResults()

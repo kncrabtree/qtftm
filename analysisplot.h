@@ -29,6 +29,7 @@ signals:
 	void exportFt();
 	void exportFid();
 	void autoFitRequested();
+    void autoFitDeleteRequested();
 	void fitParametersRequested();
 	void fitLogRequested();
 	

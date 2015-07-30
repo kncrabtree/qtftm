@@ -43,6 +43,8 @@ public:
 	    Success
 	};
 
+    static void deleteFitResult(const int num);
+
 	FitResult();
 	FitResult(int scanNum);
 	FitResult(const FitterType t, const FitCategory c);

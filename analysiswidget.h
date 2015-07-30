@@ -66,6 +66,7 @@ public slots:
     void exportFid();
     void autoFit();
     void autoFitComplete(const FitResult &res);
+    void deleteAutoFit();
     void viewFitResults();
     void viewFitLog();
     void setDopplerAmplitude(DopplerPair *d);

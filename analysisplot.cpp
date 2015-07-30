@@ -94,6 +94,9 @@ QMenu *AnalysisPlot::buildContextMenu()
 	QAction *colorAction = autoFitMenu->addAction(QString("Change fit color..."));
 	connect(colorAction,&QAction::triggered,this,&AnalysisPlot::selectFitColor);
 
+    QAction *deleteAction = autoFitMenu->addAction(QString("Delete AutoFit"));
+    connect(deleteAction,&QAction::triggered,this,&AnalysisPlot::autoFitDeleteRequested);
+
 	menu->addMenu(autoFitMenu);
 
 	//this would mean there's not a valid FT, so disable this action

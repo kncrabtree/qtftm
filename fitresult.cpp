@@ -55,6 +55,24 @@ public:
 
 };
 
+void FitResult::deleteFitResult(const int num)
+{
+    if(num < 1)
+        return;
+
+    int dirMillionsNum = num/1000000;
+    int dirThousandsNum = num/1000;
+
+    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+    QString savePath = s.value(QString("savePath"),QString(".")).toString();
+    QDir d(savePath + QString("/autofit/%1/%2").arg(dirMillionsNum).arg(dirThousandsNum));
+
+    //open file
+    QFile f(QString("%1/%2.txt").arg(d.absolutePath()).arg(num));
+    if(f.exists())
+        f.remove();
+}
+
 FitResult::FitResult() : data(new FitData)
 {
 }
@@ -435,54 +453,58 @@ void FitResult::setFitParameters(QList<double> params, QList<double> uncs, int n
 	data->allFitParameters = params;
 	data->allFitUncertainties = uncs;
 
-	data->baselineY0Slope.first = data->allFitParameters.at(0);
-	data->baselineY0Slope.second = data->allFitParameters.at(1);
 
 	data->freqAmpPairList.clear();
 	data->freqAmpSingleList.clear();
 	data->freqAmpUncPairList.clear();
 	data->freqAmpUncSingleList.clear();
 
-	if(type() == LorentzianDopplerPairLM || type() == LorentzianDopplerPairLMS)
-	{
-		for(int i=4; i<data->numParams; i+=3)
-		{
-			data->freqAmpPairList.append(qMakePair(params.at(i+2)+data->offsetFreq,
-										    params.at(i)));
-			data->freqAmpUncPairList.append(qMakePair(uncs.at(i+2),
-										    uncs.at(i)));
-		}
-	}
+    if((params.size() >=2) && (uncs.size() >=2))
+    {
+        data->baselineY0Slope.first = data->allFitParameters.at(0);
+        data->baselineY0Slope.second = data->allFitParameters.at(1);
 
-	if(type() == LorentzianMixedLM || type() == LorentzianMixedLMS)
-	{
-		for(int i=4; i<data->numParams - 2*numSingle; i+=3)
-		{
-			data->freqAmpPairList.append(qMakePair(params.at(i+2)+data->offsetFreq,
-										    params.at(i)));
-			data->freqAmpUncPairList.append(qMakePair(uncs.at(i+2),
-										    uncs.at(i)));
-		}
+        if(type() == LorentzianDopplerPairLM || type() == LorentzianDopplerPairLMS)
+        {
+            for(int i=4; i<data->numParams && i+2 < params.size() && i+2 < uncs.size(); i+=3)
+            {
+                data->freqAmpPairList.append(qMakePair(params.at(i+2)+data->offsetFreq,
+                                                       params.at(i)));
+                data->freqAmpUncPairList.append(qMakePair(uncs.at(i+2),
+                                                          uncs.at(i)));
+            }
+        }
 
-		for(int i=data->numParams-2*numSingle; i < data->numParams; i+=2)
-		{
-			data->freqAmpSingleList.append(qMakePair(params.at(i+1)+data->offsetFreq,
-										    params.at(i)));
-			data->freqAmpUncSingleList.append(qMakePair(uncs.at(i+1),
-										    uncs.at(i)));
-		}
-	}
+        if(type() == LorentzianMixedLM || type() == LorentzianMixedLMS)
+        {
+            for(int i=4; i<data->numParams - 2*numSingle && i+2 < params.size() && i+2 < uncs.size(); i+=3)
+            {
+                data->freqAmpPairList.append(qMakePair(params.at(i+2)+data->offsetFreq,
+                                                       params.at(i)));
+                data->freqAmpUncPairList.append(qMakePair(uncs.at(i+2),
+                                                          uncs.at(i)));
+            }
 
-	if(type() == LorentzianSingleLM || type() == LorentzianSingleLMS)
-	{
-		for(int i=3; i<data->numParams; i+=2)
-		{
-			data->freqAmpSingleList.append(qMakePair(data->allFitParameters.at(i+1)+data->offsetFreq,
-										    data->allFitParameters.at(i)));
-			data->freqAmpUncSingleList.append(qMakePair(data->allFitUncertainties.at(i+1),
-										    data->allFitUncertainties.at(i)));
-		}
-	}
+            for(int i=data->numParams-2*numSingle; i < data->numParams && i+1 < params.size() && i+1 < uncs.size(); i+=2)
+            {
+                data->freqAmpSingleList.append(qMakePair(params.at(i+1)+data->offsetFreq,
+                                                         params.at(i)));
+                data->freqAmpUncSingleList.append(qMakePair(uncs.at(i+1),
+                                                            uncs.at(i)));
+            }
+        }
+
+        if(type() == LorentzianSingleLM || type() == LorentzianSingleLMS)
+        {
+            for(int i=3; i<data->numParams; i+=2)
+            {
+                data->freqAmpSingleList.append(qMakePair(data->allFitParameters.at(i+1)+data->offsetFreq,
+                                                         data->allFitParameters.at(i)));
+                data->freqAmpUncSingleList.append(qMakePair(data->allFitUncertainties.at(i+1),
+                                                            data->allFitUncertainties.at(i)));
+            }
+        }
+    }
 }
 
 void FitResult::setBaselineY0Slope(double y0, double slope)
@@ -666,12 +688,7 @@ void FitResult::loadFromFile(int num)
 		u.append(l.at(1).trimmed().toDouble());
 	}
 
-// Antoine: added this to prevent the whole program to crash when saturated:
-// parameters are missing thus returning empty u,p. However, a better fix can be achieved.
-if ( !(p.empty() || u.empty()) )
-{
     setFitParameters(p,u,numSingle);
-}
 
 	appendToLog(f.readAll());
 
