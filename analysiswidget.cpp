@@ -480,9 +480,9 @@ void AnalysisWidget::autoFit()
 		return;
 
 	AbstractFitter *fitter = aw->toFitter();
+    connect(fitter,&AbstractFitter::fitComplete,this,&AnalysisWidget::autoFitComplete);
 	connect(fitter,&AbstractFitter::fitComplete,fitThread,&QThread::quit);
 	connect(fitThread,&QThread::finished,fitter,&QObject::deleteLater);
-	connect(fitter,&AbstractFitter::fitComplete,this,&AnalysisWidget::autoFitComplete);
 	fitter->moveToThread(fitThread);
 	fitThread->start();
 	QMetaObject::invokeMethod(fitter,"doFit",Q_ARG(const Scan,d_currentScan));
@@ -491,8 +491,12 @@ void AnalysisWidget::autoFit()
 
 void AnalysisWidget::autoFitComplete(const FitResult &res)
 {
-	Q_UNUSED(res)
+    if(res.category() == FitResult::Invalid)
+        ui->analysisNotes->appendPlainText(QString("AutoFit failed."));
+    else if(res.category() == FitResult::Saturated)
+        ui->analysisNotes->appendPlainText(QString("FID saturated."));
 	QApplication::restoreOverrideCursor();
+    saveScanMetaData();
     loadScanMetaData();
 }
 
