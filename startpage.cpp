@@ -30,12 +30,12 @@ StartPage::StartPage(QWidget *parent) :
 	vl->addWidget(batchButton);
 	vl->addWidget(drCorrButton);
 
-	QGroupBox *miscBox = new QGroupBox(QString("Miscellaneous Settings"),this);
-	QVBoxLayout *mbl = new QVBoxLayout(miscBox);
+//	QGroupBox *miscBox = new QGroupBox(QString("Miscellaneous Settings"),this);
+//	QVBoxLayout *mbl = new QVBoxLayout(miscBox);
 
 
-	miscBox->setLayout(mbl);
-	vl->addWidget(miscBox);
+//	miscBox->setLayout(mbl);
+//	vl->addWidget(miscBox);
 	setLayout(vl);
 
 }

@@ -97,6 +97,7 @@ void AutoFitWidget::setNoDisable()
 void AutoFitWidget::disableProcessingOptions(bool disable)
 {
 	ui->processingSettingsBox->setDisabled(disable);
+    ui->processingSettingsBox->setVisible(!disable);
 }
 
 AbstractFitter *AutoFitWidget::toFitter()
