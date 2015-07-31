@@ -340,6 +340,16 @@ void AnalysisWidget::loadScanMetaData()
 
 	if(res.category() == FitResult::Invalid || res.category() == FitResult::Saturated)
 	{
+        if(res.category() == FitResult::Invalid && !res.log().isEmpty())
+        {
+            if(!ui->analysisNotes->document()->toPlainText().contains(QString("AutoFit failed.")))
+                ui->analysisNotes->appendPlainText(QString("AutoFit failed."));
+        }
+        else if(res.category() == FitResult::Saturated)
+        {
+            if(!ui->analysisNotes->document()->toPlainText().contains(QString("FID saturated.")))
+                ui->analysisNotes->appendPlainText(QString("FID saturated."));
+        }
 		ui->analysisPlot->newFit(QVector<QPointF>());
 		return;
 	}
@@ -491,12 +501,8 @@ void AnalysisWidget::autoFit()
 
 void AnalysisWidget::autoFitComplete(const FitResult &res)
 {
-    if(res.category() == FitResult::Invalid)
-        ui->analysisNotes->appendPlainText(QString("AutoFit failed."));
-    else if(res.category() == FitResult::Saturated)
-        ui->analysisNotes->appendPlainText(QString("FID saturated."));
+    Q_UNUSED(res)
 	QApplication::restoreOverrideCursor();
-    saveScanMetaData();
     loadScanMetaData();
 }
 
