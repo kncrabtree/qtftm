@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
 
     qsrand(QTime::currentTime().msec()+QTime::currentTime().second() + QTime::currentTime().minute() + QTime::currentTime().hour());
 	MainWindow w;
-	w.show();
+    w.showMaximized();
 	
     int ret = a.exec();
     lockFile.remove();
