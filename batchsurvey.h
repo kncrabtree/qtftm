@@ -31,15 +31,13 @@ private:
 	double d_chunkStart;
 	double d_chunkEnd;
 	double d_offset;
-
 	bool d_hasCalibration;
 	Scan d_calTemplate;
 	int d_scansPerCal;
-
     int d_totalSurveyScans;
     int d_totalCalScans;
-
     int d_currentSurveyIndex;
+    bool d_processScanIsCal;
 
     QVector<QPointF> d_calData;
     QVector<QPointF> d_surveyData;
@@ -50,6 +48,7 @@ private:
 protected:
 	Scan prepareNextScan();
 	bool isBatchComplete();
+    void advanceBatch(const Scan s);
 	void processScan(Scan s);
 	void writeReport();
 

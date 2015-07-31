@@ -4,7 +4,7 @@
 
 BatchDR::BatchDR(Scan ftScan, double start, double stop, double step, int numScansBetween, QList<QPair<double, double> > ranges, bool doCal, AbstractFitter *f) :
     BatchManager(QtFTM::DrScan,false,f), d_template(ftScan), d_start(start), d_stop(stop), d_numScansBetween (0), d_integrationRanges(ranges),
-    d_completedScans(0), d_hasCalibration(doCal)
+    d_completedScans(0), d_hasCalibration(doCal), d_processScanIsCal(false), d_processingIndex(0)
 {
 	d_prettyName = QString("DR Scan");
 
@@ -37,6 +37,7 @@ BatchDR::BatchDR(Scan ftScan, double start, double stop, double step, int numSca
 	//Calibration means measuring background between scans. So it doubles the length
 	if(d_hasCalibration)
 	{
+        d_thisScanIsCal = true;
 		d_totalShots*=2;
 
 		//need to reserve space for calibration data
@@ -211,6 +212,9 @@ BatchDR::BatchDR(int num, AbstractFitter *ftr) : BatchManager(QtFTM::DrScan,true
     }
 
     f.close();
+
+    d_processScanIsCal = false;
+    d_processingIndex = 0;
 }
 
 Scan BatchDR::prepareNextScan()
@@ -235,13 +239,9 @@ Scan BatchDR::prepareNextScan()
 	if(d_hasCalibration)
 	{
         if(d_thisScanIsCal) //make sure DR pulse is enabled!
-            d_thisScanIsCal = false;
+            c.setDrEnabled(false);
 		else
-		{
-			//this is a calibration scan, so disable DR pulses
-			c.setDrEnabled(false);
-            d_thisScanIsCal = true;
-		}
+            c.setDrEnabled(true);
 	}
 
 	next.setPulseConfiguration(c);
@@ -254,147 +254,153 @@ bool BatchDR::isBatchComplete()
 	if(d_completedScans == d_numScans)
 		return true;
 
-	return false;
+    return false;
+}
+
+void BatchDR::advanceBatch(const Scan s)
+{
+    Q_UNUSED(s)
+    d_processScanIsCal = d_thisScanIsCal;
+    d_processingIndex = d_completedScans;
+
+    if(!d_thisScanIsCal)
+        d_completedScans++;
+
+    if(d_hasCalibration)
+        d_thisScanIsCal = !d_thisScanIsCal;
 }
 
 void BatchDR::processScan(Scan s)
 {
-	d_scanNumbers.append(s.number());
+    d_scanNumbers.append(s.number());
 
-	//do the FT
-	QVector<QPointF> ft = d_fitter->doStandardFT(s.fid()).first;
-	double ftSpacing = ft.at(1).x() - ft.at(0).x();
+    //do the FT
+    QVector<QPointF> ft = d_fitter->doStandardFT(s.fid()).first;
+    double ftSpacing = ft.at(1).x() - ft.at(0).x();
 
-	FitResult res;
-	if(d_loading && d_fitter->type() == FitResult::NoFitting)
-		res = FitResult(s.number());
-	else
-		res = d_fitter->doFit(s);
+    FitResult res;
+    if(d_loading && d_fitter->type() == FitResult::NoFitting)
+        res = FitResult(s.number());
+    else
+        res = d_fitter->doFit(s);
 
-	if(d_fitter->type() != FitResult::NoFitting && res.category() != FitResult::Saturated && res.category() != FitResult::Invalid)
-		ft = Analysis::removeBaseline(ft,res.baselineY0Slope().first,res.baselineY0Slope().second,s.fid().probeFreq());
+    if(d_fitter->type() != FitResult::NoFitting && res.category() != FitResult::Saturated && res.category() != FitResult::Invalid)
+        ft = Analysis::removeBaseline(ft,res.baselineY0Slope().first,res.baselineY0Slope().second,s.fid().probeFreq());
 
-	//do the integration... Trapezoid rule with interpolation for first and last points
-	for(int i=0; i<d_integrationRanges.size(); i++)
-	{
-		double xMin = d_integrationRanges.at(i).first;
-		double xMax = d_integrationRanges.at(i).second;
-		double integral = 0.0;
+    bool badTune = s.tuningVoltage() <= 0;
 
-		int firstIndex = (int)ceil((xMin-ft.at(0).x())/ftSpacing);
-		int lastIndex = (int)floor((xMax-ft.at(0).x())/ftSpacing);
+    //do the integration... Trapezoid rule with interpolation for first and last points
+    for(int i=0; i<d_integrationRanges.size(); i++)
+    {
+        double xMin = d_integrationRanges.at(i).first;
+        double xMax = d_integrationRanges.at(i).second;
+        double integral = 0.0;
 
-		//make sure these indices are within the range. otherwise, just integrate the whole FT
-		if(firstIndex < 0 || firstIndex >= ft.size())
-		{
-			firstIndex = 0;
-			xMin = ft.at(0).x();
-		}
+        int firstIndex = (int)ceil((xMin-ft.at(0).x())/ftSpacing);
+        int lastIndex = (int)floor((xMax-ft.at(0).x())/ftSpacing);
 
-		if(lastIndex < 0 || lastIndex >= ft.size())
-		{
-			lastIndex = ft.size()-1;
-			xMax = ft.at(ft.size()-1).x();
-		}
+        //make sure these indices are within the range. otherwise, just integrate the whole FT
+        if(firstIndex < 0 || firstIndex >= ft.size())
+        {
+            firstIndex = 0;
+            xMin = ft.at(0).x();
+        }
 
-		//most likely, the integration range doesn't exactly line up with x points, so we need to interpolate the ends
-		if(firstIndex > 0)
-		{
-			//the trapezoid is defined by 4 points: (xMin,0), (xMin,y1), (x2,0), and (x2,y2)
-			//x2 > xMin, y1>0, and y2>0, but we don't know if y2>y1 yet
-			double x2 = ft.at(firstIndex).x();
-			double dx = x2 - xMin;
-			double y2 = ft.at(firstIndex).y();
+        if(lastIndex < 0 || lastIndex >= ft.size())
+        {
+            lastIndex = ft.size()-1;
+            xMax = ft.at(ft.size()-1).x();
+        }
 
-			//interpolate to get y1: slope is calculated from previous point
-			double y1 = y2 - (y2-ft.at(firstIndex-1).y())/ftSpacing*dx;
+        //most likely, the integration range doesn't exactly line up with x points, so we need to interpolate the ends
+        if(firstIndex > 0)
+        {
+            //the trapezoid is defined by 4 points: (xMin,0), (xMin,y1), (x2,0), and (x2,y2)
+            //x2 > xMin, y1>0, and y2>0, but we don't know if y2>y1 yet
+            double x2 = ft.at(firstIndex).x();
+            double dx = x2 - xMin;
+            double y2 = ft.at(firstIndex).y();
 
-			//compute area; add to integral
-			integral += (y2 - 0.5*(y2-y1))*dx;
-		}
+            //interpolate to get y1: slope is calculated from previous point
+            double y1 = y2 - (y2-ft.at(firstIndex-1).y())/ftSpacing*dx;
 
-		if(lastIndex < ft.size()-2)
-		{
-			//the trapezoid is defined by 4 points: (xMax,0), (xMax,y1), (x2,0), and (x2,y2)
-			//xMax > x2, y1>0, and y2>0, but we don't know if y2>y1 yet
-			double x2 = ft.at(lastIndex).x();
-			double dx = xMax - x2;
-			double y2 = ft.at(lastIndex).y();
+            //compute area; add to integral
+            integral += (y2 - 0.5*(y2-y1))*dx;
+        }
 
-			//interpolate to get y1: slope is calculated from next point
-			double y1 = y2 + (ft.at(lastIndex+1).y()-y2)/ftSpacing*dx;
+        if(lastIndex < ft.size()-2)
+        {
+            //the trapezoid is defined by 4 points: (xMax,0), (xMax,y1), (x2,0), and (x2,y2)
+            //xMax > x2, y1>0, and y2>0, but we don't know if y2>y1 yet
+            double x2 = ft.at(lastIndex).x();
+            double dx = xMax - x2;
+            double y2 = ft.at(lastIndex).y();
 
-			//compute area; add to integral
-			integral += (y2 + 0.5*(y2-y1))*dx;
-		}
+            //interpolate to get y1: slope is calculated from next point
+            double y1 = y2 + (ft.at(lastIndex+1).y()-y2)/ftSpacing*dx;
 
-		//now, add up chunks in between. this is easier
-		for(int j=firstIndex; j< lastIndex; j++)
-		{
-			double y1 = ft.at(j).y();
-			double y2 = ft.at(j+1).y();
-			double dx = ftSpacing;
+            //compute area; add to integral
+            integral += (y2 + 0.5*(y2-y1))*dx;
+        }
 
-			integral += (y2 - 0.5*(y2-y1))*dx;
-		}
+        //now, add up chunks in between. this is easier
+        for(int j=firstIndex; j< lastIndex; j++)
+        {
+            double y1 = ft.at(j).y();
+            double y2 = ft.at(j+1).y();
+            double dx = ftSpacing;
 
-		//record integral. store it in the appropriate vector for later processing
-        if(d_thisScanIsCal)
-			d_cal[i].append(integral);
-		else
-			d_dr[i].append(integral);
-	}
+            integral += (y2 - 0.5*(y2-y1))*dx;
+        }
 
-	//on the plot, the data will be represented by a single point. set the range to cover halfway between adjacent points
-	double plotStart = s.drFreq() - d_step/2.0, plotEnd = s.drFreq() + d_step/2.0;
-	if(d_step<0.0)
-		qSwap(plotStart,plotEnd);
+        //record integral. store it in the appropriate vector for later processing
+        if(d_processScanIsCal)
+            d_cal[i].append(integral);
+        else
+            d_dr[i].append(integral);
+    }
 
-	//only send out data if this was a real DR scan, not a calibration
-    if(!d_thisScanIsCal)
-	{
-		//if we are doing calibration, we need to ratio the integrals after collecting a cal and a dr
-		if(d_hasCalibration)
-		{
-			//loop over
-			for(int i=0; i<d_dr.size(); i++)
-			{
-				//make sure cal is not 0
-                if(d_cal.at(i).at(d_completedScans) > 0.0)
-				{
-					//compute ratio
-                    double ratio = d_dr.at(i).at(d_completedScans)/d_cal.at(i).at(d_completedScans);
+    //on the plot, the data will be represented by a single point. set the range to cover halfway between adjacent points
+    double plotStart = s.drFreq() - d_step/2.0, plotEnd = s.drFreq() + d_step/2.0;
+    if(d_step<0.0)
+        qSwap(plotStart,plotEnd);
+
+    //only send out data if this was a real DR scan, not a calibration
+    if(!d_processScanIsCal)
+    {
+        //if we are doing calibration, we need to ratio the integrals after collecting a cal and a dr
+        if(d_hasCalibration)
+        {
+            //loop over
+            for(int i=0; i<d_dr.size(); i++)
+            {
+                //make sure cal is not 0
+                if(d_cal.at(i).at(d_processingIndex) > 0.0)
+                {
+                    //compute ratio
+                    double ratio = d_dr.at(i).at(d_processingIndex)/d_cal.at(i).at(d_processingIndex);
                     d_drData[i].append(QPointF(s.drFreq(),ratio));
-				}
-				else //this shouldn't happen, but append a 0
-					d_drData[i].append(QPointF(s.drFreq(),0.0));
-			}
-		  bool badTune = s.tuningVoltage() <= 0;
+                }
+                else //this shouldn't happen, but append a 0
+                    d_drData[i].append(QPointF(s.drFreq(),0.0));
+            }
 
-			//send out cal and actual data together
-			QtFTM::BatchPlotMetaData md1(QtFTM::DrScan,s.number()-1,plotStart,plotEnd,true);
-		  QtFTM::BatchPlotMetaData md2(QtFTM::DrScan,s.number(),plotStart,plotEnd,false,badTune);
-			emit plotData(md1,d_drData);
-			emit plotData(md2,d_drData);
-		}
-		else //no calibration at all, just send out the data
-		{
-			for(int i=0; i<d_dr.size(); i++)
-                d_drData[i].append(QPointF(s.drFreq(),d_dr.at(i).at(d_completedScans)));
+            //send out cal and actual data together
+            QtFTM::BatchPlotMetaData md1(QtFTM::DrScan,s.number()-1,plotStart,plotEnd,true);
+            QtFTM::BatchPlotMetaData md2(QtFTM::DrScan,s.number(),plotStart,plotEnd,false,badTune);
+            emit plotData(md1,d_drData);
+            emit plotData(md2,d_drData);
+        }
+        else //no calibration at all, just send out the data
+        {
+            for(int i=0; i<d_dr.size(); i++)
+                d_drData[i].append(QPointF(s.drFreq(),d_dr.at(i).at(d_processingIndex)));
 
-			QtFTM::BatchPlotMetaData md(QtFTM::DrScan,s.number(),plotStart,plotEnd,false);
-			emit plotData(md,d_drData);
-		}
-	}
+            QtFTM::BatchPlotMetaData md(QtFTM::DrScan,s.number(),plotStart,plotEnd,false,badTune);
+            emit plotData(md,d_drData);
+        }
+    }
 
-	//only increment scan if this was a DR scan, not a calibration scan
-	//note that lastScanWasCal refers to the scan that is now being processed!
-	//lastScanWasCal is always false for a Dr scan without calibration
-    if(!d_thisScanIsCal)
-		d_completedScans++;
-
-    if(d_loading && d_hasCalibration)
-        d_thisScanIsCal = !d_thisScanIsCal;
 }
 
 

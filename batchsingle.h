@@ -21,6 +21,7 @@ public slots:
 	
 protected:
 	Scan prepareNextScan();
+    void advanceBatch(const Scan s);
 	void processScan(Scan s);
 	bool isBatchComplete();
 	void writeReport();

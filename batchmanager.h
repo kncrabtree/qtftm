@@ -171,6 +171,8 @@ protected:
 	 This function should increment that number in the settings when the save is successfully completed.
 	*/
 	virtual void writeReport() =0;
+
+    virtual void advanceBatch(const Scan s) =0;
 	/*!
 	 \brief Process data from scan
 

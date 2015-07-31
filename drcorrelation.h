@@ -18,12 +18,13 @@ public:
 	// BatchManager interface
 protected:
 	void writeReport();
+    void advanceBatch(const Scan s);
 	void processScan(Scan s);
 	Scan prepareNextScan();
 	bool isBatchComplete();
 
 private:
-	bool d_thisScanIsRef;
+    bool d_thisScanIsRef, d_processScanIsCal, d_processScanIsRef;
 	double d_currentRefMax;
 	QList<QPair<Scan,bool>> d_scanList;
 	QVector<QPointF> d_drData, d_calData;

@@ -3,7 +3,8 @@
 #include "abstractfitter.h"
 
 DrCorrelation::DrCorrelation(QList<QPair<Scan,bool>> templateList, AbstractFitter *ftr) :
-	BatchManager(QtFTM::DrCorrelation,false,ftr), d_thisScanIsRef(false), d_loadIndex(0)
+    BatchManager(QtFTM::DrCorrelation,false,ftr), d_thisScanIsRef(false), d_processScanIsCal(false),
+    d_processScanIsRef(false), d_loadIndex(0)
 {
 	d_prettyName = QString("DR Correlation");
 
@@ -53,7 +54,8 @@ DrCorrelation::DrCorrelation(QList<QPair<Scan,bool>> templateList, AbstractFitte
 }
 
 DrCorrelation::DrCorrelation(int num) :
-	BatchManager(QtFTM::DrCorrelation,true), d_loadIndex(0)
+    BatchManager(QtFTM::DrCorrelation,true), d_thisScanIsRef(false), d_processScanIsCal(false),
+    d_processScanIsRef(false), d_loadIndex(0)
 {
 	d_prettyName = QString("DR Correlation");
 	d_batchNum = num;
@@ -169,18 +171,18 @@ void DrCorrelation::writeReport()
 	out.close();
 
 	s.setValue(d_numKey,batchNum+1);
-	s.sync();
+    s.sync();
+}
+
+void DrCorrelation::advanceBatch(const Scan s)
+{
+    Q_UNUSED(s)
+    d_processScanIsCal = d_thisScanIsCal;
+    d_processScanIsRef = d_thisScanIsRef;
 }
 
 void DrCorrelation::processScan(Scan s)
 {
-	if(d_loading)
-	{
-		d_thisScanIsCal = d_loadCalList.at(d_loadIndex);
-		d_thisScanIsRef = d_loadRefList.at(d_loadIndex);
-		d_loadIndex++;
-	}
-
 	//maybe do something intelligent with this later?
 	d_fitter->doFit(s);
 
@@ -192,7 +194,7 @@ void DrCorrelation::processScan(Scan s)
 	double max = p.second;
 
 	//the data will start and end with a 0 to make the plot look a little nicer
-	if(!d_thisScanIsCal)
+    if(!d_processScanIsCal)
 	{
 		d_drData.append(QPointF(num - ((double)ft.size()/2.0 + 1.0)/(double)ft.size()*0.9,0.0));
 		for(int i=0; i<ft.size(); i++) // make the x range go from num - 0.45 to num + 0.45
@@ -205,13 +207,13 @@ void DrCorrelation::processScan(Scan s)
 	//make descriptive text to display on the plot
 	QString markerText;
 	QTextStream t(&markerText);
-	if(d_thisScanIsCal)
+    if(d_processScanIsCal)
 		t << QString("CAL\n");
 
 	//show ftm frequency and attenuation
 	t << QString("ftm:") << QString::number(s.ftFreq(),'f',1) << QString("/") << s.attenuation();
 
-	if(!d_thisScanIsCal)
+    if(!d_processScanIsCal)
 	{
 		//if DR is on, show DR freq and power
 		if(s.pulseConfiguration().at(3).enabled)
@@ -227,7 +229,7 @@ void DrCorrelation::processScan(Scan s)
 				t << 0;
 		}
 	}
-	if(d_thisScanIsRef)
+    if(d_processScanIsRef)
 		t << QString("\n") << QString("REF");
 
 	t.flush();
@@ -235,21 +237,21 @@ void DrCorrelation::processScan(Scan s)
 	 //make metadata
 	double mdmin = static_cast<double>(s.number());
 	double mdmax = static_cast<double>(s.number());
-	if(!d_thisScanIsCal)
+    if(!d_processScanIsCal)
 	{
 	    mdmin = num - ((double)ft.size()/2.0 + 1.0)/(double)ft.size()*0.9;
 	    mdmax = num - ((double)ft.size()/2.0 - (double)ft.size())/(double)ft.size()*0.9;
 	}
 	bool badTune = s.tuningVoltage() <= 0;
-	QtFTM::BatchPlotMetaData md(QtFTM::Batch,s.number(),mdmin,mdmax,d_thisScanIsCal,badTune,markerText);
+    QtFTM::BatchPlotMetaData md(QtFTM::Batch,s.number(),mdmin,mdmax,d_processScanIsCal,badTune,markerText);
 
-	md.drRef = d_thisScanIsRef;
+    md.drRef = d_processScanIsRef;
 
 	//if this scan is the reference (DR off), save the voltage. Otherwise, compare the voltage
-	if(!d_thisScanIsCal)
+    if(!d_processScanIsCal)
 	{
 		bool drMatch = false;
-		if(d_thisScanIsRef)
+        if(d_processScanIsRef)
 			d_currentRefMax = max;
 		else
 			drMatch = (max < QTFTM_DRCORR_THRESHOLD*d_currentRefMax);
@@ -262,12 +264,12 @@ void DrCorrelation::processScan(Scan s)
 	 //record data for saving
 	QString tab("\t");
 	QString sd = QString::number(s.number()) + tab;
-	if(d_thisScanIsCal)
+    if(d_processScanIsCal)
 		sd.append("1");
 	else
 		sd.append("0");
 
-	if(d_thisScanIsRef)
+    if(d_processScanIsRef)
 		sd += tab + QString("1");
 	else
 		sd += tab + QString("0");
@@ -277,7 +279,7 @@ void DrCorrelation::processScan(Scan s)
 
 	//send the data to the plot
 	QList<QVector<QPointF> > out;
-	if(!d_thisScanIsCal)
+    if(!d_processScanIsCal)
 		out.append(d_drData);
 	else
 		out.append(d_calData);

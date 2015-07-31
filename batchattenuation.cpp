@@ -146,7 +146,7 @@ bool BatchAttenuation::isBatchComplete()
     return ((d_scanUpComplete && d_scanDownComplete) || d_aborted);
 }
 
-void BatchAttenuation::processScan(Scan s)
+void BatchAttenuation::advanceBatch(const Scan s)
 {
     //first, we need to assess whether the tuning was successful
     TuningValues tv(s);
@@ -181,7 +181,7 @@ void BatchAttenuation::processScan(Scan s)
             d_retrying = false;
             d_nextAttn = tv.correctedAttn;
 
-		  QtFTM::BatchPlotMetaData md(QtFTM::Attenuation,-1,s.ftFreq()-0.0001,s.ftFreq()+0.0001,false);
+          QtFTM::BatchPlotMetaData md(QtFTM::Attenuation,-1,s.ftFreq()-0.0001,s.ftFreq()+0.0001,false);
             //all good. Record data and send to plot unless this is a duplicate!
             if(!d_scanUpComplete)
             {
@@ -225,6 +225,13 @@ void BatchAttenuation::processScan(Scan s)
 
         emit elementComplete();
     }
+
+}
+
+void BatchAttenuation::processScan(Scan s)
+{
+    //nothing to do; processing had to be done in advance in order to determine next scan, and there is no line to fit
+    Q_UNUSED(s)
 }
 
 void BatchAttenuation::writeReport()

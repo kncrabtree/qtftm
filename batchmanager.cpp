@@ -72,29 +72,35 @@ void BatchManager::scanComplete(const Scan s)
 		return;
 	}
 
-	//process the scan
-	processScan(s);
-	if(!s.isDummy())
-		emit processingComplete(s);
+    advanceBatch(s);
+
 
 	if(!s.isAborted() && !isBatchComplete())
 	{
 		//proceed to next scan
         Scan next = prepareNextScan();
         emit beginScan(next,d_thisScanIsCal);
+
+        //process the scan now that next scan has started
+        processScan(s);
+        if(!s.isDummy())
+            emit processingComplete(s);
 	}
 	else
 	{
-		//only send out message if this is not a single scan
-	   if(d_batchType != QtFTM::SingleScan && d_batchType != QtFTM::Attenuation)
+        //only send out message if this is not a single scan
+        if(d_batchType != QtFTM::SingleScan && d_batchType != QtFTM::Attenuation)
 		{
             emit logMessage(QString("%1 %2 complete. Final scan: %3.").arg(d_prettyName).arg(d_batchNum).arg(s.number()),
 						 QtFTM::LogHighlight);
 		}
 
+        processScan(s);
+        if(!s.isDummy())
+            emit processingComplete(s);
         writeReport();
 
-		emit batchComplete(s.isAborted());
+        emit batchComplete(s.isAborted());
 	}
 
 }

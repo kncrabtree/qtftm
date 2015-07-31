@@ -24,6 +24,7 @@ public slots:
 protected:
 	Scan prepareNextScan();
 	bool isBatchComplete();
+    void advanceBatch(const Scan s);
 	void processScan(Scan s);
 	void writeReport();
 
@@ -35,6 +36,7 @@ private:
 
     QList<bool> d_loadCalList;
     int d_loadingIndex;
+    bool d_processScanIsCal;
 	
 };
 

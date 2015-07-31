@@ -8,7 +8,12 @@ BatchSingle::BatchSingle(Scan s, AbstractFitter *ftr) :
 
 Scan BatchSingle::prepareNextScan()
 {
-	return d_scan;
+    return d_scan;
+}
+
+void BatchSingle::advanceBatch(const Scan s)
+{
+    Q_UNUSED(s)
 }
 
 

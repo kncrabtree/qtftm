@@ -3,7 +3,7 @@
 #include <QApplication>
 
 Batch::Batch(QList<QPair<Scan, bool> > l, AbstractFitter *ftr) :
-    BatchManager(QtFTM::Batch,false,ftr), d_scanList(l)
+    BatchManager(QtFTM::Batch,false,ftr), d_scanList(l), d_processScanIsCal(false)
 {
 	//since all scans are already in a list, we just have to calculate total shots
 	d_totalShots = 0;
@@ -14,7 +14,7 @@ Batch::Batch(QList<QPair<Scan, bool> > l, AbstractFitter *ftr) :
 
 }
 
-Batch::Batch(int num) : BatchManager(QtFTM::Batch,true), d_loadingIndex(0)
+Batch::Batch(int num) : BatchManager(QtFTM::Batch,true), d_loadingIndex(0), d_processScanIsCal(false)
 {
     d_prettyName = QString("Batch");
     d_batchNum = num;
@@ -83,8 +83,11 @@ bool Batch::isBatchComplete()
     return d_scanList.isEmpty();
 }
 
-void Batch::processScan(Scan s)
+void Batch::advanceBatch(const Scan s)
 {
+    Q_UNUSED(s)
+
+    d_processScanIsCal = d_thisScanIsCal;
     if(d_loading)
     {
         if(d_loadingIndex >= d_loadCalList.size())
@@ -94,8 +97,19 @@ void Batch::processScan(Scan s)
 
         d_loadingIndex++;
     }
+}
 
-    d_fitter->doFit(s);
+void Batch::processScan(Scan s)
+{
+
+    FitResult res;
+    if(d_loading && d_fitter->type() == FitResult::NoFitting)
+        res = FitResult(s.number());
+    else
+        res = d_fitter->doFit(s);
+
+    //don't need the fit result here
+    Q_UNUSED(res)
 
 	//the scan number will be used on the X axis of the plot
 	double num = (double)s.number();
@@ -105,7 +119,7 @@ void Batch::processScan(Scan s)
 	double max = p.second;
 
 	//the data will start and end with a 0 to make the plot look a little nicer
-    if(!d_thisScanIsCal)
+    if(!d_processScanIsCal)
     {
         d_theData.append(QPointF(num - ((double)ft.size()/2.0 + 1.0)/(double)ft.size()*0.9,0.0));
         for(int i=0; i<ft.size(); i++) // make the x range go from num - 0.45 to num + 0.45
@@ -118,13 +132,13 @@ void Batch::processScan(Scan s)
 	//make descriptive text to display on the plot
 	QString markerText;
 	QTextStream t(&markerText);
-    if(d_thisScanIsCal)
+    if(d_processScanIsCal)
 		t << QString("CAL\n");
 
 	//show ftm frequency and attenuation
 	t << QString("ftm:") << QString::number(s.ftFreq(),'f',1) << QString("/") << s.attenuation();
 
-    if(!d_thisScanIsCal)
+    if(!d_processScanIsCal)
 	{
 		//if DR is on, show DR freq and power
 		if(s.pulseConfiguration().at(3).enabled)
@@ -145,13 +159,13 @@ void Batch::processScan(Scan s)
 	//make metadata
     double mdmin = static_cast<double>(s.number());
     double mdmax = static_cast<double>(s.number());
-    if(!d_thisScanIsCal)
+    if(!d_processScanIsCal)
     {
         mdmin = num - ((double)ft.size()/2.0 + 1.0)/(double)ft.size()*0.9;
         mdmax = num - ((double)ft.size()/2.0 - (double)ft.size())/(double)ft.size()*0.9;
     }
     bool badTune = s.tuningVoltage() <= 0;
-    QtFTM::BatchPlotMetaData md(QtFTM::Batch,s.number(),mdmin,mdmax,d_thisScanIsCal,badTune,markerText);
+    QtFTM::BatchPlotMetaData md(QtFTM::Batch,s.number(),mdmin,mdmax,d_processScanIsCal,badTune,markerText);
 
 	//record the marker text and FT max for saving
 	QPair<double,QString> scanInfo(max,markerText.replace(QString("\n"),QString("; ")));
@@ -159,7 +173,7 @@ void Batch::processScan(Scan s)
 
 	//send the data to the plot
 	QList<QVector<QPointF> > out;
-    if(!d_thisScanIsCal)
+    if(!d_processScanIsCal)
         out.append(d_theData);
     else
         out.append(d_calData);

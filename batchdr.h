@@ -32,6 +32,7 @@ public slots:
 protected:
 	Scan prepareNextScan();
 	bool isBatchComplete();
+    void advanceBatch(const Scan s);
 	void processScan(Scan s);
 	void writeReport();
 
@@ -44,6 +45,8 @@ private:
 	int d_numScans;
 	int d_completedScans;
 	bool d_hasCalibration;
+    bool d_processScanIsCal;
+    int d_processingIndex;
 	QList<QVector<QPointF> > d_drData;
 	QList<QVector<double> > d_cal;
 	QList<QVector<double> > d_dr;

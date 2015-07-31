@@ -5,7 +5,7 @@
 
 BatchSurvey::BatchSurvey(Scan first, double step, double end, bool hascal, Scan cal, int scansPerCal, AbstractFitter *af) :
     BatchManager(QtFTM::Survey,false,af), d_surveyTemplate(first), d_hasCalibration(hascal), d_calTemplate(cal),
-    d_scansPerCal(scansPerCal), d_currentSurveyIndex(0)
+    d_scansPerCal(scansPerCal), d_currentSurveyIndex(0), d_processScanIsCal(false)
 {
 	d_prettyName = QString("Survey");
 
@@ -56,6 +56,7 @@ BatchSurvey::BatchSurvey(int num) : BatchManager(QtFTM::Survey,true)
     d_prettyName = QString("Survey");
     d_batchNum = num;
     d_thisScanIsCal = false;
+    d_processScanIsCal = false;
 
     int surveyNum = num;
     int surveyMillions = (int)floor((double)surveyNum/1000000.0);
@@ -194,28 +195,40 @@ bool BatchSurvey::isBatchComplete()
     if(d_currentSurveyIndex == d_totalSurveyScans && !d_thisScanIsCal)
 		return true;
 
-	return false;
+    return false;
+}
+
+void BatchSurvey::advanceBatch(const Scan s)
+{
+    Q_UNUSED(s)
+
+    //if d_thisScanIsCal is true, that means the incoming scan is a calibration; so the next one will not be
+    //otherwise, survey index should be incremented
+    d_processScanIsCal = d_thisScanIsCal;
+    if(d_thisScanIsCal)
+        d_thisScanIsCal = false;
+    else
+    {
+        d_currentSurveyIndex++;
+        if(d_hasCalibration)
+        {
+            if(d_currentSurveyIndex == d_totalSurveyScans)
+            {
+                //we've finished the survey; take a cal scan
+                d_thisScanIsCal = true;
+            }
+            else if(d_scansPerCal > 0 && (d_currentSurveyIndex % d_scansPerCal) == 0)
+            {
+                //it's time to take a cal scan
+                d_thisScanIsCal = true;
+            }
+        }
+    }
 }
 
 
 void BatchSurvey::processScan(Scan s)
 {
-	//if nextScanIsCal is true, that means the incoming scan was a calibration; so the next one will not be
-	//otherwise, survey index should be incremented
-    bool thisScanWasCal = d_thisScanIsCal;
-    if(d_thisScanIsCal)
-	{
-
-	}
-	else
-	{
-
-
-	}
-
-    //Probably don't need to fit calibration scans!
-    if(!thisScanWasCal)
-        d_fitter->doFit(s);
 
 	//calculate starting and ending frequencies that we will display, keeping in mind we might be scanning down
 	//if the step size is too big, there will be gaps!
@@ -223,9 +236,17 @@ void BatchSurvey::processScan(Scan s)
 	QList<QVector<QPointF> > out;
     bool badTune = s.tuningVoltage() <= 0;
 
-	if(thisScanWasCal)
+    FitResult res;
+    if(d_loading && d_fitter->type() == FitResult::NoFitting)
+        res = FitResult(s.number());
+    else
+        res = d_fitter->doFit(s);
+
+    //don't need the result here
+    Q_UNUSED(res)
+
+    if(d_processScanIsCal)
 	{
-        d_thisScanIsCal = false;
         d_calScanNumbers.append(s.number());
 
 		double max = 0.0;
@@ -258,7 +279,6 @@ void BatchSurvey::processScan(Scan s)
 	else
 	{
         d_surveyScanNumbers.append(s.number());
-        d_currentSurveyIndex++;
 
 		double startFreq = s.fid().probeFreq() + d_chunkStart;
 		double endFreq = s.fid().probeFreq() + d_chunkEnd;
@@ -287,19 +307,6 @@ void BatchSurvey::processScan(Scan s)
         out.append(d_surveyData);
 		emit plotData(md, out);
 
-        if(d_hasCalibration)
-        {
-            if(d_currentSurveyIndex == d_totalSurveyScans)
-            {
-                //we've finished the survey; take a cal scan
-                d_thisScanIsCal = true;
-            }
-            else if(d_scansPerCal > 0 && (d_currentSurveyIndex % d_scansPerCal) == 0)
-            {
-                //it's time to take a cal scan
-                d_thisScanIsCal = true;
-            }
-        }
 	}
 
 }
