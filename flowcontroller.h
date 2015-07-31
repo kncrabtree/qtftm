@@ -14,7 +14,6 @@ public:
     FlowController(QObject *parent = nullptr);
     virtual ~FlowController();
 
-    FlowConfig config() const { return d_config; }
 
 signals:
     void channelNameUpdate(int,QString);
@@ -25,6 +24,7 @@ signals:
     void pressureControlMode(bool);
 
 public slots:
+    FlowConfig config() const { return d_config; }
     virtual double setFlowSetpoint(const int ch, const double val) =0;
     virtual double setPressureSetpoint(const double val) =0;
     virtual void setChannelName(const int ch, const QString name);
