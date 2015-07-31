@@ -74,7 +74,6 @@ void BatchManager::scanComplete(const Scan s)
 
     advanceBatch(s);
 
-
 	if(!s.isAborted() && !isBatchComplete())
 	{
 		//proceed to next scan
@@ -141,6 +140,7 @@ void BatchManager::loadBatch()
                 emit batchComplete(true);
                 return;
             }
+            advanceBatch(s);
             processScan(s);
             emit processingComplete(s);
         }

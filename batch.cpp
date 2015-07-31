@@ -87,16 +87,17 @@ void Batch::advanceBatch(const Scan s)
 {
     Q_UNUSED(s)
 
-    d_processScanIsCal = d_thisScanIsCal;
     if(d_loading)
     {
         if(d_loadingIndex >= d_loadCalList.size())
-            d_thisScanIsCal = false;
+            d_processScanIsCal = false;
         else
-            d_thisScanIsCal = d_loadCalList.at(d_loadingIndex);
+            d_processScanIsCal = d_loadCalList.at(d_loadingIndex);
 
         d_loadingIndex++;
     }
+    else
+        d_processScanIsCal = d_thisScanIsCal;
 }
 
 void Batch::processScan(Scan s)

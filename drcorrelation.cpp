@@ -176,9 +176,11 @@ void DrCorrelation::writeReport()
 
 void DrCorrelation::advanceBatch(const Scan s)
 {
-    Q_UNUSED(s)
     d_processScanIsCal = d_thisScanIsCal;
-    d_processScanIsRef = d_thisScanIsRef;
+    if(!d_processScanIsCal)
+        d_processScanIsRef = !s.pulseConfiguration().isDrEnabled();
+    else
+        d_processScanIsRef = false;
 }
 
 void DrCorrelation::processScan(Scan s)
