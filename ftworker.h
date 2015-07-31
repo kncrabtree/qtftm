@@ -83,6 +83,8 @@ public slots:
 	*/
 	Fid filterFid(const Fid f);
 
+    Fid padFid(const Fid f);
+
 	/*!
 	 \brief Sets initial truncation
 

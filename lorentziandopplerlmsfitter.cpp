@@ -10,7 +10,7 @@ FitResult LorentzianDopplerLMSFitter::doFit(const Scan s)
 {
 	QString log;
 
-	Fid fid = s.fid();
+    Fid fid = ftw.filterFid(s.fid());
 	FitResult out(FitResult::LorentzianDopplerPairLMS,FitResult::Invalid);
 	out.setProbeFreq(fid.probeFreq());
 	out.setDelay(ftw.delay());

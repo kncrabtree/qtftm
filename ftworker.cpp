@@ -36,6 +36,17 @@ QPair<QVector<QPointF>, double> FtWorker::doFT(const Fid f)
 
     //first, apply any filtering that needs to be done
     Fid fid = filterFid(f);
+    if(d_autoPadFids)
+        fid = padFid(fid);
+
+    //make a vector of points for display purposes
+    QVector<QPointF> displayFid;
+    QVector<double> data = fid.toVector();
+    displayFid.reserve(data.size());
+    for(int i=0; i<data.size(); i++)
+        displayFid.append(QPointF((double)i*fid.spacing()*1.0e6,data.at(i)));
+
+    emit fidDone(displayFid);
 
     //might need to allocate or reallocate workspace and wavetable
     gsl_fft_real_wavetable *theTable;
@@ -236,21 +247,17 @@ Fid FtWorker::filterFid(const Fid f)
 			data[i]*=gsl_sf_exp(-(double)i*fid.spacing()/d_exp*1.0e6);
 	}
 
-	if(d_autoPadFids)
-	{
-		//find second power of 2 larger than data size (eg 400 -> 1024; 200->512, 1000->2048, etc...)
-		int padSize = Analysis::power2Nplus1(data.size());
-		data.resize(padSize); //the resize function populates new entries with default-constructed value (0.0 for double)
-	}
-
-	//make a vector of points for display purposes
-	QVector<QPointF> displayFid;
-	displayFid.reserve(data.size());
-	for(int i=0; i<data.size(); i++)
-		displayFid.append(QPointF((double)i*fid.spacing()*1.0e6,data.at(i)));
-
-	emit fidDone(displayFid);
-
 	//for synchronous use (eg the doFT function), return an FID object
-	return Fid(fid.spacing(),fid.probeFreq(),data);
+    return Fid(fid.spacing(),fid.probeFreq(),data);
+}
+
+Fid FtWorker::padFid(const Fid f)
+{
+    QVector<double> data = f.toVector();
+
+    //find second power of 2 larger than data size (eg 400 -> 1024; 200->512, 1000->2048, etc...)
+    int padSize = Analysis::power2Nplus1(data.size());
+    data.resize(padSize); //the resize function populates new entries with default-constructed value (0.0 for double)
+
+    return Fid(f.spacing(),f.probeFreq(),data);
 }
