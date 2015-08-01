@@ -48,7 +48,8 @@ RESOURCES += \
     icons.qrc
 
 DISTFILES += \
-    Notes.txt
+    Notes.txt \
+    config.pri.template
 
 #note: on linux, /usr/lib64 should have symbolic links set up to point to the qwt library if not using
 #pre-compiled qwt6 libraries (as of openSUSE 13.2, the pre-compiled libraries are built against Qt4,
@@ -63,29 +64,3 @@ DISTFILES += \
 #example: ln -s /usr/local/qwt-6.1.3/include /usr/local/include/qwt6
 unix:!macx: LIBS += -L/usr/local/lib64 -lqwt -lgsl -lgslcblas -lm
 
-
-######################################################
-#only modify the lines below if you know what you're doing!
-#For instance, if new hardware is added to program, you
-#should make new variables in config.pri for both configurations
-#and add appropriate defines below. See headers of
-#hardware base classes for examples of how to use these
-######################################################
-DEFINES += QTFTM_OSCILLOSCOPE=$$SCOPE
-DEFINES += QTFTM_GPIBCONTROLLER=$$GPIB
-DEFINES += QTFTM_ATTENUATOR=$$ATTN
-DEFINES += QTFTM_PDG=$$PDG
-DEFINES += QTFTM_MOTORDRIVER=$$MD
-DEFINES += QTFTM_FLOWCONTROLLER=$$FC QTFTM_FLOW_NUMCHANNELS=$$FC_CHANNELS
-DEFINES += QTFTM_IOBOARD=$$IOB
-DEFINES += QTFTM_FTMSYNTH=$$FTMSYNTH
-DEFINES += QTFTM_DRSYNTH=$$DRSYNTH
-DEFINES += QTFTM_PGEN=$$PGEN QTFTM_PGEN_GASCHANNEL=$$PGEN_GAS QTFTM_PGEN_DCCHANNEL=$$PGEN_DC QTFTM_PGEN_MWCHANNEL=$$PGEN_MW \
-	QTFTM_PGEN_DRCHANNEL=$$PGEN_DR QTFTM_PGEN_NUMCHANNELS=$$PGEN_CHANNELS
-DEFINES += QTFTM_HVPS=$$HVPS
-
-DEFINES += QTFTM_SPECTROMETER=$$SPECTROMETER
-
-equals(SCOPE, "0") {
-	RESOURCES += virtualdata.qrc
-}
