@@ -492,7 +492,15 @@ Scan BatchWidget::buildScanFromDialog(bool cal)
 	d.setWindowTitle(QString("Single Scan"));
 
 	SingleScanWidget *ssw = d.ssWidget();
-	ssw->enableSkipTune(true);
+
+	if(d_type == QtFTM::DrCorrelation)
+	{
+		ssw->enableSkipTune(false);
+		if(!cal)
+			ssw->limitFtmRangeToDr();
+	}
+	else
+		ssw->enableSkipTune(true);
 
 	if(cal)
 		ssw->shotsSpinBox()->blockSignals(true);

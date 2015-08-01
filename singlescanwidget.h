@@ -48,6 +48,8 @@ public:
     void setDrSynthBoxEnabled(bool enabled);
     void setShotsBoxEnabled(bool enabled);
 
+    void limitFtmRangeToDr();
+
 public slots:
 	void shotsChanged(int newShots);
 

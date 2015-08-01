@@ -30,12 +30,37 @@ StartPage::StartPage(QWidget *parent) :
 	vl->addWidget(batchButton);
 	vl->addWidget(drCorrButton);
 
+	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+	s.beginGroup(QString("ftmSynth"));
+	s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
+	double ftMin = s.value(QString("min"),5000.0).toDouble();
+	double ftMax = s.value(QString("max"),26000.0).toDouble();
+	s.endGroup();
+	s.endGroup();
+
+	s.beginGroup(QString("drSynth"));
+	s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
+	double drMin = s.value(QString("min"),1000.0).toDouble();
+	double drMax = s.value(QString("max"),26000.0).toDouble();
+	s.endGroup();
+	s.endGroup();
+
+	double min = qMax(ftMin,drMin);
+	double max = qMin(ftMax,drMax);
+
+	if(max < min)
+	{
+		drCorrButton->setEnabled(false);
+		QLabel *lbl = new QLabel(QString("DR correlation is disabled because the DR synthesizer cannot access the range of the FT. Reconfigure the DR synthesizer to match the FT range and try again."));
+		lbl->setWordWrap(true);
+		vl->addWidget(lbl);
+	}
+
 //	QGroupBox *miscBox = new QGroupBox(QString("Miscellaneous Settings"),this);
 //	QVBoxLayout *mbl = new QVBoxLayout(miscBox);
-
-
 //	miscBox->setLayout(mbl);
 //	vl->addWidget(miscBox);
+//
 	setLayout(vl);
 
 }
