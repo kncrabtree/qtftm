@@ -15,17 +15,12 @@
 
 
 QT       += core gui network
-CONFIG   += qt thread c++11
+CONFIG   += qt c++11
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets serialport printsupport
 
 TARGET = qtftm
 TEMPLATE = app
-
-#these lines will be deleted soon...
-INCLUDEPATH += "/usr/Qt/5.4/gcc_64/include"
-INCLUDEPATH += "/usr/Qt/5.4/gcc_64"
-
 
 include(config.pri) {
 	DISTFILES += config.pri
