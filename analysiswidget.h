@@ -16,46 +16,49 @@ class AnalysisWidget;
 }
 
 class FtPlot;
+class DrIntSetupPage;
 
 class AnalysisWidget : public QWidget
 {
 	Q_OBJECT
 	
 public:
+    friend class DrIntSetupPage;
 	explicit AnalysisWidget(QWidget *parent = nullptr);
 	~AnalysisWidget();
 
 	FtPlot *plot();
-	Ui::AnalysisWidget *ui;
-	int numLines() const { return llm->rowCount(); }
-	QList<QPair<double,double> > ranges() { return llm->getRanges(); }
+    int numLines() const { return llm->rowCount(); }
+    QList<QPair<double,double> > ranges() { return llm->getRanges(); }
+    void configureForDr();
 
 signals:
-	void canPrint(bool);
-	void scanChanged(int, bool replot = true);
-	void linesChanged();
-	void metaDataChanged(int);
+    void canPrint(bool);
+    void scanChanged(int, bool replot = true);
+    void linesChanged();
+    void metaDataChanged(int);
     void peakAddRequested(int,double,double,QString s = QString("Added manually"));
 
 private:
-	LineListModel *llm;
-	Scan d_currentScan;
+    Ui::AnalysisWidget *ui;
+    LineListModel *llm;
+    Scan d_currentScan;
 
-	QFrame *renderPrintSidebar();
-	QThread *fitThread;
+    QFrame *renderPrintSidebar();
+    QThread *fitThread;
     QPair<double,double> d_currentBaseline;
 
 public slots:
-	void peakMarkRequested();
-	void buildLineListContextMenu(const QPoint p);
-	void deleteLine();
-	void newScan(Scan s);
-	void showLatestScan();
-	void loadScan(int num);
-	void showScan(Scan s);
-	void print();
-	void clearLines();
-	void showScanDetails();
+    void peakMarkRequested();
+    void buildLineListContextMenu(const QPoint p);
+    void deleteLine();
+    void newScan(Scan s);
+    void showLatestScan();
+    void loadScan(int num);
+    void showScan(Scan s);
+    void print();
+    void clearLines();
+    void showScanDetails();
 
     void enableSelection(bool enabled);
     void limitRange(int first, int last);

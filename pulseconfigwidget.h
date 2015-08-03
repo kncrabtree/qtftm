@@ -44,6 +44,7 @@ public:
     void makeInternalConnections();
 
 
+
 signals:
     void changeSetting(int,QtFTM::PulseSetting,QVariant);
     void changeRepRate(double);

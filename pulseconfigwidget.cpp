@@ -179,6 +179,7 @@ int PulseConfigWidget::scopeDelay()
 
 void PulseConfigWidget::makeInternalConnections()
 {
+    ui->repRateBox->setEnabled(false);
     connect(this,&PulseConfigWidget::changeSetting,ui->pulsePlot,&PulsePlot::newSetting);
     connect(this,&PulseConfigWidget::changeProtDelay,ui->pulsePlot,&PulsePlot::newProtDelay);
     connect(this,&PulseConfigWidget::changeScopeDelay,ui->pulsePlot,&PulsePlot::newScopeDelay);

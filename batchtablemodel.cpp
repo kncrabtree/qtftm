@@ -263,9 +263,7 @@ int BatchTableModel::timeEstimate(QtFTM::BatchType type) const
 
 	int totalTime = 0;
 	int totalShots = 0;
-	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
-	double repRate = s.value(QString("pulseGenerator/repRate"),6.0).toDouble();
-
+    double repRate = scanList.first().first.pulseConfiguration().repRate();
 
 	if(type == QtFTM::Batch)
 	{

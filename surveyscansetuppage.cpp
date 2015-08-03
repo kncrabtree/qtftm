@@ -15,10 +15,6 @@ SurveyScanSetupPage::SurveyScanSetupPage(SingleScanWidget *ssw, QWidget *parent)
     surveyScanSsw->setFromScan(ssw->toScan());
 	surveyScanSsw->setFtmFreq(field(QString("surveyStart")).toDouble());
 	surveyScanSsw->setFtmSynthBoxEnabled(false);
-//	surveyScanSsw->setAttn(ssw->attn());
-//	surveyScanSsw->setDrFreq(ssw->drFreq());
-//	surveyScanSsw->setDrPower(ssw->drPower());
-//	surveyScanSsw->setPulseConfig(ssw->pulseConfig());
 
 	registerField(QString("surveyScanShots"),surveyScanSsw->shotsSpinBox());
 	QVBoxLayout *vl = new QVBoxLayout(this);
@@ -41,21 +37,13 @@ int SurveyScanSetupPage::nextId() const
 
 void SurveyScanSetupPage::initializePage()
 {
+    surveyScanSsw->setFtmFreq(field(QString("surveyStart")).toDouble());
 	updateLabel();
 }
 
 bool SurveyScanSetupPage::validatePage()
 {
     Scan scan = surveyScanSsw->toScan();
-
-	//get settings from widget and make scan
-//	scan.setTargetShots(surveyScanSsw->shots());
-//	scan.setFtFreq(surveyScanSsw->ftmFreq());
-//	scan.setAttenuation(surveyScanSsw->attn());
-//	scan.setDrFreq(surveyScanSsw->drFreq());
-//	scan.setDrPower(surveyScanSsw->drPower());
-//	scan.setPulseConfiguration(surveyScanSsw->pulseConfig());
-
 	emit surveyScan(scan);
 
 	return true;
@@ -63,7 +51,6 @@ bool SurveyScanSetupPage::validatePage()
 
 void SurveyScanSetupPage::updateLabel()
 {
-	surveyScanSsw->setFtmFreq(field(QString("surveyStart")).toDouble());
 	bool hasCal = field(QString("surveyCal")).toBool();
 	double start = field(QString("surveyStart")).toDouble();
 	double stop = field(QString("surveyStop")).toDouble();
@@ -79,13 +66,12 @@ void SurveyScanSetupPage::updateLabel()
 			calScans = 2;
 	}
 
-	///TODO: update time estimates
 	double calTuneTime = calScans*10.0;
 	double scanTuneTime = surveyScans*1.0;
 
 	double calIntegrationTime = 0.0;
-	QSettings set(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
-	double repRate = set.value(QString("pulseGenerator/repRate"),6.0).toDouble();
+
+    double repRate = surveyScanSsw->pulseConfig().repRate();
 
 	if(hasCal)
 		calIntegrationTime = (double)field(QString("surveyCalShots")).toInt()*calScans/repRate;

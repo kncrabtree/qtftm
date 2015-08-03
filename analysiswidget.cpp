@@ -63,7 +63,20 @@ AnalysisWidget::~AnalysisWidget()
 
 FtPlot *AnalysisWidget::plot()
 {
-	return ui->analysisPlot;
+    return ui->analysisPlot;
+}
+
+void AnalysisWidget::configureForDr()
+{
+    ui->analysisScanSpinBox->setVisible(false);
+    ui->currentScanButton->setVisible(false);
+    ui->analysisScanSpinBox->setEnabled(false);
+    ui->currentScanButton->setEnabled(false);
+    ui->analysisNotes->setVisible(false);
+    ui->analysisNotes->setEnabled(false);
+    ui->scanLabel->setVisible(false);
+    ui->notesLabel->setVisible(false);
+    ui->linesLabel->setText(QString("Integration ranges"));
 }
 
 void AnalysisWidget::peakMarkRequested()
