@@ -24,6 +24,7 @@ private:
 	QRadioButton *surveyButton;
 	QRadioButton *drButton;
 	QRadioButton *batchButton;
+    QRadioButton *categorizeButton;
 	QRadioButton *drCorrButton;
 	
 };

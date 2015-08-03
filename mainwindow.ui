@@ -14,7 +14,7 @@
    <string>QtFTM</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="icons.qrc">
+   <iconset>
     <normaloff>:/icons/icons/qtftm.png</normaloff>:/icons/icons/qtftm.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -1443,7 +1443,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>19</height>
+     <height>18</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuAcquisition">
@@ -1535,7 +1535,7 @@
   <action name="actionStart_Single">
    <property name="icon">
     <iconset resource="icons.qrc">
-     <normaloff>:/icons/icons/startsingle.png</normaloff>:/icons/icons/startsingle.png</iconset>
+     <normaloff>:/icons/startsingle.png</normaloff>:/icons/startsingle.png</iconset>
    </property>
    <property name="text">
     <string>Start Single</string>
@@ -1550,7 +1550,7 @@
   <action name="actionStart_Batch">
    <property name="icon">
     <iconset resource="icons.qrc">
-     <normaloff>:/icons/icons/startbatch.png</normaloff>:/icons/icons/startbatch.png</iconset>
+     <normaloff>:/icons/startbatch.png</normaloff>:/icons/startbatch.png</iconset>
    </property>
    <property name="text">
     <string>Start Batch</string>
@@ -1565,7 +1565,7 @@
   <action name="actionPause">
    <property name="icon">
     <iconset resource="icons.qrc">
-     <normaloff>:/icons/icons/pause.png</normaloff>:/icons/icons/pause.png</iconset>
+     <normaloff>:/icons/pause.png</normaloff>:/icons/pause.png</iconset>
    </property>
    <property name="text">
     <string>Pause</string>
@@ -1580,7 +1580,7 @@
   <action name="actionResume">
    <property name="icon">
     <iconset resource="icons.qrc">
-     <normaloff>:/icons/icons/resume.png</normaloff>:/icons/icons/resume.png</iconset>
+     <normaloff>:/icons/resume.png</normaloff>:/icons/resume.png</iconset>
    </property>
    <property name="text">
     <string>Resume</string>
@@ -1595,7 +1595,7 @@
   <action name="actionAbort">
    <property name="icon">
     <iconset resource="icons.qrc">
-     <normaloff>:/icons/icons/abort.png</normaloff>:/icons/icons/abort.png</iconset>
+     <normaloff>:/icons/abort.png</normaloff>:/icons/abort.png</iconset>
    </property>
    <property name="text">
     <string>Abort</string>
@@ -1613,7 +1613,7 @@
    </property>
    <property name="icon">
     <iconset resource="icons.qrc">
-     <normaloff>:/icons/icons/printscan.png</normaloff>:/icons/icons/printscan.png</iconset>
+     <normaloff>:/icons/printscan.png</normaloff>:/icons/printscan.png</iconset>
    </property>
    <property name="text">
     <string>Print Scan</string>
@@ -1631,7 +1631,7 @@
    </property>
    <property name="icon">
     <iconset resource="icons.qrc">
-     <normaloff>:/icons/icons/printbatch.png</normaloff>:/icons/icons/printbatch.png</iconset>
+     <normaloff>:/icons/printbatch.png</normaloff>:/icons/printbatch.png</iconset>
    </property>
    <property name="text">
     <string>Print Batch</string>
@@ -1649,7 +1649,7 @@
    </property>
    <property name="icon">
     <iconset resource="icons.qrc">
-     <normaloff>:/icons/icons/sleep.png</normaloff>:/icons/icons/sleep.png</iconset>
+     <normaloff>:/icons/sleep.png</normaloff>:/icons/sleep.png</iconset>
    </property>
    <property name="text">
     <string>Sleep Mode</string>
@@ -1664,7 +1664,7 @@
   <action name="actionCommunication">
    <property name="icon">
     <iconset resource="icons.qrc">
-     <normaloff>:/icons/icons/communication.png</normaloff>:/icons/icons/communication.png</iconset>
+     <normaloff>:/icons/communication.png</normaloff>:/icons/communication.png</iconset>
    </property>
    <property name="text">
     <string>Communication</string>
@@ -1691,7 +1691,7 @@
   <action name="actionTune_Cavity">
    <property name="icon">
     <iconset resource="icons.qrc">
-     <normaloff>:/icons/icons/peakcavity.png</normaloff>:/icons/icons/peakcavity.png</iconset>
+     <normaloff>:/icons/peakcavity.png</normaloff>:/icons/peakcavity.png</iconset>
    </property>
    <property name="text">
     <string>Tune Cavity</string>
@@ -1700,7 +1700,7 @@
   <action name="actionCalibrate">
    <property name="icon">
     <iconset resource="icons.qrc">
-     <normaloff>:/icons/icons/calibrate.png</normaloff>:/icons/icons/calibrate.png</iconset>
+     <normaloff>:/icons/calibrate.png</normaloff>:/icons/calibrate.png</iconset>
    </property>
    <property name="text">
     <string>Calibrate</string>
@@ -1709,7 +1709,7 @@
   <action name="actionTune_Up">
    <property name="icon">
     <iconset resource="icons.qrc">
-     <normaloff>:/icons/icons/cavitymodeup.png</normaloff>:/icons/icons/cavitymodeup.png</iconset>
+     <normaloff>:/icons/cavitymodeup.png</normaloff>:/icons/cavitymodeup.png</iconset>
    </property>
    <property name="text">
     <string>Tune Up</string>
@@ -1721,7 +1721,7 @@
   <action name="actionTune_Down">
    <property name="icon">
     <iconset resource="icons.qrc">
-     <normaloff>:/icons/icons/cavitymodedown.png</normaloff>:/icons/icons/cavitymodedown.png</iconset>
+     <normaloff>:/icons/cavitymodedown.png</normaloff>:/icons/cavitymodedown.png</iconset>
    </property>
    <property name="text">
     <string>Tune Down</string>
@@ -1733,7 +1733,7 @@
   <action name="actionView_Batch">
    <property name="icon">
     <iconset resource="icons.qrc">
-     <normaloff>:/icons/icons/view.png</normaloff>:/icons/icons/view.png</iconset>
+     <normaloff>:/icons/view.png</normaloff>:/icons/view.png</iconset>
    </property>
    <property name="text">
     <string>View Batch</string>
@@ -1745,7 +1745,7 @@
   <action name="actionChange_Tuning_File">
    <property name="icon">
     <iconset resource="icons.qrc">
-     <normaloff>:/icons/icons/open.png</normaloff>:/icons/icons/open.png</iconset>
+     <normaloff>:/icons/open.png</normaloff>:/icons/open.png</iconset>
    </property>
    <property name="text">
     <string>Change Tuning File...</string>

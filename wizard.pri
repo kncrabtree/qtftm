@@ -15,7 +15,10 @@ HEADERS += \
     batchwidget.h \
     batchtablemodel.h \
     batchprocessingpage.h \
-    $$PWD/drcorrpage.h
+    $$PWD/drcorrpage.h \
+    $$PWD/voltagetestmodel.h \
+    $$PWD/categorysetuppage.h \
+    $$PWD/dipoletestmodel.h
 
 SOURCES += \
     batchwizard.cpp \
@@ -34,6 +37,10 @@ SOURCES += \
     batchwidget.cpp \
     batchtablemodel.cpp \
     batchprocessingpage.cpp \
-    $$PWD/drcorrpage.cpp
+    $$PWD/drcorrpage.cpp \
+    $$PWD/voltagetestmodel.cpp \
+    $$PWD/categorysetuppage.cpp \
+    $$PWD/dipoletestmodel.cpp
 
-FORMS += batchwidget.ui
+FORMS += batchwidget.ui \
+    $$PWD/categorysetuppage.ui

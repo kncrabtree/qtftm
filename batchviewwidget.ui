@@ -27,11 +27,11 @@
        <item>
         <widget class="QPushButton" name="printScanButton">
          <property name="text">
-          <string>Print Scan</string>
+          <string>  Print Scan</string>
          </property>
          <property name="icon">
           <iconset resource="icons.qrc">
-           <normaloff>:/icons/icons/printscan.png</normaloff>:/icons/icons/printscan.png</iconset>
+           <normaloff>:/icons/printscan.png</normaloff>:/icons/printscan.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -44,11 +44,11 @@
        <item>
         <widget class="QPushButton" name="printBatchButton">
          <property name="text">
-          <string>Print Batch</string>
+          <string>  Print Batch</string>
          </property>
          <property name="icon">
           <iconset resource="icons.qrc">
-           <normaloff>:/icons/icons/printbatch.png</normaloff>:/icons/icons/printbatch.png</iconset>
+           <normaloff>:/icons/printbatch.png</normaloff>:/icons/printbatch.png</iconset>
          </property>
         </widget>
        </item>
@@ -240,7 +240,7 @@
   </layout>
   <action name="actionPrint_Scan">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/icons/icons/printscan.png</normaloff>:/icons/icons/printscan.png</iconset>
    </property>
    <property name="text">
@@ -252,7 +252,7 @@
   </action>
   <action name="actionPrint_Batch">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/icons/icons/printbatch.png</normaloff>:/icons/icons/printbatch.png</iconset>
    </property>
    <property name="text">

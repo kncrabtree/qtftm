@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/icons">
+    <qresource prefix="/">
         <file>icons/abort.png</file>
         <file>icons/pause.png</file>
         <file>icons/printbatch.png</file>
@@ -16,10 +16,10 @@
         <file>icons/communication.png</file>
         <file>icons/view.png</file>
         <file>icons/open.png</file>
-    </qresource>
-    <qresource prefix="/">
         <file>icons/error.png</file>
         <file>icons/warning.png</file>
         <file>icons/configure.png</file>
+        <file>icons/add.png</file>
+        <file>icons/remove.png</file>
     </qresource>
 </RCC>

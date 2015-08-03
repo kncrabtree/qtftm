@@ -71,6 +71,7 @@ enum BatchType {
 	DrScan,
 	Batch,
 	Attenuation,
+    Categorize,
 	DrCorrelation
 };
 
