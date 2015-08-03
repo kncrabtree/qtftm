@@ -821,6 +821,7 @@ void MainWindow::tuningComplete()
 
 void MainWindow::tuneCavityCallback()
 {
+    ui->ftmControlDoubleSpinBox->interpretText();
     double freq = ui->ftmControlDoubleSpinBox->value();
     d_uiState |= Tuning;
     updateUiConfig();

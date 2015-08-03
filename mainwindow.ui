@@ -1443,7 +1443,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>19</height>
+     <height>18</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuAcquisition">
@@ -1524,6 +1524,7 @@
    <addaction name="actionPause"/>
    <addaction name="actionResume"/>
    <addaction name="actionAbort"/>
+   <addaction name="actionTune_Cavity"/>
    <addaction name="separator"/>
    <addaction name="actionPrint_Scan"/>
    <addaction name="actionPrint_Summary"/>
