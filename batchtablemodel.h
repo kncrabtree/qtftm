@@ -11,8 +11,9 @@
  * 2: Attenuation
  * 3: DR Freq
  * 4: DR Power
- * 5: Is Cal
- * 6: Pulse string
+ * 5: DC Voltage
+ * 6: Is Cal
+ * 7: Pulse string
  *******************************/
 
 class BatchTableModel : public QAbstractTableModel

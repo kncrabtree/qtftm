@@ -6,6 +6,7 @@
 #include "voltagetestmodel.h"
 #include "dipoletestmodel.h"
 #include "batchwizard.h"
+#include "batchcategorize.h"
 
 CategorySetupPage::CategorySetupPage(QWidget *parent) :
     QWizardPage(parent),
@@ -38,12 +39,47 @@ void CategorySetupPage::initializePage()
 
 bool CategorySetupPage::validatePage()
 {
-    if(ui->dcTestBox->isChecked() || ui->magnetTestBox->isChecked())
-        return true;
+	int numTests = 0;
+	QVariantList dip, dc, v, mag;
 
-    int numTests = 0;
+	//test order: dipole->DC on/off->DC Voltage->Magnet
+	if(ui->dipoleTestBox->isChecked())
+	{
+		auto list = static_cast<DipoleTestModel*>(ui->dipolesView->model())->dipoleList();
+		numTests += list.size();
+		for(int i=0; i<list.size(); i++)
+			dip.append(list.at(i));
+	}
+
+	//note: if dipoles already checked, we only need to do one more scan to test DC (either turn it on or off, depending on how it starts)
+	//otherwise, this is the first test, so we need to check DC on vs off
+    if(ui->dcTestBox->isChecked())
+    {
+	    dc << true << false;
+	    if(numTests == 0)
+		    numTests += 2;
+	    else
+		    numTests++;
+    }
+
     if(ui->voltageTestBox->isChecked())
-        numTests += static_cast<VoltageTestModel*>(ui->voltagesView->model())->voltageList().size();
+    {
+	    auto list = static_cast<VoltageTestModel*>(ui->voltagesView->model())->voltageList();
+	   numTests += list.size();
+	   for(int i=0; i<list.size(); i++)
+		   v.append(list.at(i));
+    }
+
+    //same as dc on/off test...
+    if(ui->magnetTestBox->isChecked())
+    {
+	    mag << false << true;
+	    if(numTests == 0)
+		    numTests += 2;
+	    else
+		    numTests++;
+    }
+        return true;
 
     if(numTests < 1)
     {
@@ -51,6 +87,11 @@ bool CategorySetupPage::validatePage()
         return false;
     }
 
+    setField(QString("dipoleTestList"),dip);
+    setField(QString("dcTestList"),dc);
+    setField(QString("votlageTestList"),v);
+    setField(QString("magnetTestList"),mag);
+    setField(QString("numCatTests"),numTests);
     return true;
 }
 

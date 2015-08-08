@@ -23,6 +23,7 @@ public:
 	bool isEmpty();
 	QList<QPair<Scan,bool> > getList() const { return btm.getList(); }
     bool sleep() const { return sleepCheckBox->isChecked(); }
+    void setNumTests(int t) { d_numTests = t; }
 
 public slots:
 	void updateLabel();
@@ -48,6 +49,8 @@ private:
 	SingleScanWidget *batchSsw;
 	BatchTableModel btm;
 	QtFTM::BatchType d_type;
+	int d_numTests;
+
 	Scan buildScanFromDialog(bool cal = false);
 	bool isSelectionContiguous(QModelIndexList l);
 	Scan parseLine(Scan defaultScan, QString line);

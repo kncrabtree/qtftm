@@ -18,7 +18,8 @@ HEADERS += \
     $$PWD/drcorrpage.h \
     $$PWD/voltagetestmodel.h \
     $$PWD/categorysetuppage.h \
-    $$PWD/dipoletestmodel.h
+    $$PWD/dipoletestmodel.h \
+    $$PWD/categoryscansetuppage.h
 
 SOURCES += \
     batchwizard.cpp \
@@ -40,7 +41,8 @@ SOURCES += \
     $$PWD/drcorrpage.cpp \
     $$PWD/voltagetestmodel.cpp \
     $$PWD/categorysetuppage.cpp \
-    $$PWD/dipoletestmodel.cpp
+    $$PWD/dipoletestmodel.cpp \
+    $$PWD/categoryscansetuppage.cpp
 
 FORMS += batchwidget.ui \
     $$PWD/categorysetuppage.ui

@@ -265,7 +265,7 @@ int BatchTableModel::timeEstimate(QtFTM::BatchType type) const
 	int totalShots = 0;
     double repRate = scanList.first().first.pulseConfiguration().repRate();
 
-	if(type == QtFTM::Batch)
+	if(type == QtFTM::Batch || type == QtFTM::Categorize)
 	{
 		totalShots += scanList.first().first.targetShots();
 		for(int i=1;i<scanList.size();i++)
@@ -317,6 +317,7 @@ void BatchTableModel::updateScan(int row, Scan s)
 
 void BatchTableModel::sortByCavityPosition(SortOptions so, bool ascending)
 {
+	///TODO: rename this function; add ability to sort by shots (for dr correlation mode)
     //need to rearrange the real scans and evenly distribute cal scans.
     //should try to keep scans with the same FT frequency together, so cal scans may need to be shifted slightly to accommodate
     //first, collect cal scans for later use:
