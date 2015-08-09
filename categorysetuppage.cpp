@@ -25,6 +25,11 @@ CategorySetupPage::CategorySetupPage(QWidget *parent) :
     connect(ui->dipoleAddButton,&QToolButton::clicked,[=](){ ui->dipolesView->model()->insertRow(-1); });
     connect(ui->dipoleRemoveButton,&QToolButton::clicked,[=](){ui->dipolesView->model()->removeRow(ui->dipolesView->currentIndex().row()); });
     connect(ui->dipoleTestBox,&QCheckBox::toggled,ui->dipolesBox,&QGroupBox::setEnabled);
+
+    registerField(QString("catDipole"),ui->dipoleCategoryBox);
+    registerField(QString("catDc"),ui->dcCategoryBox);
+    registerField(QString("catVoltage"),ui->voltageCategoryBox);
+    registerField(QString("catMagnet"),ui->magnetCategoryBox);
 }
 
 CategorySetupPage::~CategorySetupPage()

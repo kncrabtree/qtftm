@@ -6,8 +6,6 @@ BatchDR::BatchDR(Scan ftScan, double start, double stop, double step, int numSca
     BatchManager(QtFTM::DrScan,false,f), d_template(ftScan), d_start(start), d_stop(stop), d_numScansBetween (0), d_integrationRanges(ranges),
     d_completedScans(0), d_hasCalibration(doCal), d_processScanIsCal(false), d_processingIndex(0)
 {
-	d_prettyName = QString("DR Scan");
-
 	//figure out scan direction
 	if(d_stop < d_start)
 		d_step = -step;

@@ -10,8 +10,6 @@ Batch::Batch(QList<QPair<Scan, bool> > l, AbstractFitter *ftr) :
     for(int i=0; i<d_scanList.size(); i++)
         d_totalShots += d_scanList.at(i).first.targetShots();
 
-	d_prettyName = QString("Batch");
-
 }
 
 Batch::Batch(int num) : BatchManager(QtFTM::Batch,true), d_loadingIndex(0), d_processScanIsCal(false)

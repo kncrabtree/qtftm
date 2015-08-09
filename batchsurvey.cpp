@@ -7,8 +7,6 @@ BatchSurvey::BatchSurvey(Scan first, double step, double end, bool hascal, Scan 
     BatchManager(QtFTM::Survey,false,af), d_surveyTemplate(first), d_hasCalibration(hascal), d_calTemplate(cal),
     d_scansPerCal(scansPerCal), d_currentSurveyIndex(0), d_processScanIsCal(false)
 {
-	d_prettyName = QString("Survey");
-
 	//10 kHz is smallest allowed step size for a survey!
 	if(step < 0.01)
 		step = 0.01;

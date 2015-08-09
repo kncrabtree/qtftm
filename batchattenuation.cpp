@@ -4,8 +4,6 @@ BatchAttenuation::BatchAttenuation(double minFreq, double maxFreq, double stepSi
     BatchManager(QtFTM::Attenuation), d_scanUpComplete(false), d_scanDownComplete(false), d_scanUpIndex(0), d_scanDownIndex(0), d_template(s), d_atnFilename(name),
     d_minFreq(minFreq), d_maxFreq(maxFreq), d_stepSize(stepSize), d_atten10GHz(atten10GHz), d_retrying(false), d_aborted(false), d_nextAttn(atten10GHz)
 {
-    d_prettyName = QString("Attenuation Table Batch");
-
     if(d_stepSize < 1.0)
         d_stepSize = 1.0;
 

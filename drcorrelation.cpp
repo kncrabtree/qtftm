@@ -6,8 +6,6 @@ DrCorrelation::DrCorrelation(QList<QPair<Scan,bool>> templateList, AbstractFitte
     BatchManager(QtFTM::DrCorrelation,false,ftr), d_thisScanIsRef(false), d_processScanIsCal(false),
     d_processScanIsRef(false), d_loadIndex(0)
 {
-	d_prettyName = QString("DR Correlation");
-
 	for(int i=0; i<templateList.size();i++)
 	{
 		//for each scan in the list, we need to tune and make sure DR is off
@@ -247,7 +245,7 @@ void DrCorrelation::processScan(Scan s)
 	bool badTune = s.tuningVoltage() <= 0;
     QtFTM::BatchPlotMetaData md(QtFTM::Batch,s.number(),mdmin,mdmax,d_processScanIsCal,badTune,markerText);
 
-    md.drRef = d_processScanIsRef;
+    md.isRef = d_processScanIsRef;
 
 	//if this scan is the reference (DR off), save the voltage. Otherwise, compare the voltage
     if(!d_processScanIsCal)

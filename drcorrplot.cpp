@@ -88,7 +88,7 @@ void DrCorrPlot::receiveData(QtFTM::BatchPlotMetaData md, QList<QVector<QPointF>
 	    }
 	    d_plotCurveMetaData[0].yMax = qMax(d_plotCurveMetaData.at(0).yMax,max);
 
-	    if(md.drRef)
+	    if(md.isRef)
 		    d_refMaxes.insert(md.scanNum,max);
 
 	    d_plotCurves[0]->setSamples(d.at(0));
@@ -481,14 +481,14 @@ void DrCorrPlot::doCorrPrint(QPrinter *pr, int firstScan, int lastScan, int grap
 	//if it's not a cal, then we need to go back
 	int refIndex = -1;
 	bool firstPlottedWasCal = false;
-	if(d_metaDataList.at(fIndex).drRef)
+	if(d_metaDataList.at(fIndex).isRef)
 		refIndex = fIndex;
 	else if(d_metaDataList.at(fIndex).isCal)
 	{
 		firstPlottedWasCal = true;
 		for(int i=fIndex+1; i<lIndex; i++)
 		{
-			if(d_metaDataList.at(i).drRef)
+			if(d_metaDataList.at(i).isRef)
 			{
 				refIndex = i;
 				break;
@@ -499,7 +499,7 @@ void DrCorrPlot::doCorrPrint(QPrinter *pr, int firstScan, int lastScan, int grap
 	{
 		for(int i = fIndex-1; i>=0; i--)
 		{
-			if(d_metaDataList.at(i).drRef)
+			if(d_metaDataList.at(i).isRef)
 			{
 				refIndex = i;
 				break;
@@ -514,7 +514,7 @@ void DrCorrPlot::doCorrPrint(QPrinter *pr, int firstScan, int lastScan, int grap
 	int lastDrScanNum = -1;
 	for(int i=refIndex+1; i<lIndex; i++)
 	{
-		if(d_metaDataList.at(i).isCal || d_metaDataList.at(i).drRef)
+		if(d_metaDataList.at(i).isCal || d_metaDataList.at(i).isRef)
 		{
 			lastDrScanNum = d_metaDataList.at(i-1).scanNum;
 			break;
@@ -548,12 +548,12 @@ void DrCorrPlot::doCorrPrint(QPrinter *pr, int firstScan, int lastScan, int grap
 		}
 
 
-		if(d_metaDataList.at(currentIndex).drRef && currentIndex > refIndex)
+		if(d_metaDataList.at(currentIndex).isRef && currentIndex > refIndex)
 		{
 			refIndex = currentIndex;
 			for(int i=refIndex+1; i<lIndex; i++)
 			{
-				if(d_metaDataList.at(i).isCal || d_metaDataList.at(i).drRef)
+				if(d_metaDataList.at(i).isCal || d_metaDataList.at(i).isRef)
 				{
 					lastDrScanNum = d_metaDataList.at(i-1).scanNum;
 					break;

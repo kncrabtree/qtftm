@@ -84,13 +84,13 @@ struct BatchPlotMetaData {
 	bool badTune;
 	QString text; /*!< Text to be displayed on a plot (see Batch implementation) */
 	bool drMatch; /*!< Whether DR resulted in depletion. Used in DrCorrelation */
-	bool drRef; /*!< This is a reference scan for DR correlation */
+	bool isRef; /*!< This is a "reference" scan for DR correlation or Category test */
 
 	/*!
 	 * \brief Constructor with default initialization
 	 */
    BatchPlotMetaData() : type(QtFTM::SingleScan), scanNum(-1), minXVal(0.0), maxXVal(1.0), isCal(false), badTune(false),
-	   text(QString()), drMatch(false), drRef(false) {}
+	   text(QString()), drMatch(false), isRef(false) {}
 
 	/*!
 	 \brief Constructor with explicit initialization
@@ -111,7 +111,7 @@ struct BatchPlotMetaData {
 	 \param other Structure to copy
 	*/
 	BatchPlotMetaData(const BatchPlotMetaData &other) : type(other.type), scanNum(other.scanNum), minXVal(other.minXVal),
-	  maxXVal(other.maxXVal), isCal(other.isCal), badTune(other.badTune), text(other.text), drMatch(other.drMatch), drRef(other.drRef) {}
+	  maxXVal(other.maxXVal), isCal(other.isCal), badTune(other.badTune), text(other.text), drMatch(other.drMatch), isRef(other.isRef) {}
 };
 
 }
