@@ -11,5 +11,10 @@ AbstractFitter::~AbstractFitter()
 
 QPair<QVector<QPointF>, double> AbstractFitter::doStandardFT(const Fid fid)
 {
-	return ftw.doFT(fid);
+    return ftw.doFT(fid);
+}
+
+bool AbstractFitter::isFidSaturated(const Scan s)
+{
+     return Analysis::isFidSaturated(ftw.filterFid(s.fid()));
 }

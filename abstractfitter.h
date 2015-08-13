@@ -43,6 +43,7 @@ protected:
 
 public slots:
     virtual FitResult doFit(const Scan s) =0;
+    bool isFidSaturated(const Scan s);
 
 signals:
     void fitComplete(const FitResult &);
