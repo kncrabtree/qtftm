@@ -80,7 +80,27 @@ Scan &Scan::operator=(const Scan &rhs)
 {
 	if (this != &rhs)
 		data.operator=(rhs.data);
-	return *this;
+    return *this;
+}
+
+Scan Scan::settingsFromPrevious(int num)
+{
+    Scan out;
+    Scan other(num);
+
+    out.setAttenuation(other.attenuation());
+    out.setDcVoltage(other.dcVoltage());
+    out.setDipoleMoment(other.dipoleMoment());
+    out.setDrFreq(other.drFreq());
+    out.setDrPower(other.drPower());
+    out.setMagnet(other.magnet());
+    out.setFtFreq(other.ftFreq());
+    out.setProtectionDelayTime(other.protectionDelayTime());
+    out.setScopeDelayTime(other.scopeDelayTime());
+    out.setPulseConfiguration(other.pulseConfiguration());
+    out.setTargetShots(other.targetShots());
+
+    return out;
 }
 
 bool Scan::operator ==(const Scan &other) const

@@ -696,6 +696,7 @@ void HardwareManager::finishPreparation(bool tuneSuccess)
     if(success)
     {
 	    //set pulse generator configuration
+        //don't change gas pulse length
 	    PulseGenConfig pc = setPulseConfig(d_currentScan.pulseConfiguration());
 	    if(pc.isEmpty())
 		    success = false;

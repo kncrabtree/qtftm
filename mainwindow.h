@@ -43,7 +43,8 @@ public:
 	Q_DECLARE_FLAGS(State,StateFlag)
 
 public slots:
-	void updateProgressBars();
+	void updateScanProgressBar();
+    void updateBatchProgressBar();
 	void updateUiConfig();
     void saveLogCallback();
     void scanStarting(Scan s, bool isCal);
