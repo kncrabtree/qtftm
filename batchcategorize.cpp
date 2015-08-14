@@ -25,6 +25,96 @@ BatchCategorize::BatchCategorize(QList<QPair<Scan, bool> > scanList, QList<Categ
     s.endGroup();
 }
 
+BatchCategorize::BatchCategorize(int num, AbstractFitter *ftr) :
+    BatchManager(QtFTM::Categorize,true,ftr)
+{
+    d_batchNum = num;
+
+    int drNum = num;
+    int drMillions = (int)floor((double)drNum/1000000.0);
+    int drThousands = (int)floor((double)drNum/1000.0);
+
+    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+    QString savePath = s.value(QString("savePath"),QString(".")).toString();
+    QDir d(savePath + QString("/categorize/%1/%2").arg(drMillions).arg(drThousands));
+
+    //create output file
+    QFile f(QString("%1/%2.txt").arg(d.absolutePath()).arg(drNum));
+
+    if(!f.exists())
+        return;
+
+    if(!f.open(QIODevice::ReadOnly))
+        return;
+
+    //don't need anyting from header; read until we get to the column headers
+    while(!f.atEnd())
+    {
+        QString line = QString(f.readLine().trimmed());
+        if(line.startsWith(QString("id_")))
+            break;
+    }
+
+    while(!f.atEnd())
+    {
+        QString line = QString(f.readLine().trimmed());
+        if(line.isEmpty())
+            continue;
+
+        if(line.startsWith(QString("cal")))
+            break;
+
+        QStringList l = line.split(QString("\t"));
+        if(l.size() < 8)
+            continue;
+
+        int num = l.at(1).toInt();
+        if(num < 1)
+            continue;
+
+        QString test = l.at(2);
+        QString value = l.at(3);
+        QString labelText;
+        if(test.contains(QString("sat")))
+            labelText = QString("SAT");
+        else if(test.contains(QString("final")))
+        {
+            labelText = QString("FINAL");
+            QStringList cats = value.split(QString("/"));
+            if(cats.size() < 2)
+                labelText.append(QString("\n")).append(value);
+            else
+            {
+                for(int i=0; i<cats.size(); i++)
+                {
+                    if(i%2)
+                        labelText.append(QString("\n"));
+                    else
+                        labelText.append(QString("/"));
+                    labelText.append(cats.at(i));
+                }
+            }
+        }
+        else
+            labelText = QString("%1:%2").arg(test).arg(value);
+
+        d_loadLabelTextMap.insert(num,labelText);
+    }
+
+    while(!f.atEnd())
+    {
+        QString line = QString(f.readLine().trimmed());
+        if(line.isEmpty())
+            continue;
+
+        bool ok = false;
+        int num = line.toInt(&ok);
+        if(ok)
+            d_loadLabelTextMap.insert(num,QString("CAL"));
+    }
+
+}
+
 
 
 BatchCategorize::~BatchCategorize()
@@ -140,52 +230,68 @@ void BatchCategorize::advanceBatch(const Scan s)
 	QString labelText;
     bool isRef = false;
 
-	if(d_thisScanIsCal)
-	{
-		double intensity = 0.0;
-		if(res.freqAmpPairList().isEmpty())
-			intensity = d_fitter->doStandardFT(s.fid()).second;
-		else
-		{
-			//record strongest peak intensity
-			for(int i=0; i<res.freqAmpPairList().size(); i++)
-				intensity = qMax(intensity,res.freqAmpPairList().at(i).second);
-		}
+    if(d_loading)
+    {
+        QString lt = d_loadLabelTextMap.value(s.number());
+        if(lt.contains(QString("CAL")))
+        {
+            d_thisScanIsCal = true;
+            labelText = lt;
+        }
+        else
+            d_thisScanIsCal = false;
+    }
 
-		d_calData.append(QPointF(static_cast<double>(s.number()),intensity));
-		labelText = QString("CAL");
+
+    if(d_thisScanIsCal)
+    {
+        double intensity = 0.0;
+        if(res.freqAmpPairList().isEmpty())
+            intensity = d_fitter->doStandardFT(s.fid()).second;
+        else
+        {
+            //record strongest peak intensity
+            for(int i=0; i<res.freqAmpPairList().size(); i++)
+                intensity = qMax(intensity,res.freqAmpPairList().at(i).second);
+        }
+
+        d_calData.append(QPointF(static_cast<double>(s.number()),intensity));
+        labelText = QString("CAL");
 
         d_calScans.append(s.number());
         d_status.advance();
         emit advanced();
-	}
-	else
-	{
-		double num = (double)s.number();
+    }
+    else
+    {
+        double num = (double)s.number();
 
-		auto p = d_fitter->doStandardFT(s.fid());
-		QVector<QPointF> ft = p.first;
-		double max = p.second;
+        auto p = d_fitter->doStandardFT(s.fid());
+        QVector<QPointF> ft = p.first;
+        double max = p.second;
         bool isSaturated;
         if(d_fitter->type() == FitResult::NoFitting)
             isSaturated = d_fitter->isFidSaturated(s);
         else
             isSaturated = (res.category() == FitResult::Saturated);
 
-		//the data will start and end with a 0 to make the plot look a little nicer
-		d_scanData.append(QPointF(num - ((double)ft.size()/2.0 + 1.0)/(double)ft.size()*0.9,0.0));
-		for(int i=0; i<ft.size(); i++) // make the x range go from num - 0.45 to num + 0.45
-			d_scanData.append(QPointF(num - ((double)ft.size()/2.0 - (double)i)/(double)ft.size()*0.9,ft.at(i).y()));
-		d_scanData.append(QPointF(num - ((double)ft.size()/2.0 - (double)ft.size())/(double)ft.size()*0.9,0.0));
+        //the data will start and end with a 0 to make the plot look a little nicer
+        d_scanData.append(QPointF(num - ((double)ft.size()/2.0 + 1.0)/(double)ft.size()*0.9,0.0));
+        for(int i=0; i<ft.size(); i++) // make the x range go from num - 0.45 to num + 0.45
+            d_scanData.append(QPointF(num - ((double)ft.size()/2.0 - (double)i)/(double)ft.size()*0.9,ft.at(i).y()));
+        d_scanData.append(QPointF(num - ((double)ft.size()/2.0 - (double)ft.size())/(double)ft.size()*0.9,0.0));
 
-		if(d_loading)
-		{
-			//build label from info in file
-			//create a list of labels in loading constructor
-		}
-		else
-		{
-            labelText.append(QString("%1/%2\n").arg(s.ftFreq(),0,'f',3).arg(s.attenuation()));
+
+        labelText.append(QString("%1/%2\n").arg(s.ftFreq(),0,'f',3).arg(s.attenuation()));
+        if(d_loading)
+        {
+            QString lt = d_loadLabelTextMap.value(s.number());
+            if(lt.contains(QString("FINAL")))
+                isRef = true;
+            labelText.append(lt);
+        }
+        else
+        {
             d_status.scanTemplate.setAttenuation(s.attenuation());
             //build scan result; make initial settings.
             //some will be overwritten later as the scan is processed
@@ -209,20 +315,20 @@ void BatchCategorize::advanceBatch(const Scan s)
                 }
             }
             else
-{
-
-            for(int i=0; i<sr.frequencies.size(); i++)
             {
-                double thisLineFreq = sr.frequencies.at(i);
-                while(i >= sr.intensities.size())
-                    sr.intensities.append(0.0);
-                sr.intensities[i] = 0.0;
-                for(int j=0; j<res.freqAmpPairList().size(); j++)
+
+                for(int i=0; i<sr.frequencies.size(); i++)
                 {
-                    if(qAbs(thisLineFreq-res.freqAmpPairList().at(j).first) < d_lineMatchMaxDiff)
-                        sr.intensities[i] = res.freqAmpPairList().at(j).second;
+                    double thisLineFreq = sr.frequencies.at(i);
+                    while(i >= sr.intensities.size())
+                        sr.intensities.append(0.0);
+                    sr.intensities[i] = 0.0;
+                    for(int j=0; j<res.freqAmpPairList().size(); j++)
+                    {
+                        if(qAbs(thisLineFreq-res.freqAmpPairList().at(j).first) < d_lineMatchMaxDiff)
+                            sr.intensities[i] = res.freqAmpPairList().at(j).second;
+                    }
                 }
-            }
             }
 
             TestResult tr;
@@ -233,7 +339,7 @@ void BatchCategorize::advanceBatch(const Scan s)
             tr.extraAttn = d_status.currentExtraAttn;
             tr.ftMax = max;
 
-			//use results to determine what scan to do next
+            //use results to determine what scan to do next
             //1.) If saturated, increase attenuation and try again. Remove dipole test if applicable
             //2.) If this is the reference scan, assign category and move on to next scan in list
             //3.) Check for line. If no line, proceed with any dipole tests remaining. Otherwise, continue.
@@ -278,6 +384,15 @@ void BatchCategorize::advanceBatch(const Scan s)
             {
                 //categorize
                 sr.testValue = d_status.category;
+                if(d_status.category.isEmpty())
+                {
+                    sr.testValue = QString("noCat");
+                    if(!d_status.frequencies.isEmpty())
+                    {
+                        for(int i=1; i<d_status.frequencies.size(); i++)
+                            sr.testValue = QString(sr.testValue.toString()).append(QString("/noCat"));
+                    }
+                }
                 labelText.append(QString("FINAL"));
                 QStringList cats = d_status.category.split(QString("/"));
                 if(cats.size() < 2)
@@ -360,11 +475,11 @@ void BatchCategorize::advanceBatch(const Scan s)
         } // end if(d_loading) else
     } // end if(d_thisScanIsCal) else
 
-	QtFTM::BatchPlotMetaData md(d_batchType,s.number(),mdMin,mdMax,d_thisScanIsCal,badTune,labelText);
+    QtFTM::BatchPlotMetaData md(d_batchType,s.number(),mdMin,mdMax,d_thisScanIsCal,badTune,labelText);
     md.isRef = isRef;
-	QList<QVector<QPointF>> out;
-	if(d_thisScanIsCal)
-		out.append(d_calData);
+    QList<QVector<QPointF>> out;
+    if(d_thisScanIsCal)
+        out.append(d_calData);
 	else
 		out.append(d_scanData);
 

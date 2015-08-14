@@ -55,6 +55,7 @@ public:
     };
 
 	explicit BatchCategorize(QList<QPair<Scan,bool>> scanList, QList<CategoryTest> testList, AbstractFitter *ftr);
+    explicit BatchCategorize(int num, AbstractFitter *ftr = new NoFitter());
 	~BatchCategorize();
 
 	// BatchManager interface
@@ -74,6 +75,7 @@ private:
     QList<ScanResult> d_resultList;
     QList<int> d_calScans;
 	QVector<QPointF> d_scanData, d_calData;
+    QMap<int,QString> d_loadLabelTextMap;
 
     CategoryStatus d_status;
 	bool d_thisScanIsRef;
