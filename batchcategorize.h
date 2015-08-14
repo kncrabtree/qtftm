@@ -15,12 +15,14 @@ public:
 	};
 
 	struct ScanResult {
+        int index;
 		int scanNum;
         QString testKey;
         QVariant testValue;
+        int extraAttn;
 		int attenuation;
         QList<double> frequencies;
-		QList<QVariant> results;
+        QList<double> intensities;
 	};
 
     struct TestResult {
@@ -69,7 +71,8 @@ private:
     const double d_magThresh = 0.75;
 	QList<QPair<Scan,bool>> d_templateList;
 	QList<CategoryTest> d_testList;
-	QList<ScanResult> d_resultList, d_currentIndexResultList;
+    QList<ScanResult> d_resultList;
+    QList<int> d_calScans;
 	QVector<QPointF> d_scanData, d_calData;
 
     CategoryStatus d_status;

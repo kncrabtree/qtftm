@@ -25,6 +25,8 @@ BatchCategorize::BatchCategorize(QList<QPair<Scan, bool> > scanList, QList<Categ
     s.endGroup();
 }
 
+
+
 BatchCategorize::~BatchCategorize()
 {
 
@@ -32,6 +34,93 @@ BatchCategorize::~BatchCategorize()
 
 void BatchCategorize::writeReport()
 {
+    if(d_resultList.isEmpty())
+    {
+        emit logMessage(QString("Did not create %1 report because no scans were completed successfully.").arg(d_prettyName),QtFTM::LogWarning);
+        return;
+    }
+
+    //figure out where to save the data
+    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+    int batchNum = s.value(d_numKey,1).toInt();
+    int batchMillions = (int)floor((double)batchNum/1000000.0);
+    int batchThousands = (int)floor((double)batchNum/1000.0);
+
+    //create directory, if necessary
+    QString savePath = s.value(QString("savePath"),QString(".")).toString();
+    QDir d(savePath + QString("/categorize/%1/%2").arg(batchMillions).arg(batchThousands));
+    if(!d.exists())
+    {
+        if(!d.mkpath(d.absolutePath()))
+        {
+            emit logMessage(QString("Could not create directory for saving batch scan! Creation of %1 failed, and data were not saved!").arg(d.absolutePath()),QtFTM::LogError);
+            return;
+        }
+    }
+
+    //open file for writing
+    QFile out(QString("%1/%2.txt").arg(d.absolutePath()).arg(batchNum));
+    QTextStream t(&out);
+    QString tab = QString("\t");
+    QString nl = QString("\n");
+
+    if(!out.open(QIODevice::WriteOnly))
+    {
+        emit logMessage(QString("Could not open file for writing batch data! Creation of %1 failed, and data were not saved!").arg(out.fileName()),QtFTM::LogError);
+        return;
+    }
+
+    t.setRealNumberNotation(QTextStream::FixedNotation);
+    t.setRealNumberPrecision(4);
+    //header stuff
+    t << QString("#Category Test") << tab << batchNum << tab << nl;
+    t << QString("#Date") << tab << QDateTime::currentDateTime().toString() << tab << nl;
+    t << QString("#FID delay") << tab << d_fitter->delay() << tab << QString("us") << nl;
+    t << QString("#FID high pass") << tab << d_fitter->hpf() << tab << QString("kHz") << nl;
+    t << QString("#FID exp decay") << tab << d_fitter->exp() << tab << QString("us") << nl;
+    t << QString("#FID remove baseline") << tab << (d_fitter->removeDC() ? QString("Yes") : QString("No")) << tab << nl;
+    t << QString("#FID zero padding") << tab << (d_fitter->autoPad() ? QString("Yes") : QString("No")) << tab << nl;
+
+    t << nl << QString("id_") << batchNum << tab << QString("scan_") << batchNum << tab;
+    t << QString("test_") << batchNum << tab << QString("value_") << batchNum << tab;
+    t << QString("extraAttn_") << batchNum << tab << QString("attn_") << batchNum << tab;
+    t << QString("lines_") << batchNum << tab << QString("intensities_") << batchNum;
+
+    for(int i=0; i<d_resultList.size(); i++)
+    {
+        const ScanResult &sr = d_resultList.at(i);
+        t << nl << sr.index << tab << sr.scanNum << tab << sr.testKey << tab << sr.testValue.toString();
+        t << tab << sr.extraAttn << tab << sr.attenuation << tab;
+        if(sr.frequencies.isEmpty())
+            t << QString("0.0");
+        else
+        {
+            t << sr.frequencies.first();
+            for(int i=1; i<sr.frequencies.size(); i++)
+                t << QString("/") << sr.frequencies.at(i);
+        }
+        t << tab;
+        if(sr.intensities.isEmpty())
+            t << QString("0.0");
+        else
+        {
+            t << sr.intensities.first();
+            for(int i=1; i<sr.intensities.size(); i++)
+                t << QString("/") << sr.intensities.at(i);
+        }
+    }
+
+    if(!d_calScans.isEmpty())
+    {
+        t << nl << nl << QString("calscans_") << batchNum;
+        for(int i=0; i<d_calScans.size(); i++)
+            t << nl << d_calScans.at(i);
+    }
+
+    t.flush();
+    out.close();
+
+
 }
 
 void BatchCategorize::advanceBatch(const Scan s)
@@ -66,6 +155,7 @@ void BatchCategorize::advanceBatch(const Scan s)
 		d_calData.append(QPointF(static_cast<double>(s.number()),intensity));
 		labelText = QString("CAL");
 
+        d_calScans.append(s.number());
         d_status.advance();
         emit advanced();
 	}
@@ -101,11 +191,39 @@ void BatchCategorize::advanceBatch(const Scan s)
             //some will be overwritten later as the scan is processed
             d_status.scansTaken++;
             ScanResult sr;
+            sr.index = d_status.currentTestIndex;
             sr.scanNum = s.number();
+            sr.extraAttn = d_status.currentExtraAttn;
             sr.attenuation = s.attenuation();
             sr.testKey = d_status.currentTestKey;
             sr.testValue = d_status.currentTestValue;
             sr.frequencies = d_status.frequencies;
+
+            if(res.type() == FitResult::NoFitting)
+            {
+                for(int i=0; i<d_status.frequencies.size(); i++)
+                {
+                    while(i >= sr.intensities.size())
+                        sr.intensities.append(0.0);
+                    sr.intensities[i] = max;
+                }
+            }
+            else
+{
+
+            for(int i=0; i<sr.frequencies.size(); i++)
+            {
+                double thisLineFreq = sr.frequencies.at(i);
+                while(i >= sr.intensities.size())
+                    sr.intensities.append(0.0);
+                sr.intensities[i] = 0.0;
+                for(int j=0; j<res.freqAmpPairList().size(); j++)
+                {
+                    if(qAbs(thisLineFreq-res.freqAmpPairList().at(j).first) < d_lineMatchMaxDiff)
+                        sr.intensities[i] = res.freqAmpPairList().at(j).second;
+                }
+            }
+            }
 
             TestResult tr;
             tr.scanNum = s.number();
@@ -160,7 +278,21 @@ void BatchCategorize::advanceBatch(const Scan s)
             {
                 //categorize
                 sr.testValue = d_status.category;
-                labelText.append(QString("FINAL\n%1").arg(d_status.category));
+                labelText.append(QString("FINAL"));
+                QStringList cats = d_status.category.split(QString("/"));
+                if(cats.size() < 2)
+                    labelText.append(QString("\n")).append(d_status.category);
+                else
+                {
+                    for(int i=0; i<cats.size(); i++)
+                    {
+                        if(i%2)
+                            labelText.append(QString("\n"));
+                        else
+                            labelText.append(QString("/"));
+                        labelText.append(cats.at(i));
+                    }
+                }
                 isRef = true;
                 d_status.advance();
                 emit advanced();
