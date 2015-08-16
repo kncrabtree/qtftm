@@ -192,8 +192,6 @@ void LabjackU3::configure()
     d_highBandLine = s.value(QString("highBandLine"),17).toInt();
     d_magnetLine = s.value(QString("magnetLine"),18).toInt();
     d_counterPinOffset = s.value(QString("counterOffset"),4).toInt();
-    s.endGroup();
-    s.endGroup();
 
 
     //enable counter on indicated line

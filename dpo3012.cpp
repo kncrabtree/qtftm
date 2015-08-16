@@ -49,7 +49,7 @@ bool DPO3012::testConnection()
         return false;
     }
 
-    if(!resp.startsWith(QByteArray("TEKTRONIX,DSA71604C")))
+    if(!resp.startsWith(QByteArray("TEKTRONIX,DPO3012")))
     {
         emit connected(false,QString("ID response invalid. Response: %1 (Hex: %2)").arg(QString(resp)).arg(QString(resp.toHex())));
         return false;

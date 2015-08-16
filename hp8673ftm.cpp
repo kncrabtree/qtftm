@@ -5,8 +5,8 @@
 HP8673FTM::HP8673FTM(QObject *parent) :
     FtmSynthesizer(parent)
 {
-    d_subKey = QString("hp8340");
-    d_prettyName = QString("HP8340 FTM Synthesizer");
+    d_subKey = QString("hp8673");
+    d_prettyName = QString("HP8673 FTM Synthesizer");
 
     p_comm = new GpibInstrument(d_key,d_subKey,static_cast<GpibController*>(parent),this);
     connect(p_comm,&CommunicationProtocol::logMessage,this,&HP8673FTM::logMessage);

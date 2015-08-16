@@ -14,14 +14,14 @@ Scan BatchSingle::prepareNextScan()
 void BatchSingle::advanceBatch(const Scan s)
 {
     Q_UNUSED(s)
+    d_completed = true;
 }
 
 
 void BatchSingle::processScan(Scan s)
 {
 	FitResult res = d_fitter->doFit(s);
-	Q_UNUSED(res)
-    d_completed = true;
+	Q_UNUSED(res)  
 }
 
 bool BatchSingle::isBatchComplete()

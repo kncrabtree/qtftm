@@ -34,7 +34,6 @@ private:
     bool d_resolutionChangePending;
 
     QTime d_responseTimeout;
-    bool d_acquisitionActive;
     bool d_waitingForReply;
     bool d_waitingForWakeUp;
 };

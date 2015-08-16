@@ -64,7 +64,7 @@ void AeroflexAttn::initialize()
 {
     Attenuator::initialize();
 
-    p_comm->setReadOptions(1000,true,QByteArray("\n"));
+    p_comm->setReadOptions(1000,true,QByteArray("\r"));
     p_comm->initialize();
     testConnection();
 }

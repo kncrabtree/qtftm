@@ -5,7 +5,7 @@
 QC9518::QC9518(QObject *parent) :
     PulseGenerator(parent)
 {
-    d_subKey = QString("QC9518");
+    d_subKey = QString("qc9518");
     d_prettyName = QString("Pulse Generator QC 9518");
 
     p_comm = new Rs232Instrument(d_key,d_subKey,this);

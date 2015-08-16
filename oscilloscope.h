@@ -22,7 +22,7 @@ public slots:
     virtual void sendCurveQuery() =0;
     virtual void setActive(bool active = true) { d_acquisitionActive = active; }
 
-private:
+protected:
     bool d_acquisitionActive;
 };
 
