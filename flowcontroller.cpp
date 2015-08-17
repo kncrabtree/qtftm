@@ -20,6 +20,21 @@ FlowController::~FlowController()
 
 }
 
+void FlowController::initialize()
+{
+    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+    s.beginGroup(d_key);
+
+    s.beginReadArray(QString("channels"));
+    for(int i=0;i<QTFTM_FLOW_NUMCHANNELS;i++)
+    {
+        s.setArrayIndex(i);
+        d_config.add(0.0,s.value(QString("name"),QString("")).toString());
+    }
+    s.endArray();
+    s.endGroup();
+}
+
 void FlowController::setChannelName(const int ch, const QString name)
 {
     if(ch < d_config.size())
@@ -65,8 +80,8 @@ void FlowController::readAll()
     for(int i=0; i<d_config.size(); i++)
     {
 	   emit channelNameUpdate(i,d_config.setting(i,QtFTM::FlowSettingName).toString());
-        readFlowSetpoint(i);
         readFlow(i);
+        readFlowSetpoint(i);
     }
 
     readPressureSetpoint();

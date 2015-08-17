@@ -101,6 +101,8 @@ bool MKS647C::testConnection()
 
 void MKS647C::initialize()
 {
+    FlowController::initialize();
+
     p_comm->setReadOptions(1000,true,QByteArray("\r\n"));
     p_comm->initialize();
     testConnection();
