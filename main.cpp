@@ -61,15 +61,21 @@ int main(int argc, char *argv[])
 	//list containing lockfile names and application names
 	QList<QPair<QString,QString> > incompatibleApps;
 	//add other apps here
+    //if the app is from a different organization (e.g. CrabtreeLab instead of CfA Spectroscopy Lab), enter full path to lockfile and prepend with !
 	incompatibleApps.append(qMakePair(lockFileName,appName));
 	incompatibleApps.append(qMakePair(QString("bbacq.lock"),QString("BBAcq")));
+    incompatibleApps.append(qMakePair(QString("!/home/data/CrabtreeLab/blackchirp.lock"),QString("BlackChirp")));
 
 
 	QFile lockFile;
 	for(int i=0;i<incompatibleApps.size();i++)
 	{
 	    QString title = incompatibleApps.at(i).second;
-	    QString fileName = QString("%1/%2").arg(lockFilePath).arg(incompatibleApps.at(i).first);
+        QString fileName;
+        if(incompatibleApps.at(i).first.startsWith(QString("!")))
+            fileName = incompatibleApps.at(i).first.mid(1);
+        else
+            fileName = QString("%1/%2").arg(lockFilePath).arg(incompatibleApps.at(i).first);
 
 	    lockFile.setFileName(fileName);
 	    qint64 pid = 0;
