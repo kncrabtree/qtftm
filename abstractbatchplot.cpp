@@ -196,7 +196,12 @@ void AbstractBatchPlot::loadCalScan(const double x)
     }
 
     //locate number of nearest cal scan
-    if(x<calScans.first().minXVal)
+    if(calScans.size() == 1)
+    {
+        emit requestScan(calScans.first().scanNum);
+        return;
+    }
+    else if(x<calScans.first().minXVal || qAbs(x - calScans.first().minXVal) < qAbs(x - calScans.at(1).minXVal))
     {
 	   emit requestScan(calScans.first().scanNum);
         return;
@@ -206,11 +211,11 @@ void AbstractBatchPlot::loadCalScan(const double x)
         emit requestScan(calScans.last().scanNum);
         return;
     }
-    for(int i=1; i<calScans.size()-2; i++)
+    for(int i=1; i<calScans.size()-1; i++)
     {
 	    double before = qAbs(x - calScans.at(i-1).minXVal);
 	    double thisd = qAbs(x - calScans.at(i).minXVal);
-	    double after = qAbs(x - calScans.at(i-1).minXVal);
+        double after = qAbs(x - calScans.at(i+1).minXVal);
 	   if(thisd <= before && thisd <= after)
         {
             emit requestScan(calScans.at(i).scanNum);
