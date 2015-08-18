@@ -197,12 +197,12 @@ void ScanManager::abortScan()
 	d_paused = false;
 	d_acquiring = false;
 	disconnect(this,&ScanManager::newFid,this,&ScanManager::acqAverage);
+    d_currentScan.abortScan();
 
 	//only do the following if the scan has been initialized, but not yet saved
 	if(d_currentScan.isInitialized() && !d_currentScan.isSaved())
 	{
 
-		d_currentScan.abortScan();
 		d_currentScan.save();
 		if(!d_currentScan.isSaved())
 		{

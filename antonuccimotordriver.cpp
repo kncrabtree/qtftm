@@ -135,7 +135,7 @@ void AntonucciMotorDriver::tune(double freq, int currentAttn, int mode)
     {
         d_lastTuneVoltage = -1; // make last tuning votlage invalid!
         doFineTune = true; //make double damn certain that a fine tune follows a rough tune
-        QStringList itResult = roughTune(modePair.first, freq);
+        QStringList itResult = roughTune(modePair.first, false, freq);
 
         if(itResult.size()<9)
         {

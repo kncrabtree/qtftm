@@ -61,27 +61,22 @@ bool FtmSynthesizer::setCavityFreq(double d)
 
 bool FtmSynthesizer::goToCavityFreq()
 {
-    bool success = setFreqForce(d_targetCavityFreq-d_mixerOffset*d_mult);
+    double f = setFreqForce(d_targetCavityFreq-d_mixerOffset*d_mult);
 
-	if(!success)
+    if(f < 0.0)
+    {
 		emit hardwareFailure();
+        return false;
+    }
 
-    double f = readFreq();
     emit newProbeFreq(f+d_mixerOffset*d_mult);
-
-    return success;
+    return true;
 }
 
 double FtmSynthesizer::goToProbeFreq()
 {
-    bool success = setFreqForce(d_targetCavityFreq-d_probeOffset-d_mixerOffset*d_mult);
-	if(!success)
-	{
-		emit hardwareFailure();
-		return -1.0;
-	}
+    double f = setFreqForce(d_targetCavityFreq-d_probeOffset-d_mixerOffset*d_mult);
 
-	double f = readFreq();
 	if(f < 0.0)
 	{
 		emit hardwareFailure();
@@ -95,9 +90,8 @@ double FtmSynthesizer::goToProbeFreq()
 
 void FtmSynthesizer::goToCavityDeltaFreq(double delta)
 {
-    setFreqForce(d_targetCavityFreq-d_mixerOffset*d_mult+delta);
+    double f = setFreqForce(d_targetCavityFreq-d_mixerOffset*d_mult+delta);
 
     //make sure frequency gets updated before returning
-    double f = readFreq();
     emit newProbeFreq(f+d_mixerOffset*d_mult);
 }
