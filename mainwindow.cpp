@@ -132,12 +132,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->saveLogButton,&QAbstractButton::clicked,this,&MainWindow::saveLogCallback);
     for(int i=0; i<d_gasBoxes.size();i++)
     {
-        connect(d_gasBoxes.at(i),&QLineEdit::editingFinished,[=](){
-            QString name = d_gasBoxes.at(i)->text();
-            QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
-            s.setValue(QString("gas%1Name"),name);
+        connect(d_gasBoxes.at(i),&QLineEdit::textChanged,[=](){
+            QString name = d_gasBoxes.at(i)->text();           
             emit changeGasName(i,name);
-            s.sync();
+
         });
     }
 
@@ -288,9 +286,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     synthSettingsChanged();
 
+    s.beginGroup(QString("flowController"));
+    s.beginReadArray(QString("channels"));
     for(int i=0; i<d_gasBoxes.size(); i++)
     {
-        QString name = s.value(QString("gas%1Name").arg(i+1),QString("")).toString();
+        s.setArrayIndex(i);
+        QString name = s.value(QString("name"),QString("")).toString();
         d_gasBoxes[i]->setText(name);
         emit changeGasName(i,name);
     }

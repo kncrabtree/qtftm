@@ -117,10 +117,10 @@ double MKS647C::setFlowSetpoint(const int ch, const double val)
     readFlow(ch);
 
     //use full scale range and gcf to convert val to setpoint in units of 0.1% full scale
-    int sp = qRound(val/(d_gasRangeList.at(d_rangeIndexList.at(ch))*d_gcfList.at(ch)*1000.0));
+    int sp = qRound(val/(d_gasRangeList.at(d_rangeIndexList.at(ch))*d_gcfList.at(ch))*1000.0);
 
     if(sp >=0 && sp <=1100)
-        p_comm->writeCmd(QString("FS%1%2;\r\n").arg(ch).arg(sp,4,10,QLatin1Char('0')));
+        p_comm->writeCmd(QString("FS%1%2;\r\n").arg(ch+1).arg(sp,4,10,QLatin1Char('0')));
     else
         emit logMessage(QString("Flow setpoint (%1) invalid for current range. Converted value = %2 (valid range: 0-1100)").arg(val).arg(sp),QtFTM::LogWarning);
 
