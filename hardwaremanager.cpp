@@ -744,7 +744,10 @@ void HardwareManager::sleep(bool b)
 
 void HardwareManager::scopeResolutionChanged()
 {
-    QMetaObject::invokeMethod(scope,"setResolution");
+    if(scope->thread() == thread())
+        scope->setResolution();
+    else
+        QMetaObject::invokeMethod(scope,"setResolution");
 }
 
 void HardwareManager::tuneCavity(double freq, int mode, bool measureOnly)
