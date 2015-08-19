@@ -17,7 +17,8 @@ SOURCES += mainwindow.cpp \
     $$PWD/batchscanplot.cpp \
     $$PWD/batchattnplot.cpp \
     $$PWD/pulseconfigwidget.cpp \
-    $$PWD/drcorrplot.cpp
+    $$PWD/drcorrplot.cpp \
+    $$PWD/categoryplot.cpp
 
 HEADERS += mainwindow.h \
     ftplot.h \
@@ -38,7 +39,8 @@ HEADERS += mainwindow.h \
     $$PWD/batchscanplot.h \
     $$PWD/batchattnplot.h \
     $$PWD/pulseconfigwidget.h \
-    $$PWD/drcorrplot.h
+    $$PWD/drcorrplot.h \
+    $$PWD/categoryplot.h
 
 
 FORMS    += mainwindow.ui \
