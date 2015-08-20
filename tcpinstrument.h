@@ -29,7 +29,7 @@ private:
     QTcpSocket *p_socket;
 
     bool connectSocket();
-    void disconnectSocket();
+    bool disconnectSocket();
     void setSocketConnectionInfo(QString ip, int port);
 
 };

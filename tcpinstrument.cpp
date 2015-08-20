@@ -28,14 +28,7 @@ bool TcpInstrument::testConnection()
 	QString ip = s.value(key().append(QString("/ip")),QString("")).toString();
 	int port = s.value(key().append(QString("/port")),5000).toInt();
 
-    if(ip == d_ip && port == d_port && p_socket->state() == QTcpSocket::ConnectedState)
-		return true;
-
-    if(p_socket->state() != QTcpSocket::UnconnectedState)
-		disconnectSocket();
-
     setSocketConnectionInfo(ip,port);
-
 	return connectSocket();
 
 }
@@ -149,8 +142,18 @@ QByteArray TcpInstrument::queryCmd(QString cmd)
 
 bool TcpInstrument::connectSocket()
 {
+    if(p_socket->state() == QAbstractSocket::ConnectedState)
+    {
+        p_socket->disconnectFromHost();
+        if((p_socket->state() != QAbstractSocket::UnconnectedState) && !p_socket->waitForDisconnected(d_timeOut))
+        {
+            emit logMessage(QString("Timed out while waiting for disconnection."));
+            return false;
+        }
+    }
+
     p_socket->connectToHost(d_ip,d_port);
-    if(!p_socket->waitForConnected(1000))
+    if(!p_socket->waitForConnected(d_timeOut))
     {
         emit logMessage(QString("Could not connect to %1:%2. %3").arg(d_ip).arg(d_port).arg(p_socket->errorString()),QtFTM::LogError);
         return false;
@@ -160,9 +163,13 @@ bool TcpInstrument::connectSocket()
     return true;
 }
 
-void TcpInstrument::disconnectSocket()
+bool TcpInstrument::disconnectSocket()
 {
     p_socket->disconnectFromHost();
+    if(p_socket->state() == QAbstractSocket::ConnectedState)
+        return p_socket->waitForDisconnected(d_timeOut);
+
+    return true;
 }
 
 void TcpInstrument::setSocketConnectionInfo(QString ip, int port)
