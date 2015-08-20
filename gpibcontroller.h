@@ -15,6 +15,8 @@ public:
 	QByteArray queryCmd(int address, QString cmd);
     virtual QString queryTerminator() const { return QString(); }
 
+    QIODevice *device() { return p_comm->device(); }
+
 protected:
     virtual bool readAddress() =0;
     virtual bool setAddress(int a) =0;
