@@ -13,7 +13,7 @@ public:
     void setAddress(int a);
     int address() const;
 
-    QIODevice *device() { return nullptr; }
+    QIODevice *device() { return p_controller->device(); }
 
 protected:
     GpibController *p_controller;
