@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>241</width>
-    <height>334</height>
+    <width>258</width>
+    <height>360</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -35,7 +35,7 @@
          <string>AutoFit Enabled</string>
         </property>
         <property name="checked">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
        </widget>
       </item>
