@@ -12,15 +12,7 @@ DrIntSetupPage::DrIntSetupPage(QWidget *parent) :
 
 	//make and configure an analysis widget
 	aw = new AnalysisWidget(this);
-	aw->ui->analysisScanSpinBox->setVisible(false);
-	aw->ui->currentScanButton->setVisible(false);
-	aw->ui->analysisScanSpinBox->setEnabled(false);
-	aw->ui->currentScanButton->setEnabled(false);
-	aw->ui->analysisNotes->setVisible(false);
-	aw->ui->analysisNotes->setEnabled(false);
-	aw->ui->scanLabel->setVisible(false);
-	aw->ui->notesLabel->setVisible(false);
-	aw->ui->linesLabel->setText(QString("Integration ranges"));
+    aw->configureForDr();
 
 	//add a reset button
 	resetButton = new QPushButton(QString("Reset"),this);
@@ -37,7 +29,7 @@ DrIntSetupPage::DrIntSetupPage(QWidget *parent) :
 	connect(shotsSpinBox,static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),this,&DrIntSetupPage::updateLabel);
 
 	shotsLabel = new QLabel(QString("Shots"),this);
-	shotsLabel->setAlignment(Qt::AlignRight);
+    shotsLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
 	aw->ui->topLayout->addWidget(shotsLabel);
 	aw->ui->topLayout->addWidget(shotsSpinBox);

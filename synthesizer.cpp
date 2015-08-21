@@ -61,7 +61,7 @@ double Synthesizer::realToRaw(double f)
     double outputFreq = f/d_mult + d_offset;
     if(outputFreq < d_hardwareMinFreq || outputFreq > d_hardwareMaxFreq)
     {
-        emit logMessage(QString("Calculated raw frequency (%2 MHz) is outside range of synthesizer (%2 - %3 MHz). Please check band settings and try again.")
+        emit logMessage(QString("Calculated raw frequency (%1 MHz) is outside range of synthesizer (%2 - %3 MHz). Please check band settings and try again.")
                         .arg(QString::number(outputFreq,'f',3)).arg(QString::number(d_hardwareMinFreq,'f',3)).arg(QString::number(d_hardwareMaxFreq,'f',3)),QtFTM::LogError);
         return -1.0;
     }

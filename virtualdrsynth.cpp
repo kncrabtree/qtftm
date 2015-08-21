@@ -16,7 +16,7 @@ VirtualDrSynth::VirtualDrSynth(QObject *parent) :
 	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
 	s.beginGroup(d_key);
 	s.beginGroup(d_subKey);
-	d_hardwareMinFreq = s.value(QString("hardwareMinFreq"),100.0).toDouble();
+    d_hardwareMinFreq = s.value(QString("hardwareMinFreq"),50.0).toDouble();
 	d_hardwareMaxFreq = s.value(QString("hardwareMaxFreq"),26490.0).toDouble();
 	d_hardwareMinPower = s.value(QString("minPower"),-20.0).toDouble();
 	d_hardwareMaxPower = s.value(QString("maxPower"),17.0).toDouble();

@@ -46,7 +46,7 @@ void ScanManager::fidReceived(const QByteArray d)
 void ScanManager::prepareScan(Scan s)
 {
 
-    if(d_acquiring)
+    if(d_acquiring && d_currentScan.isInitialized() && !d_currentScan.isSaved() && !d_currentScan.isDummy())
 	{
 		//this would be really bad... let's just hope it never happens.
 		//we'll just ignore this scan, Perhaps there's a better idea?
