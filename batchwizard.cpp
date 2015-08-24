@@ -10,6 +10,7 @@
 #include "batchtemplatepage.h"
 #include "togglepulsespage.h"
 #include "categorysetuppage.h"
+#include "categoryscansetuppage.h"
 #include "drcorrpage.h"
 #include "batchsetuppage.h"
 #include "batchprocessingpage.h"
@@ -56,6 +57,9 @@ BatchWizard::BatchWizard(SingleScanWidget *w, AutoFitWidget *a, QWidget *parent)
 	DrCorrPage *drcp = new DrCorrPage(ssw,this);
 	connect(drcp,&DrCorrPage::batchManager,this,&BatchWizard::setBatchManager);
 
+	CategoryScanSetupPage *cssp = new CategoryScanSetupPage(ssw,this);
+	connect(cssp,&CategoryScanSetupPage::batchManager,this,&BatchWizard::setBatchManager);
+
 	//insert pages into wizard
 	setPage(Page_Start, sp);
     setPage(Page_SurveySetup, sSetP);
@@ -69,6 +73,7 @@ BatchWizard::BatchWizard(SingleScanWidget *w, AutoFitWidget *a, QWidget *parent)
 //	setPage(Page_BatchTemplate, new BatchTemplatePage(this));
 //	setPage(Page_ToggleTemplate, new TogglePulsesPage(this));
     setPage(Page_Categorize, new CategorySetupPage(this));
+    setPage(Page_CategorizeScanSetup, cssp);
 	setPage(Page_DrCorrSetup, drcp);
     setPage(Page_BatchProcessing, bpp);
 	setPage(Page_BatchSetup, bsp);

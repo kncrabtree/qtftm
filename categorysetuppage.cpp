@@ -84,7 +84,6 @@ bool CategorySetupPage::validatePage()
 	    else
 		    numTests++;
     }
-        return true;
 
     if(numTests < 1)
     {
@@ -102,5 +101,5 @@ bool CategorySetupPage::validatePage()
 
 int CategorySetupPage::nextId() const
 {
-    return BatchWizard::Page_BatchSetup;
+    return BatchWizard::Page_CategorizeScanSetup;
 }

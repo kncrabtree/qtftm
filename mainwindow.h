@@ -18,6 +18,7 @@
 #include "drplot.h"
 #include "surveyplot.h"
 #include "drcorrplot.h"
+#include "categoryplot.h"
 
 namespace Ui {
 class MainWindow;

@@ -87,6 +87,7 @@ void CategoryPlot::receiveData(QtFTM::BatchPlotMetaData md, QList<QVector<QPoint
 		   d_plotCurveMetaData[0].yMin = qMin(d_plotCurveMetaData.at(0).yMin,d.at(0).at(i).y());
 	    }
 	    d_plotCurveMetaData[0].yMax = qMax(d_plotCurveMetaData.at(0).yMax,max);
+	    d_allMaxes.insert(md.scanNum,max);
 
 	    if(md.isRef)
 		    d_refMaxes.insert(md.scanNum,max);
@@ -474,14 +475,28 @@ void CategoryPlot::categoryPrint(QPrinter *pr, int firstScan, int lastScan, int 
 
 	//we need to find the associated reference scan for scaling
 	//cal scans don't matter, as they're plotted on the right axis
-	int refIndex = -1;
-	for(int i=0; i<lIndex; i++)
+	//get list of all reference scans in range, plus one past the end (if it exists)
+	QList<int> refScansCopy = d_refMaxes.keys();
+	QList<int> refScans;
+	for(int i=0; i<refScansCopy.size(); i++)
 	{
-		if(d_metaDataList.at(i).isRef)
-		{
-			refIndex = i;
+		if(refScansCopy.at(i) < fIndex)
+			continue;
+
+		refScans.append(refScansCopy.at(i));
+
+		if(refScansCopy.at(i) > lIndex)
 			break;
-		}
+	}
+
+	//refIndex will refer to the reference associated with the current scan
+	//if refIndex is -1, then the graphs will be autoscaled to the largest scan in the group
+	int refIndex = -1;
+	int thisRefScan = -1;
+	if(!refScans.isEmpty())
+	{
+		refIndex = 0;
+		thisRefScan = refScans.at(refIndex);
 	}
 
 	//find first test scan associated with this group
@@ -489,7 +504,7 @@ void CategoryPlot::categoryPrint(QPrinter *pr, int firstScan, int lastScan, int 
 	if(d_metaDataList.at(fIndex).isCal || d_metaDataList.at(fIndex).isRef)
 	{
 		int off = 1;
-		while(fIndex + off < lIndex)
+		while(fIndex + off <= lIndex)
 		{
 			if(!d_metaDataList.at(fIndex+off).isCal && !d_metaDataList.at(fIndex+off).isRef)
 			{
@@ -499,7 +514,7 @@ void CategoryPlot::categoryPrint(QPrinter *pr, int firstScan, int lastScan, int 
 		}
 	}
 
-	for(int i=refIndex; i>fIndex; i--)
+	for(int i=thisRefScan; i>fIndex; i--)
 	{
 		if(d_metaDataList.at(i-1).isRef || d_metaDataList.at(i-1).isCal)
 		{
@@ -522,7 +537,7 @@ void CategoryPlot::categoryPrint(QPrinter *pr, int firstScan, int lastScan, int 
 
 	bool nextIsNewGraph = false;
 	bool newGraphAfterCal = true;
-	while(currentIndex < lIndex)
+	while(currentIndex <= lIndex)
 	{
 		bool newGraph = nextIsNewGraph;
 		if(currentPlotScan >= 8 || nextIsNewGraph)
@@ -535,6 +550,17 @@ void CategoryPlot::categoryPrint(QPrinter *pr, int firstScan, int lastScan, int 
 
 		if(d_metaDataList.at(currentIndex).isRef)
 		{
+			refIndex++;
+			if(refIndex < refScans.size())
+				thisRefScan = refScans.at(refIndex);
+			else
+				thisRefScan = -1;
+			for(int i=currentIndex; i<lIndex; i++)
+			{
+				if(!d_metaDataList.at(i).isRef && !d_metaDataList.at(i).isCal)
+					firstCatScanNum = d_metaDataList.at(i).scanNum;
+			}
+
 			//if the next scan is a cal scan, plot it on the same graph if there's room
 			if(currentIndex+1 < lIndex)
 			{
@@ -558,5 +584,141 @@ void CategoryPlot::categoryPrint(QPrinter *pr, int firstScan, int lastScan, int 
 				}
 			}
 		}
+
+		if(newGraph)
+		{
+			graphList.append(currentGraphData);
+			currentRect++;
+			if(currentRect > graphsPerPage)
+			{
+				currentRect = 0;
+				currentPage++;
+			}
+			currentPlotScan = 0;
+			if(thisRefScan >= 0)
+				currentGraphData.yMax = d_refMaxes.value(thisRefScan);
+			else
+			{
+				double max = 0.0;
+				for(int i=currentIndex; i<lIndex; i++)
+				{
+					if(d_allMaxes.contains(i))
+						max = qMax(max,d_allMaxes.value(i));
+				}
+				currentGraphData.yMax = max;
+			}
+			currentGraphData.pageNum = currentPage;
+			currentGraphData.rectNum = currentRect;
+			currentGraphData.xMin = d_metaDataList.at(currentIndex).scanNum - 0.5;
+			currentGraphData.xMax = currentGraphData.xMin + 8.0;
+			currentGraphData.refScanNum = thisRefScan;
+			currentGraphData.firstCatScanNum = firstCatScanNum;
+		}
+
+		if(currentIndex == lIndex)
+			graphList.append(currentGraphData);
+
+		if(newGraphAfterCal && d_metaDataList.at(currentIndex).isCal)
+			nextIsNewGraph = true;
+
+		currentIndex++;
+		currentPlotScan++;
+
 	}
+
+	int numPages;
+	if(graphList.size() % graphsPerPage)
+		numPages = graphList.size()/graphsPerPage + 1;
+	else
+		numPages = graphList.size()/graphsPerPage;
+
+	QPainter p;
+	p.begin(pr);
+
+	int graphIndex = 0;
+	//all preparation is complete, enter render loop
+	for(int page = 0; page<numPages; page++)
+	{
+	    if(page>0)
+		   pr->newPage();
+
+	    //set page number in title
+	    pageLabel.setText(QString("Page %1/%2").arg(page+1).arg(numPages));
+	    p.scale(scale,scale);
+
+	    //render title bar
+	    df.render(&p,QPoint(),QRegion(),DrawChildren);
+
+	    p.scale(1.0/scale,1.0/scale);
+
+	    //loop over graph rectangles
+	    for(int rect=0; rect<graphRects.size(); rect++)
+	    {
+		   double xMin = graphList.at(graphIndex).xMin;
+		   double xMax = graphList.at(graphIndex).xMax;
+		   setAxisScale(QwtPlot::xBottom,xMin,xMax);
+		   double yMax = graphList.at(graphIndex).yMax;
+
+		   height = 0;
+		   for(int i=0;i<d_plotMarkers.size();i++)
+		   {
+			   if(!d_metaDataList.at(i).isCal)
+			   {
+				   QString text = d_plotMarkers.at(i)->label().text();
+				   int numLines = text.split(QString("\n"),QString::SkipEmptyParts).size();
+				   height = qMax(height,fm3.boundingRect(text).height()*numLines);
+			   }
+		   }
+
+		   //estimating that the x axis scale/label take up ~1000 pts in printer scale
+		   double scaling = yMax/((double)graphRects.at(rect).height()-1000);
+		   yMax += static_cast<double>(height+150)*scaling;
+		   setAxisScale(QwtPlot::yLeft,0.0,yMax);
+
+		   for(int i=0; i<d_plotMarkers.size(); i++)
+		   {
+			   if(d_plotMarkers.at(i)->xValue() >= static_cast<double>(graphList.at(graphIndex).firstCatScanNum)-0.5 &&
+					   d_plotMarkers.at(i)->xValue() <= static_cast<double>(graphList.at(graphIndex).refScanNum)+0.5)
+				   d_plotMarkers.at(i)->setVisible(true);
+			   else
+				   d_plotMarkers.at(i)->setVisible(false);
+		   }
+
+		   //ignore any DR data that are not associated with this section
+		   QVector<QPointF> currentCatData;
+		   for(int i=0; i<d_plotCurveData.first().size(); i++)
+		   {
+			   if(d_plotCurveData.first().at(i).x() >= static_cast<double>(graphList.at(graphIndex).firstCatScanNum)-0.5 &&
+					   d_plotCurveData.first().at(i).x() <= static_cast<double>(graphList.at(graphIndex).refScanNum)+0.5)
+				   currentCatData.append(d_plotCurveData.first().at(i));
+		   }
+		   d_plotCurves[0]->setSamples(currentCatData);
+
+		   //if bad zones are visible, they need to be recalculated after replotting
+		   QwtPlot::replot();
+
+		   bool replotAgain = false;
+		   if(!d_badTuneZones.isEmpty() && !d_hideBadZones)
+		   {
+			  for(int i=0; i<d_badTuneZones.size(); i++)
+			  {
+				 if(d_badTuneZones.at(i).recalcWidthOnResize)
+				 {
+					setZoneWidth(d_badTuneZones.at(i).zone,d_badTuneZones.at(i).md);
+					replotAgain = true;
+				 }
+			  }
+		   }
+		   if(replotAgain)
+			  QwtPlot::replot();
+
+		   rend.render(this,&p,graphRects.at(rect));
+
+		   graphIndex++;
+		   if(graphIndex == graphList.size())
+			  break;
+	    }
+	}
+
+	p.end();
 }

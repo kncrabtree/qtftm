@@ -5,11 +5,13 @@
 #include "batch.h"
 #include "batchattenuation.h"
 #include "drcorrelation.h"
+#include "batchcategorize.h"
 #include "surveyplot.h"
 #include "drplot.h"
 #include "batchscanplot.h"
 #include "batchattnplot.h"
 #include "drcorrplot.h"
+#include "categoryplot.h"
 #include <QThread>
 
 BatchViewWidget::BatchViewWidget(QtFTM::BatchType type, int num, double delay, int hpf, double exp, bool rDC, bool pad, QWidget *parent) :
@@ -33,6 +35,9 @@ BatchViewWidget::BatchViewWidget(QtFTM::BatchType type, int num, double delay, i
         break;
     case QtFTM::DrCorrelation:
 	    batchPlot = new DrCorrPlot(d_number,this);
+	    break;
+    case QtFTM::Categorize:
+	    batchPlot = new CategoryPlot(d_number,this);
 	    break;
     default:
         break;
@@ -120,6 +125,9 @@ void BatchViewWidget::process()
     case QtFTM::DrCorrelation:
 	    bm = new DrCorrelation(d_number);
 	    break;
+    case QtFTM::Categorize:
+	    bm = new BatchCategorize(d_number);
+	    break;
     case QtFTM::SingleScan:
     default:
         ui->statusLabel->setText(QString("Somehow, an invalid batch type was selected. Please close and try again."));
@@ -189,6 +197,9 @@ void BatchViewWidget::process()
         break;
     case QtFTM::DrCorrelation:
 	    batchPlot = new DrCorrPlot(d_number,this);
+	    break;
+    case QtFTM::Categorize:
+	    batchPlot = new CategoryPlot(d_number,this);
 	    break;
     default:
         break;

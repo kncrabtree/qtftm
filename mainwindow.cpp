@@ -1215,6 +1215,8 @@ void MainWindow::startBatchManager(BatchManager *bm)
 			plot = new SurveyPlot(bm->number());
 		else if(bm->type() == QtFTM::DrCorrelation)
 			plot = new DrCorrPlot(bm->number());
+		else if(bm->type() == QtFTM::Categorize)
+			plot = new CategoryPlot(bm->number());
 
 		connect(plot,&AbstractBatchPlot::requestScan,ui->analysisWidget,&AnalysisWidget::loadScan);
 		connect(ui->analysisWidget,&AnalysisWidget::scanChanged,plot,&AbstractBatchPlot::setSelectedZone);

@@ -13,7 +13,7 @@ CategoryScanSetupPage::CategoryScanSetupPage(SingleScanWidget *ssw, QWidget *par
 	setSubTitle(QString("Configure the list of frequencies to be categorized. For each scan, the settings you enter will be used until/unless a test overrides them."));
 
 	QVBoxLayout *vl = new QVBoxLayout(this);
-	p_bw = new BatchWidget(ssw,QtFTM::Batch,this);
+	p_bw = new BatchWidget(ssw,QtFTM::Categorize,this);
 	connect(p_bw,&BatchWidget::scansChanged,this,&QWizardPage::completeChanged);
 	vl->addWidget(p_bw);
 

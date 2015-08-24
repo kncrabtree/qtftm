@@ -48,7 +48,7 @@ public:
 
 	enum Page { Page_Start, Page_SurveySetup, Page_SurveyCalSetup, Page_SurveyScanSetup, Page_SurveySummary, Page_DrSetup,
                 Page_DrScanSetup, Page_DrIntSetup, Page_DrSummary, Page_BatchTemplate, Page_ToggleTemplate, Page_DrCorrSetup,
-                Page_Categorize, Page_BatchProcessing, Page_BatchSetup };
+			 Page_Categorize, Page_CategorizeScanSetup, Page_BatchProcessing, Page_BatchSetup };
 	Scan surveyScan() const { return d_surveyScan; }
 	Scan surveyCal() const { return d_surveyCal; }
 	Scan drScan() const { return d_drScan; }

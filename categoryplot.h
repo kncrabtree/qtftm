@@ -27,7 +27,7 @@ public slots:
 
 private:
 	QList<QwtPlotZoneItem*> d_matchZones;
-	QMap<int,double> d_refMaxes;
+	QMap<int,double> d_refMaxes, d_allMaxes;
 	void categoryPrint(QPrinter *pr, int firstScan, int lastScan, int graphsPerPage, QString title);
 };
 
