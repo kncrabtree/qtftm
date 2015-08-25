@@ -306,9 +306,14 @@ void DrPlot::print()
             //calculate step size. keep in mind that cal scans (taken between points) aren't plotted!
             double stepSize = 0.0;
             if(d_metaDataList.at(0).isCal)
-                stepSize = qAbs((d_metaDataList.at(3).maxXVal-d_metaDataList.at(1).maxXVal)/2.0);
+            {
+                int last = d_metaDataList.size()-1;
+                if(last % 2)
+                    last--;
+                stepSize = qAbs((d_metaDataList.at(last).maxXVal-d_metaDataList.at(1).maxXVal)/((double)last-2.0));
+            }
             else
-                stepSize = qAbs(d_metaDataList.at(1).maxXVal-d_metaDataList.at(0).maxXVal);
+                stepSize = qAbs((d_metaDataList.last().maxXVal-d_metaDataList.first().maxXVal)/(d_metaDataList.size()-1.0));
 
             //calculate number of steps needed before labels won't overlap
             labelSpacingSteps = (int)ceil(labelWidth/stepSize) + 1;
