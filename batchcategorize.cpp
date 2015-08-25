@@ -438,18 +438,30 @@ void BatchCategorize::advanceBatch(const Scan s)
                 //check to see if lines are present
                 //if fitter is not being used, then we just say 1 line is here and go with the FT Max
                 if(d_fitter->type() == FitResult::NoFitting)
+			 {
                     d_status.frequencies.append(s.ftFreq());
+				sr.intensities.append(max);
+			 }
                 else
                 {
                     //the line closest to the ft frequency comes first
                     for(int i=0; i<res.freqAmpPairList().size(); i++)
                     {
                         if(d_status.frequencies.isEmpty())
+				    {
                             d_status.frequencies.append(res.freqAmpPairList().at(i).first);
+					   sr.intensities.append(res.freqAmpPairList().at(i).second);
+				    }
                         else if(qAbs(d_status.frequencies.first()-s.ftFreq()) < qAbs(res.freqAmpPairList().at(i).first-s.ftFreq()))
+				    {
                             d_status.frequencies.prepend(res.freqAmpPairList().at(i).first);
+					   sr.intensities.prepend(res.freqAmpPairList().at(i).second);
+				    }
                         else
+				    {
                             d_status.frequencies.append(res.freqAmpPairList().at(i).first);
+					   sr.intensities.append(res.freqAmpPairList().at(i).second);
+				    }
                     }
                 }
 
