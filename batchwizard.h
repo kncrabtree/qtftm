@@ -8,6 +8,7 @@
 #include "drintsetuppage.h"
 #include "autofitwidget.h"
 #include "abstractfitter.h"
+#include "batchcategorize.h"
 
 /*!
  \brief Wizard for configuring batch acquisitions
@@ -55,6 +56,7 @@ public:
 	BatchManager *batchManager() const { return bm; }
 	AbstractFitter *fitter() const { return ftr; }
 	QList<QPair<double,double> > ranges() const { return d_drRanges; }
+	QList<BatchCategorize::CategoryTest> catTests() { return d_catTests; }
 	
 signals:
 	void setupDr(Scan);
@@ -66,7 +68,8 @@ public slots:
 	void setSurveyScan(Scan s){ d_surveyScan = s; }
 	void setSurveyCal(Scan s){ d_surveyCal = s; }
 	void setDrScan(Scan s){ d_drScan = s; }
-	void setDrRanges(QList<QPair<double,double> > r) { d_drRanges = r; }
+	void setDrRanges(const QList<QPair<double,double> > r) { d_drRanges = r; }
+	void setCatTests(const QList<BatchCategorize::CategoryTest> l) { d_catTests = l; }
 	void setBatchManager(BatchManager *b) { bm = b; }
     void setFitter(AbstractFitter *af);
 	void prepareDr(Scan s);
@@ -79,6 +82,7 @@ private:
 	Scan d_surveyCal;
 	Scan d_drScan;
 	QList<QPair<double,double> > d_drRanges;
+	QList<BatchCategorize::CategoryTest> d_catTests;
 
 	BatchManager *bm;
 	AbstractFitter *ftr;

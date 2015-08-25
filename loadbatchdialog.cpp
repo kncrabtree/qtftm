@@ -78,8 +78,8 @@ LoadBatchDialog::LoadBatchDialog(QWidget *parent) :
     if(drCorrMax > 0)
     {
 	    ui->drCorrSpinBox->setSpecialValueText(QString(""));
-	    ui->drCorrSpinBox->setValue(drCorrMax);
 	    ui->drCorrSpinBox->setRange(1,drCorrMax);
+	    ui->drCorrSpinBox->setValue(drCorrMax);
     }
     else
     {
@@ -87,6 +87,21 @@ LoadBatchDialog::LoadBatchDialog(QWidget *parent) :
 	    ui->drCorrSpinBox->setValue(0);
 	    ui->drCorrButton->setChecked(false);
 	    ui->drCorrButton->setCheckable(false);
+    }
+
+    int catMax = s.value(QString("catTestNum"),0).toInt()-1;
+    if(catMax > 0)
+    {
+	    ui->catSpinBox->setSpecialValueText(QString(""));
+	    ui->catSpinBox->setRange(1,catMax);
+	    ui->catSpinBox->setValue(catMax);
+    }
+    else
+    {
+	    ui->catSpinBox->setRange(0,0);
+	    ui->catSpinBox->setValue(0);
+	    ui->catButton->setChecked(false);
+	    ui->catButton->setCheckable(false);
     }
 
     if(ui->surveyButton->isChecked())
@@ -114,12 +129,18 @@ LoadBatchDialog::LoadBatchDialog(QWidget *parent) :
     else
 	    ui->drCorrSpinBox->setEnabled(false);
 
+    if(ui->catButton->isChecked())
+	    ui->catSpinBox->setEnabled(true);
+    else
+	    ui->catSpinBox->setEnabled(false);
+
 
     connect(ui->surveyButton,&QAbstractButton::toggled,ui->surveySpinBox,&QWidget::setEnabled);
     connect(ui->drScanButton,&QAbstractButton::toggled,ui->drScanSpinBox,&QWidget::setEnabled);
     connect(ui->batchButton,&QAbstractButton::toggled,ui->batchSpinBox,&QWidget::setEnabled);
     connect(ui->attenuationButton,&QAbstractButton::toggled,ui->attenuationSpinBox,&QWidget::setEnabled);
     connect(ui->drCorrButton,&QAbstractButton::toggled,ui->drCorrSpinBox,&QWidget::setEnabled);
+    connect(ui->catButton,&QAbstractButton::toggled,ui->catSpinBox,&QWidget::setEnabled);
 
     ui->removeDCCheckBox->setChecked(true);
 }
@@ -157,6 +178,11 @@ QPair<QtFTM::BatchType, int> LoadBatchDialog::selection() const
     {
 	    out.first = QtFTM::DrCorrelation;
 	    out.second = ui->drCorrSpinBox->value();
+    }
+    else if(ui->catButton->isChecked())
+    {
+	    out.first = QtFTM::Categorize;
+	    out.second = ui->catSpinBox->value();
     }
 
     return out;

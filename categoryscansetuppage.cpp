@@ -37,40 +37,7 @@ bool CategoryScanSetupPage::validatePage()
     BatchWizard *wiz = qobject_cast<BatchWizard*>(wizard());
     AbstractFitter *ftr = wiz->fitter();
 
-    QVariantList dip = field(QString("dipoleTestList")).toList();
-    QVariantList dc = field(QString("dcTestList")).toList();
-    QVariantList v = field(QString("voltageTestList")).toList();
-    QVariantList mag = field(QString("magnetTestList")).toList();
-
-    QList<BatchCategorize::CategoryTest> testList;
-
-    BatchCategorize::CategoryTest dipTest;
-    dipTest.key = QString("u");
-    dipTest.name = QString("Dipole test");
-    dipTest.categorize = field(QString("catDipole")).toBool();
-    dipTest.valueList = dip;
-    testList.append(dipTest);
-
-    BatchCategorize::CategoryTest dcTest;
-    dcTest.key = QString("dc");
-    dcTest.name = QString("Discharge test");
-    dcTest.categorize = field(QString("catDc")).toBool();
-    dcTest.valueList = dc;
-    testList.append(dcTest);
-
-    BatchCategorize::CategoryTest voltageTest;
-    voltageTest.key = QString("v");
-    voltageTest.name = QString("Voltage test");
-    voltageTest.categorize = field(QString("catVoltage")).toBool();
-    voltageTest.valueList = v;
-    testList.append(voltageTest);
-
-    BatchCategorize::CategoryTest magnetTest;
-    magnetTest.key = QString("m");
-    magnetTest.name = QString("Magnet test");
-    magnetTest.categorize = field(QString("catMagnet")).toBool();
-    magnetTest.valueList = mag;
-    testList.append(magnetTest);
+    auto testList = wiz->catTests();
 
 	//create batch object
     BatchCategorize *b = new BatchCategorize(scanList,testList,ftr);

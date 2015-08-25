@@ -57,6 +57,9 @@ BatchWizard::BatchWizard(SingleScanWidget *w, AutoFitWidget *a, QWidget *parent)
 	DrCorrPage *drcp = new DrCorrPage(ssw,this);
 	connect(drcp,&DrCorrPage::batchManager,this,&BatchWizard::setBatchManager);
 
+	CategorySetupPage *csp = new CategorySetupPage(this);
+	connect(csp,&CategorySetupPage::catTests,this,&BatchWizard::setCatTests);
+
 	CategoryScanSetupPage *cssp = new CategoryScanSetupPage(ssw,this);
 	connect(cssp,&CategoryScanSetupPage::batchManager,this,&BatchWizard::setBatchManager);
 
@@ -72,7 +75,7 @@ BatchWizard::BatchWizard(SingleScanWidget *w, AutoFitWidget *a, QWidget *parent)
 	setPage(Page_DrSummary, dsump);
 //	setPage(Page_BatchTemplate, new BatchTemplatePage(this));
 //	setPage(Page_ToggleTemplate, new TogglePulsesPage(this));
-    setPage(Page_Categorize, new CategorySetupPage(this));
+    setPage(Page_Categorize, csp);
     setPage(Page_CategorizeScanSetup, cssp);
 	setPage(Page_DrCorrSetup, drcp);
     setPage(Page_BatchProcessing, bpp);

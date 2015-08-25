@@ -3,6 +3,8 @@
 
 #include <QWizardPage>
 
+#include "batchcategorize.h"
+
 namespace Ui {
 class CategorySetupPage;
 }
@@ -14,6 +16,9 @@ class CategorySetupPage : public QWizardPage
 public:
     explicit CategorySetupPage(QWidget *parent = 0);
     ~CategorySetupPage();
+
+signals:
+	void catTests(const QList<BatchCategorize::CategoryTest>);
 
 private:
     Ui::CategorySetupPage *ui;

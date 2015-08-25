@@ -476,16 +476,26 @@ void CategoryPlot::categoryPrint(QPrinter *pr, int firstScan, int lastScan, int 
 	//we need to find the associated reference scan for scaling
 	//cal scans don't matter, as they're plotted on the right axis
 	//get list of all reference scans in range, plus one past the end (if it exists)
+	int refMdIndex = -1;
+	for(int i=fIndex; i<=lIndex; i++)
+	{
+		if(d_metaDataList.at(i).isRef)
+		{
+			refMdIndex = i;
+			break;
+		}
+	}
+
 	QList<int> refScansCopy = d_refMaxes.keys();
 	QList<int> refScans;
 	for(int i=0; i<refScansCopy.size(); i++)
 	{
-		if(refScansCopy.at(i) < fIndex)
+		if(refScansCopy.at(i) < d_metaDataList.at(fIndex).scanNum)
 			continue;
 
 		refScans.append(refScansCopy.at(i));
 
-		if(refScansCopy.at(i) > lIndex)
+		if(refScansCopy.at(i) > d_metaDataList.at(lIndex).scanNum)
 			break;
 	}
 
@@ -498,6 +508,7 @@ void CategoryPlot::categoryPrint(QPrinter *pr, int firstScan, int lastScan, int 
 		refIndex = 0;
 		thisRefScan = refScans.at(refIndex);
 	}
+
 
 	//find first test scan associated with this group
 	int firstCatScanNum = d_metaDataList.at(fIndex).scanNum;
@@ -514,12 +525,15 @@ void CategoryPlot::categoryPrint(QPrinter *pr, int firstScan, int lastScan, int 
 		}
 	}
 
-	for(int i=thisRefScan; i>fIndex; i--)
+	if(refMdIndex >= 0)
 	{
-		if(d_metaDataList.at(i-1).isRef || d_metaDataList.at(i-1).isCal)
+		for(int i=refMdIndex; i>fIndex; i--)
 		{
-			firstCatScanNum = d_metaDataList.at(i).scanNum;
-			break;
+			if(d_metaDataList.at(i-1).isRef || d_metaDataList.at(i-1).isCal)
+			{
+				firstCatScanNum = d_metaDataList.at(i).scanNum;
+				break;
+			}
 		}
 	}
 
@@ -527,62 +541,25 @@ void CategoryPlot::categoryPrint(QPrinter *pr, int firstScan, int lastScan, int 
 	QList<CategoryPrintGraph> graphList;
 
 	CategoryPrintGraph currentGraphData;
-	currentGraphData.yMax = d_refMaxes.value(d_metaDataList.at(refIndex).scanNum);
+	currentGraphData.yMax = d_refMaxes.value(thisRefScan);
 	currentGraphData.pageNum = currentPage;
 	currentGraphData.rectNum = currentRect;
 	currentGraphData.xMin = d_metaDataList.at(fIndex).scanNum - 0.5;
 	currentGraphData.xMax = currentGraphData.xMin + 8.0;
-	currentGraphData.refScanNum = d_metaDataList.at(refIndex).scanNum;
+	currentGraphData.refScanNum = thisRefScan;
 	currentGraphData.firstCatScanNum = firstCatScanNum;
 
 	bool nextIsNewGraph = false;
-	bool newGraphAfterCal = true;
+	bool newGraphAfterCal = false;
 	while(currentIndex <= lIndex)
 	{
 		bool newGraph = nextIsNewGraph;
 		if(currentPlotScan >= 8 || nextIsNewGraph)
 		{
 			nextIsNewGraph = false;
-			newGraphAfterCal = true;
+			newGraphAfterCal = false;
 			currentPlotScan = 0;
 			newGraph = true;
-		}
-
-		if(d_metaDataList.at(currentIndex).isRef)
-		{
-			refIndex++;
-			if(refIndex < refScans.size())
-				thisRefScan = refScans.at(refIndex);
-			else
-				thisRefScan = -1;
-			for(int i=currentIndex; i<lIndex; i++)
-			{
-				if(!d_metaDataList.at(i).isRef && !d_metaDataList.at(i).isCal)
-					firstCatScanNum = d_metaDataList.at(i).scanNum;
-			}
-
-			//if the next scan is a cal scan, plot it on the same graph if there's room
-			if(currentIndex+1 < lIndex)
-			{
-				if(d_metaDataList.at(currentIndex+1).isCal)
-				{
-					if(currentPlotScan + 1 < 8)
-					{
-						nextIsNewGraph = false;
-						newGraphAfterCal = true;
-					}
-					else
-					{
-						nextIsNewGraph = true;
-						newGraphAfterCal = false;
-					}
-				}
-				else
-				{
-					nextIsNewGraph = true;
-					newGraphAfterCal = true;
-				}
-			}
 		}
 
 		if(newGraph)
@@ -614,6 +591,47 @@ void CategoryPlot::categoryPrint(QPrinter *pr, int firstScan, int lastScan, int 
 			currentGraphData.refScanNum = thisRefScan;
 			currentGraphData.firstCatScanNum = firstCatScanNum;
 		}
+
+		if(d_metaDataList.at(currentIndex).isRef)
+		{
+			refIndex++;
+			if(refIndex < refScans.size())
+				thisRefScan = refScans.at(refIndex);
+			else
+				thisRefScan = -1;
+			for(int i=currentIndex; i<lIndex; i++)
+			{
+				if(!d_metaDataList.at(i).isRef && !d_metaDataList.at(i).isCal)
+				{
+					firstCatScanNum = d_metaDataList.at(i).scanNum;
+					break;
+				}
+			}
+
+			//if the next scan is a cal scan, plot it on the same graph if there's room
+			if(currentIndex+1 < lIndex)
+			{
+				if(d_metaDataList.at(currentIndex+1).isCal)
+				{
+					if(currentPlotScan + 1 < 8)
+					{
+						nextIsNewGraph = false;
+						newGraphAfterCal = true;
+					}
+					else
+					{
+						nextIsNewGraph = true;
+						newGraphAfterCal = false;
+					}
+				}
+				else
+				{
+					nextIsNewGraph = true;
+					newGraphAfterCal = false;
+				}
+			}
+		}
+
 
 		if(currentIndex == lIndex)
 			graphList.append(currentGraphData);

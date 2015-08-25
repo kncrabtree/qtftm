@@ -11,7 +11,17 @@ BatchCategorize::BatchCategorize(QList<QPair<Scan, bool> > scanList, QList<Categ
     for(int i=0; i<testList.size(); i++)
     {
         if(testList.at(i).valueList.size() > 0)
-            d_testList.append(testList.at(i));
+	   {
+		   CategoryTest test = testList.at(i);
+		   if((test.key == QString("dc") || test.key == QString("m")) && !d_testList.isEmpty())
+		   {
+			   //only need to do one test; which way it will be toggled will be determined
+			   //automatically later
+			   QVariantList l{ true };
+			   test.valueList = l;
+		   }
+		  d_testList.append(test);
+	   }
     }
 
     //can't calculate total shots. use list size and advance manually
@@ -30,16 +40,16 @@ BatchCategorize::BatchCategorize(int num, AbstractFitter *ftr) :
 {
     d_batchNum = num;
 
-    int drNum = num;
-    int drMillions = (int)floor((double)drNum/1000000.0);
-    int drThousands = (int)floor((double)drNum/1000.0);
+    int catNum = num;
+    int catMillions = (int)floor((double)catNum/1000000.0);
+    int catThousands = (int)floor((double)catNum/1000.0);
 
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
     QString savePath = s.value(QString("savePath"),QString(".")).toString();
-    QDir d(savePath + QString("/categorize/%1/%2").arg(drMillions).arg(drThousands));
+    QDir d(savePath + QString("/categorize/%1/%2").arg(catMillions).arg(catThousands));
 
     //create output file
-    QFile f(QString("%1/%2.txt").arg(d.absolutePath()).arg(drNum));
+    QFile f(QString("%1/%2.txt").arg(d.absolutePath()).arg(catNum));
 
     if(!f.exists())
         return;
@@ -71,6 +81,8 @@ BatchCategorize::BatchCategorize(int num, AbstractFitter *ftr) :
         int num = l.at(1).toInt();
         if(num < 1)
             continue;
+
+	   d_loadScanList.append(num);
 
         QString test = l.at(2);
         QString value = l.at(3);
@@ -109,9 +121,12 @@ BatchCategorize::BatchCategorize(int num, AbstractFitter *ftr) :
 
         bool ok = false;
         int num = line.toInt(&ok);
+	   d_loadScanList.append(num);
         if(ok)
             d_loadLabelTextMap.insert(num,QString("CAL"));
     }
+
+    std::sort(d_loadScanList.begin(),d_loadScanList.end());
 
 }
 
@@ -210,6 +225,9 @@ void BatchCategorize::writeReport()
     t.flush();
     out.close();
 
+    s.setValue(d_numKey,batchNum+1);
+    s.sync();
+
 
 }
 
@@ -224,8 +242,12 @@ void BatchCategorize::advanceBatch(const Scan s)
 	else
 	    res = d_fitter->doFit(s);
 
-	double mdMin = s.number();
-	double mdMax = s.number();
+	auto p = d_fitter->doStandardFT(s.fid());
+	QVector<QPointF> ft = p.first;
+	double max = p.second;
+
+	double mdMin = (double)s.number() - ((double)ft.size()/2.0 + 1.0)/(double)ft.size()*0.9;
+	double mdMax = (double)s.number() - ((double)ft.size()/2.0 - (double)ft.size())/(double)ft.size()*0.9;
 	bool badTune = (s.tuningVoltage() <= 0);
 	QString labelText;
     bool isRef = false;
@@ -247,13 +269,15 @@ void BatchCategorize::advanceBatch(const Scan s)
     {
         double intensity = 0.0;
         if(res.freqAmpPairList().isEmpty())
-            intensity = d_fitter->doStandardFT(s.fid()).second;
+		  intensity = p.second;
         else
         {
             //record strongest peak intensity
             for(int i=0; i<res.freqAmpPairList().size(); i++)
                 intensity = qMax(intensity,res.freqAmpPairList().at(i).second);
         }
+	   mdMin = (double)s.number();
+	   mdMax = (double)s.number();
 
         d_calData.append(QPointF(static_cast<double>(s.number()),intensity));
         labelText = QString("CAL");
@@ -266,9 +290,7 @@ void BatchCategorize::advanceBatch(const Scan s)
     {
         double num = (double)s.number();
 
-        auto p = d_fitter->doStandardFT(s.fid());
-        QVector<QPointF> ft = p.first;
-        double max = p.second;
+
         bool isSaturated;
         if(d_fitter->type() == FitResult::NoFitting)
             isSaturated = d_fitter->isFidSaturated(s);
@@ -280,7 +302,6 @@ void BatchCategorize::advanceBatch(const Scan s)
         for(int i=0; i<ft.size(); i++) // make the x range go from num - 0.45 to num + 0.45
             d_scanData.append(QPointF(num - ((double)ft.size()/2.0 - (double)i)/(double)ft.size()*0.9,ft.at(i).y()));
         d_scanData.append(QPointF(num - ((double)ft.size()/2.0 - (double)ft.size())/(double)ft.size()*0.9,0.0));
-
 
         labelText.append(QString("%1/%2\n").arg(s.ftFreq(),0,'f',3).arg(s.attenuation()));
         if(d_loading)
@@ -575,7 +596,6 @@ bool BatchCategorize::skipCurrentTest()
 
     d_status.scanTemplate.setDipoleMoment(0.0);
     d_status.scanTemplate.setMagnet(false);
-    configureScanTemplate();
 
     return configureScanTemplate();
 
@@ -634,7 +654,7 @@ void BatchCategorize::getBestResult()
         //we may not have two tests with the on/off values in tests
         //might need to search for previous best value
         //when we find it, we'll insert it into the d_status resultsMap
-        if(d_status.currentTestKey == QString("dc") || d_status.currentTestKey == QString("mag"))
+	   if(d_status.currentTestKey == QString("dc") || d_status.currentTestKey == QString("m"))
         {
             TestResult tr;
             tr.key = d_status.currentTestKey;
@@ -661,22 +681,7 @@ void BatchCategorize::getBestResult()
                     } // end loop over voltage tests
                 } // end if voltage tests
                 else if(d_status.resultMap.contains(QString("u"))) //otherwise, there must be a dipole test, because there is only 1 dc/mag test if a previous test has been done
-                {
-                    auto uTests = d_status.resultMap.values(QString("u"));
-                    for(int i=0; i<uTests.size(); i++)
-                    {
-                        const TestResult &utr = uTests.at(i);
-                        //use "best dipole" from current status
-                        if(qAbs(utr.value.toDouble() - d_status.bestDipole) < d_lineMatchMaxDiff)
-                        {
-                            //the value from the dipole test is opposite the current value (because magnet/discharge was toggled)
-                            tr.extraAttn = utr.extraAttn;
-                            tr.value = !tests.first().value.toBool();
-                            tr.ftMax = utr.ftMax;
-                            tr.result = utr.result;
-                        } // end if dipoles match
-                    } // end loop over dipole tests
-                }
+				tr = d_status.bestDipoleResult;
 
                 //at this point, we have made the testResult structure. put it in the status list, and reassign the tests variable
                 d_status.resultMap.insertMulti(d_status.currentTestKey,tr);
@@ -818,15 +823,17 @@ void BatchCategorize::getBestResult()
 
             for(int k=0; k<tests.size(); k++)
             {
-                const TestResult &tr = tests.at(k);
+			 TestResult tr = tests.at(k);
                 if(tr.extraAttn < d_status.currentExtraAttn)
                     continue;
 
+			 bool isBetter = false;
                 //only one "line", use ftMax
                 if(tr.result.type() == FitResult::NoFitting)
                 {
                     if(tr.ftMax > bestValues.first().first)
                     {
+					isBetter = true;
                         bestValues[0].first = tr.ftMax;
                         bestValues[0].second = tr.value;
                         bestScan = tr.scanNum;
@@ -844,12 +851,20 @@ void BatchCategorize::getBestResult()
                             {
                                 bestValues[i].first = tr.result.freqAmpPairList().at(j).second;
                                 bestValues[i].second = tr.value;
-                                bestScan = tr.scanNum;
+						  if(i==0)
+						  {
+							  isBetter = true;
+							  bestScan = tr.scanNum;
+						  }
                                 break;
                             }
                         }
+
                     }
                 }
+
+			 if(isBetter && tr.key == QString("u"))
+				 d_status.bestDipoleResult = tr;
             } // end iteration over test results
 
             //at this point, bestResults contains the best values for each frequency.

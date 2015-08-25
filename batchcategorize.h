@@ -43,15 +43,15 @@ public:
         QString currentTestKey;
         QVariant currentTestValue;
         int currentExtraAttn;
-        double bestDipole;
+	   TestResult bestDipoleResult;
         QList<double> frequencies;
         QMap<QString,TestResult> resultMap;
         Scan scanTemplate;
         QString category;
 
-        CategoryStatus() : scanIndex(0), scansTaken(0), lastWasSaturated(false), currentTestIndex(0), currentValueIndex(0), currentExtraAttn(0), bestDipole(-1.0) {}
+	   CategoryStatus() : scanIndex(0), scansTaken(0), lastWasSaturated(false), currentTestIndex(0), currentValueIndex(0), currentExtraAttn(0) {}
         void advance() { scanIndex++, scansTaken = 0, lastWasSaturated = false, currentTestIndex = 0, currentValueIndex = 0, currentExtraAttn = 0,
-                    currentTestKey = QString(""), currentTestValue = 0, bestDipole = -1.0, frequencies.clear(), resultMap.clear(), scanTemplate = Scan(); }
+				currentTestKey = QString(""), currentTestValue = 0, bestDipoleResult = TestResult(), frequencies.clear(), resultMap.clear(), scanTemplate = Scan(); category.clear(); }
     };
 
 	explicit BatchCategorize(QList<QPair<Scan,bool>> scanList, QList<CategoryTest> testList, AbstractFitter *ftr);
