@@ -1,13 +1,13 @@
-#include "drcorrplot.h"
+#include "categoryplot.h"
 
 #include <qwt6/qwt_symbol.h>
 #include <qwt6/qwt_plot_renderer.h>
 
-DrCorrPlot::DrCorrPlot(int num, QWidget *parent) :
-	AbstractBatchPlot(QString("drCorrPlot"),parent)
+CategoryPlot::CategoryPlot(int num, QWidget *parent) :
+	AbstractBatchPlot(QString("catPlot"),parent)
 {
 	QFont labelFont(QString("sans serif"),8);
-	QwtText plotTitle(QString("DR Correlation %1").arg(num));
+	QwtText plotTitle(QString("Category Batch %1").arg(num));
 	plotTitle.setFont(labelFont);
 
 	setTitle(plotTitle);
@@ -16,14 +16,14 @@ DrCorrPlot::DrCorrPlot(int num, QWidget *parent) :
 	setAxisTitle(QwtPlot::xBottom,xText);
 }
 
-DrCorrPlot::~DrCorrPlot()
+CategoryPlot::~CategoryPlot()
 {
 
 }
 
 
 
-void DrCorrPlot::receiveData(QtFTM::BatchPlotMetaData md, QList<QVector<QPointF> > d)
+void CategoryPlot::receiveData(QtFTM::BatchPlotMetaData md, QList<QVector<QPointF> > d)
 {
 	if(d_metaDataList.isEmpty())
 	{
@@ -87,6 +87,7 @@ void DrCorrPlot::receiveData(QtFTM::BatchPlotMetaData md, QList<QVector<QPointF>
 		   d_plotCurveMetaData[0].yMin = qMin(d_plotCurveMetaData.at(0).yMin,d.at(0).at(i).y());
 	    }
 	    d_plotCurveMetaData[0].yMax = qMax(d_plotCurveMetaData.at(0).yMax,max);
+	    d_allMaxes.insert(md.scanNum,max);
 
 	    if(md.isRef)
 		    d_refMaxes.insert(md.scanNum,max);
@@ -106,7 +107,7 @@ void DrCorrPlot::receiveData(QtFTM::BatchPlotMetaData md, QList<QVector<QPointF>
 
 	expandAutoScaleRange(QwtPlot::xBottom,md.minXVal,md.maxXVal);
 
-	if(md.drMatch && !md.badTune)
+	if(md.isRef && !md.badTune)
 	{
 		QwtPlotZoneItem *zone = new QwtPlotZoneItem();
 		zone->setOrientation(Qt::Vertical);
@@ -129,10 +130,9 @@ void DrCorrPlot::receiveData(QtFTM::BatchPlotMetaData md, QList<QVector<QPointF>
 	}
 
 	replot();
+}
 
- }
-
-void DrCorrPlot::print()
+void CategoryPlot::print()
 {
 	if(d_metaDataList.isEmpty())
 		return;
@@ -329,7 +329,7 @@ void DrCorrPlot::print()
 	setTitle(QString(""));
 
 	//do printing -- this requires a different approach, so use custom function here.
-	doCorrPrint(&p,start,end,perPage,t.text());
+	categoryPrint(&p,start,end,perPage,t.text());
 
 	//now, undo everything
 	setTitle(oldTitle);
@@ -376,7 +376,7 @@ void DrCorrPlot::print()
 	QApplication::restoreOverrideCursor();
 }
 
-void DrCorrPlot::doCorrPrint(QPrinter *pr, int firstScan, int lastScan, int graphsPerPage, QString title)
+void CategoryPlot::categoryPrint(QPrinter *pr, int firstScan, int lastScan, int graphsPerPage, QString title)
 {
 	//prepare the page layout and set the graph colors
 	QwtPlotRenderer rend;
@@ -443,13 +443,11 @@ void DrCorrPlot::doCorrPrint(QPrinter *pr, int firstScan, int lastScan, int grap
 	yr.second += static_cast<double>(height+150)*scaling;
 	setAxisScale(QwtPlot::yRight,0.0,yr.second);
 
-
 	//figure out number of pages
-	//the idea is to start a row with either a cal scan or a ref scan.
+	//the idea is to end each row with a ref scan or a cal scan so that all tests for 1 line are plotted together.
 	//The plot's left vertical scale is set to be equal to the ref line's max value.
-	//All DR scans associated with that ref scan are then plotted; other scans are zeroed out
-	//The next ref/cal is plotted on the following line, and the plots rescaled again.
-	//The final plots will be sparse
+	//if no ref is in the group (i.e., was aborted), we will use the max from the associated scans
+	//Scans not associated with this line should be zeroed out
 
 	//find index of first scan.
 	int fIndex = -1;
@@ -477,98 +475,91 @@ void DrCorrPlot::doCorrPrint(QPrinter *pr, int firstScan, int lastScan, int grap
 
 	//we need to find the associated reference scan for scaling
 	//cal scans don't matter, as they're plotted on the right axis
-	//if this is a cal, then we need to go forward to find the reference.
-	//if it's not a cal, then we need to go back
-	int refIndex = -1;
-	bool firstPlottedWasCal = false;
-	if(d_metaDataList.at(fIndex).isRef)
-		refIndex = fIndex;
-	else if(d_metaDataList.at(fIndex).isCal)
+	//get list of all reference scans in range, plus one past the end (if it exists)
+	int refMdIndex = -1;
+	for(int i=fIndex; i<=lIndex; i++)
 	{
-		firstPlottedWasCal = true;
-		for(int i=fIndex+1; i<lIndex; i++)
+		if(d_metaDataList.at(i).isRef)
 		{
-			if(d_metaDataList.at(i).isRef)
-			{
-				refIndex = i;
-				break;
-			}
-		}
-	}
-	else
-	{
-		for(int i = fIndex-1; i>=0; i--)
-		{
-			if(d_metaDataList.at(i).isRef)
-			{
-				refIndex = i;
-				break;
-			}
-		}
-	}
-
-	if(refIndex < 0 || refIndex >= d_metaDataList.size())
-		return;
-
-	//find last DR scan associated with this reference
-	int lastDrScanNum = -1;
-	for(int i=refIndex+1; i<lIndex; i++)
-	{
-		if(d_metaDataList.at(i).isCal || d_metaDataList.at(i).isRef)
-		{
-			lastDrScanNum = d_metaDataList.at(i-1).scanNum;
+			refMdIndex = i;
 			break;
 		}
 	}
 
-	if(lastDrScanNum < 0)
-		lastDrScanNum = d_metaDataList.at(lIndex).scanNum;
+	QList<int> refScansCopy = d_refMaxes.keys();
+	QList<int> refScans;
+	for(int i=0; i<refScansCopy.size(); i++)
+	{
+		if(refScansCopy.at(i) < d_metaDataList.at(fIndex).scanNum)
+			continue;
+
+		refScans.append(refScansCopy.at(i));
+
+		if(refScansCopy.at(i) > d_metaDataList.at(lIndex).scanNum)
+			break;
+	}
+
+	//refIndex will refer to the reference associated with the current scan
+	//if refIndex is -1, then the graphs will be autoscaled to the largest scan in the group
+	int refIndex = -1;
+	int thisRefScan = -1;
+	if(!refScans.isEmpty())
+	{
+		refIndex = 0;
+		thisRefScan = refScans.at(refIndex);
+	}
+
+
+	//find first test scan associated with this group
+	int firstCatScanNum = d_metaDataList.at(fIndex).scanNum;
+	if(d_metaDataList.at(fIndex).isCal || d_metaDataList.at(fIndex).isRef)
+	{
+		int off = 1;
+		while(fIndex + off <= lIndex)
+		{
+			if(!d_metaDataList.at(fIndex+off).isCal && !d_metaDataList.at(fIndex+off).isRef)
+			{
+				firstCatScanNum = d_metaDataList.at(fIndex+off).scanNum;
+				break;
+			}
+		}
+	}
+
+	if(refMdIndex >= 0)
+	{
+		for(int i=refMdIndex; i>fIndex; i--)
+		{
+			if(d_metaDataList.at(i-1).isRef || d_metaDataList.at(i-1).isCal)
+			{
+				firstCatScanNum = d_metaDataList.at(i).scanNum;
+				break;
+			}
+		}
+	}
 
 	int currentPage = 0, currentRect = 0, currentPlotScan = 0, currentIndex = fIndex;
-	QList<DrCorrPrintGraph> graphList;
+	QList<CategoryPrintGraph> graphList;
 
-	DrCorrPrintGraph currentGraphData;
-	currentGraphData.yMax = d_refMaxes.value(d_metaDataList.at(refIndex).scanNum);
+	CategoryPrintGraph currentGraphData;
+	currentGraphData.yMax = d_refMaxes.value(thisRefScan);
 	currentGraphData.pageNum = currentPage;
 	currentGraphData.rectNum = currentRect;
 	currentGraphData.xMin = d_metaDataList.at(fIndex).scanNum - 0.5;
 	currentGraphData.xMax = currentGraphData.xMin + 8.0;
-	currentGraphData.refScanNum = d_metaDataList.at(refIndex).scanNum;
-	currentGraphData.lastDrScanNum = lastDrScanNum;
+	currentGraphData.refScanNum = thisRefScan;
+	currentGraphData.firstCatScanNum = firstCatScanNum;
 
-
+	bool nextIsNewGraph = false;
+	bool newGraphAfterCal = false;
 	while(currentIndex <= lIndex)
 	{
-		//if we find a new reference scan or have more than 8 plots, break out to a new graph
-		bool newGraph = false;
-		if(currentPlotScan >= 8)
+		bool newGraph = nextIsNewGraph;
+		if(currentPlotScan >= 8 || nextIsNewGraph)
 		{
+			nextIsNewGraph = false;
+			newGraphAfterCal = false;
 			currentPlotScan = 0;
 			newGraph = true;
-		}
-
-
-		if(d_metaDataList.at(currentIndex).isRef && currentIndex > refIndex)
-		{
-			refIndex = currentIndex;
-			for(int i=refIndex+1; i<lIndex; i++)
-			{
-				if(d_metaDataList.at(i).isCal || d_metaDataList.at(i).isRef)
-				{
-					lastDrScanNum = d_metaDataList.at(i-1).scanNum;
-					break;
-				}
-			}
-			if(lastDrScanNum < d_metaDataList.at(refIndex).scanNum)
-				lastDrScanNum = d_metaDataList.at(lIndex).scanNum;
-
-			//note that if this will be the first scan plotted, newGraph is already set to true above
-			//however, don't break to a new graph if the only thing plotted so far was a cal scan
-			//just rescale y max
-			if(currentPlotScan == 1 && firstPlottedWasCal)
-				currentGraphData.yMax = d_refMaxes.value(d_metaDataList.at(refIndex).scanNum);
-			else
-				newGraph = true;
 		}
 
 		if(newGraph)
@@ -581,25 +572,76 @@ void DrCorrPlot::doCorrPrint(QPrinter *pr, int firstScan, int lastScan, int grap
 				currentPage++;
 			}
 			currentPlotScan = 0;
-			currentGraphData.yMax = d_refMaxes.value(d_metaDataList.at(refIndex).scanNum);
+			if(thisRefScan >= 0)
+				currentGraphData.yMax = d_refMaxes.value(thisRefScan);
+			else
+			{
+				double max = 0.0;
+				for(int i=currentIndex; i<lIndex; i++)
+				{
+					if(d_allMaxes.contains(i))
+						max = qMax(max,d_allMaxes.value(i));
+				}
+				currentGraphData.yMax = max;
+			}
 			currentGraphData.pageNum = currentPage;
 			currentGraphData.rectNum = currentRect;
 			currentGraphData.xMin = d_metaDataList.at(currentIndex).scanNum - 0.5;
 			currentGraphData.xMax = currentGraphData.xMin + 8.0;
-			currentGraphData.refScanNum = d_metaDataList.at(refIndex).scanNum;
-			currentGraphData.lastDrScanNum = lastDrScanNum;
+			currentGraphData.refScanNum = thisRefScan;
+			currentGraphData.firstCatScanNum = firstCatScanNum;
 		}
 
-		if (currentIndex == lIndex)
+		if(d_metaDataList.at(currentIndex).isRef)
+		{
+			refIndex++;
+			if(refIndex < refScans.size())
+				thisRefScan = refScans.at(refIndex);
+			else
+				thisRefScan = -1;
+			for(int i=currentIndex; i<lIndex; i++)
+			{
+				if(!d_metaDataList.at(i).isRef && !d_metaDataList.at(i).isCal)
+				{
+					firstCatScanNum = d_metaDataList.at(i).scanNum;
+					break;
+				}
+			}
+
+			//if the next scan is a cal scan, plot it on the same graph if there's room
+			if(currentIndex+1 < lIndex)
+			{
+				if(d_metaDataList.at(currentIndex+1).isCal)
+				{
+					if(currentPlotScan + 1 < 8)
+					{
+						nextIsNewGraph = false;
+						newGraphAfterCal = true;
+					}
+					else
+					{
+						nextIsNewGraph = true;
+						newGraphAfterCal = false;
+					}
+				}
+				else
+				{
+					nextIsNewGraph = true;
+					newGraphAfterCal = false;
+				}
+			}
+		}
+
+
+		if(currentIndex == lIndex)
 			graphList.append(currentGraphData);
 
-		if(currentPlotScan == 0 && d_metaDataList.at(currentIndex).isCal)
-			firstPlottedWasCal = true;
-		else
-			firstPlottedWasCal = false;
+		if(newGraphAfterCal && d_metaDataList.at(currentIndex).isCal)
+			nextIsNewGraph = true;
 
 		currentIndex++;
 		currentPlotScan++;
+
 	}
 
 	int numPages;
@@ -612,15 +654,6 @@ void DrCorrPlot::doCorrPrint(QPrinter *pr, int firstScan, int lastScan, int grap
 	p.begin(pr);
 
 	int graphIndex = 0;
-
-	QwtPlotMarker *maxMarker = new QwtPlotMarker();
-	maxMarker->setLineStyle(QwtPlotMarker::HLine);
-	QPen pen(Qt::red);
-	pen.setStyle(Qt::DashDotLine);
-	pen.setWidth(2);
-	maxMarker->setLinePen(pen);
-	maxMarker->attach(this);
-
 	//all preparation is complete, enter render loop
 	for(int page = 0; page<numPages; page++)
 	{
@@ -662,24 +695,22 @@ void DrCorrPlot::doCorrPrint(QPrinter *pr, int firstScan, int lastScan, int grap
 
 		   for(int i=0; i<d_plotMarkers.size(); i++)
 		   {
-			   if(d_plotMarkers.at(i)->xValue() >= static_cast<double>(graphList.at(graphIndex).refScanNum)-0.5 &&
-					   d_plotMarkers.at(i)->xValue() <= static_cast<double>(graphList.at(graphIndex).lastDrScanNum)+0.5)
+			   if(d_plotMarkers.at(i)->xValue() >= static_cast<double>(graphList.at(graphIndex).firstCatScanNum)-0.5 &&
+					   d_plotMarkers.at(i)->xValue() <= static_cast<double>(graphList.at(graphIndex).refScanNum)+0.5)
 				   d_plotMarkers.at(i)->setVisible(true);
 			   else
 				   d_plotMarkers.at(i)->setVisible(false);
 		   }
 
 		   //ignore any DR data that are not associated with this section
-		   QVector<QPointF> currentDrData;
+		   QVector<QPointF> currentCatData;
 		   for(int i=0; i<d_plotCurveData.first().size(); i++)
 		   {
-			   if(d_plotCurveData.first().at(i).x() >= static_cast<double>(graphList.at(graphIndex).refScanNum)-0.5 &&
-					   d_plotCurveData.first().at(i).x() <= static_cast<double>(graphList.at(graphIndex).lastDrScanNum)+0.5)
-				   currentDrData.append(d_plotCurveData.first().at(i));
+			   if(d_plotCurveData.first().at(i).x() >= static_cast<double>(graphList.at(graphIndex).firstCatScanNum)-0.5 &&
+					   d_plotCurveData.first().at(i).x() <= static_cast<double>(graphList.at(graphIndex).refScanNum)+0.5)
+				   currentCatData.append(d_plotCurveData.first().at(i));
 		   }
-		   d_plotCurves[0]->setSamples(currentDrData);
-
-		   maxMarker->setYValue(graphList.at(graphIndex).yMax);
+		   d_plotCurves[0]->setSamples(currentCatData);
 
 		   //if bad zones are visible, they need to be recalculated after replotting
 		   QwtPlot::replot();
@@ -708,8 +739,4 @@ void DrCorrPlot::doCorrPrint(QPrinter *pr, int firstScan, int lastScan, int grap
 	}
 
 	p.end();
-
-	maxMarker->detach();
-	delete maxMarker;
-
 }

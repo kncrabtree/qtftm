@@ -236,7 +236,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(sm,&ScanManager::peakUpFid,ui->peakUpPlot,&FtPlot::newFid);
 	connect(sm,&ScanManager::scanFid,ui->acqFtPlot,&FtPlot::newFid);
 	connect(sm,&ScanManager::initializationComplete,ui->scanSpinBox,&QAbstractSpinBox::stepUp);
-	connect(sm,&ScanManager::scanShotAcquired,this,&MainWindow::updateProgressBars);
+    connect(sm,&ScanManager::scanShotAcquired,this,&MainWindow::updateScanProgressBar);
 	connect(sm,&ScanManager::fatalSaveError,ui->scanSpinBox,&QAbstractSpinBox::stepDown);
 	connect(ui->actionPause,&QAction::triggered,sm,&ScanManager::pause);
 	connect(ui->actionResume,&QAction::triggered,sm,&ScanManager::resume);
@@ -317,10 +317,14 @@ MainWindow::~MainWindow()
 
 }
 
-void MainWindow::updateProgressBars()
+void MainWindow::updateScanProgressBar()
 {
 	ui->shotsProgressBar->setValue(ui->shotsProgressBar->value()+1);
-	ui->batchProgressBar->setValue(ui->batchProgressBar->value()+1);
+}
+
+void MainWindow::updateBatchProgressBar()
+{
+    ui->batchProgressBar->setValue(ui->batchProgressBar->value()+1);
 }
 
 void MainWindow::updateUiConfig()
@@ -397,6 +401,8 @@ void MainWindow::scanStarting(Scan s, bool isCal)
 
 void MainWindow::batchComplete(bool aborted)
 {
+    disconnect(sm,&ScanManager::scanShotAcquired,this,&MainWindow::updateBatchProgressBar);
+
 	ui->actionPrint_Summary->setEnabled(true);
     d_uiState = Idle;
 	updateUiConfig();
@@ -1211,6 +1217,8 @@ void MainWindow::startBatchManager(BatchManager *bm)
 			plot = new SurveyPlot(bm->number());
 		else if(bm->type() == QtFTM::DrCorrelation)
 			plot = new DrCorrPlot(bm->number());
+		else if(bm->type() == QtFTM::Categorize)
+			plot = new CategoryPlot(bm->number());
 
 		connect(plot,&AbstractBatchPlot::requestScan,ui->analysisWidget,&AnalysisWidget::loadScan);
 		connect(ui->analysisWidget,&AnalysisWidget::scanChanged,plot,&AbstractBatchPlot::setSelectedZone);
@@ -1238,7 +1246,8 @@ void MainWindow::startBatchManager(BatchManager *bm)
 	{
 		connect(bm,&BatchManager::batchComplete,this,&MainWindow::attnTableBatchComplete);
 		connect(sm,&ScanManager::dummyComplete,bm,&BatchManager::scanComplete);
-		connect(static_cast<BatchAttenuation*>(bm),&BatchAttenuation::elementComplete,this,&MainWindow::updateProgressBars);
+        connect(static_cast<BatchAttenuation*>(bm),&BatchAttenuation::elementComplete,this,&MainWindow::updateScanProgressBar);
+        connect(static_cast<BatchAttenuation*>(bm),&BatchAttenuation::elementComplete,this,&MainWindow::updateBatchProgressBar);
 		connect(ui->actionAbort,&QAction::triggered,static_cast<BatchAttenuation*>(bm),&BatchAttenuation::abort);
 
 		ui->shotsProgressBar->setRange(0,0);
@@ -1246,6 +1255,10 @@ void MainWindow::startBatchManager(BatchManager *bm)
 	}
 	else
 	{
+        if(bm->type() == QtFTM::Categorize)
+            connect(bm,&BatchManager::advanced,this,&MainWindow::updateBatchProgressBar,Qt::UniqueConnection);
+        else
+            connect(sm,&ScanManager::scanShotAcquired,this,&MainWindow::updateBatchProgressBar,Qt::UniqueConnection);
 		connect(bm,&BatchManager::batchComplete,this,&MainWindow::batchComplete);
 		connect(sm,&ScanManager::scanComplete,bm,&BatchManager::scanComplete);
 	}

@@ -18,6 +18,7 @@
 #include "drplot.h"
 #include "surveyplot.h"
 #include "drcorrplot.h"
+#include "categoryplot.h"
 
 namespace Ui {
 class MainWindow;
@@ -43,7 +44,8 @@ public:
 	Q_DECLARE_FLAGS(State,StateFlag)
 
 public slots:
-	void updateProgressBars();
+	void updateScanProgressBar();
+    void updateBatchProgressBar();
 	void updateUiConfig();
     void saveLogCallback();
     void scanStarting(Scan s, bool isCal);

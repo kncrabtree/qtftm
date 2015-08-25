@@ -24,6 +24,9 @@ int BatchProcessingPage::nextId() const
 	if(d_type == QtFTM::Batch)
 		return BatchWizard::Page_BatchSetup;
 
+    if(d_type == QtFTM::Categorize)
+        return BatchWizard::Page_Categorize;
+
 	if(d_type == QtFTM::DrCorrelation)
 		return BatchWizard::Page_DrCorrSetup;
 

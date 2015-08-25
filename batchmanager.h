@@ -136,6 +136,9 @@ signals:
     void titleReady(QString);
 
     void processingComplete(Scan s);
+
+    //for batches whose number of shots cannot be predicted (eg category), this signal advances the batch progress bar
+    void advanced();
 	
 public slots:
 	/*!

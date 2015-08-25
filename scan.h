@@ -64,6 +64,9 @@ public:
 	 \return Scan& Reference to a scan object built from the given scan
 	*/
 	Scan &operator=(const Scan &);
+
+    static Scan settingsFromPrevious(int num);
+
 	/*!
 	 \brief Equality operator
 

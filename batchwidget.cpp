@@ -13,7 +13,7 @@
 
 BatchWidget::BatchWidget(SingleScanWidget *ssw, QtFTM::BatchType type, QWidget *parent) :
      QWidget(parent),
-	ui(new Ui::BatchWidget), d_type(type)
+	ui(new Ui::BatchWidget), d_type(type), d_numTests(1)
 {
 	ui->setupUi(this);
 
@@ -87,11 +87,7 @@ bool BatchWidget::isEmpty()
 void BatchWidget::updateLabel()
 {
 	//get the time esimate and calculate hours, minutes, and seconds
-	int totalTime = btm.timeEstimate();
-	QDateTime dt = QDateTime::currentDateTime().addSecs(totalTime);
-	int h = totalTime/3600;
-	int m = (totalTime%3600)/60;
-	int s = totalTime%60;
+	int totalTime = btm.timeEstimate(d_type);
 
 	QSettings set(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
 	QString name = QString("Batch Scan");
@@ -101,6 +97,16 @@ void BatchWidget::updateLabel()
 		name = QString("DR Correlation");
 		key = QString("drCorrNum");
 	}
+	else if(d_type == QtFTM::Categorize)
+	{
+		name = QString("Category Test");
+		key = QString("catTestNum");
+		totalTime *= d_numTests;
+	}
+	QDateTime dt = QDateTime::currentDateTime().addSecs(totalTime);
+	int h = totalTime/3600;
+	int m = (totalTime%3600)/60;
+	int s = totalTime%60;
 
 	QString text;
 	text.append(QString("<table><th colspan=2>%1 Number %2</th></tr>").arg(name).arg(set.value(key,1).toInt()));
@@ -493,10 +499,10 @@ Scan BatchWidget::buildScanFromDialog(bool cal)
 
 	SingleScanWidget *ssw = d.ssWidget();
 
-	if(d_type == QtFTM::DrCorrelation)
+	if(d_type == QtFTM::DrCorrelation || d_type == QtFTM::Categorize)
 	{
 		ssw->enableSkipTune(false);
-		if(!cal)
+		if(!cal && d_type == QtFTM::DrCorrelation)
 			ssw->limitFtmRangeToDr();
 	}
 	else

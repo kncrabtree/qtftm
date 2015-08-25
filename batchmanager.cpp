@@ -5,21 +5,32 @@
 BatchManager::BatchManager(QtFTM::BatchType b, bool load, AbstractFitter *ftr) :
     QObject(), d_batchType(b), d_fitter(ftr), d_batchNum(-1), d_loading(load), d_thisScanIsCal(false), d_sleep(false)
 {
+	///TODO: Make name and key static public functions taking a QtFTM::BatchType as argument
+ ///this will make the strings only exist in one place in the code!
 	switch(b) {
 	case QtFTM::Survey:
+		d_prettyName = QString("Survey");
 		d_numKey = QString("surveyNum");
 		break;
 	case QtFTM::DrScan:
+		d_prettyName = QString("DR Scan");
 		d_numKey = QString("drNum");
 		break;
 	case QtFTM::Batch:
+		d_prettyName = QString("Batch");
 		d_numKey = QString("batchNum");
 		break;
 	case QtFTM::Attenuation:
+		d_prettyName = QString("Attenuation Table Batch");
 		d_numKey = QString("batchAttnNum");
 		break;
 	case QtFTM::DrCorrelation:
+		d_prettyName = QString("DR Correlation");
 		d_numKey = QString("drCorrNum");
+		break;
+	case QtFTM::Categorize:
+		d_prettyName = QString("Category Test");
+		d_numKey = QString("catTestNum");
 		break;
 	default:
 		d_numKey = QString("");

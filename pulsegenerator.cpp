@@ -45,11 +45,14 @@ bool PulseGenerator::setChannel(const int index, const QtFTM::PulseChannelConfig
 
 bool PulseGenerator::setAll(const PulseGenConfig cc)
 {
+    //don't overwrite gas pulse length
+    PulseGenConfig cc2 = cc;
+    cc2.set(QTFTM_PGEN_GASCHANNEL,QtFTM::PulseWidth,d_config.setting(QTFTM_PGEN_GASCHANNEL,QtFTM::PulseWidth));
     bool success = true;
     for(int i=0; i<d_config.size(); i++)
-        success &= setChannel(i,cc.at(i));
+        success &= setChannel(i,cc2.at(i));
 
-    success &= setRepRate(cc.repRate());
+    success &= setRepRate(cc2.repRate());
 
     return success;
 }
