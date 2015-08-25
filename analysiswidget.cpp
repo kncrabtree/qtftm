@@ -626,16 +626,6 @@ QFrame *AnalysisWidget::renderPrintSidebar()
 
 	QGridLayout *sl = new QGridLayout;
 
-	QString instString;
-    instString.append(QString("FTM%1").arg(QTFTM_SPECTROMETER));
-
-	if(!instString.isEmpty())
-	{
-		QLabel *instText = new QLabel(QString("<b>%1</b>").arg(instString));
-		instText->setAlignment(Qt::AlignCenter);
-		sl->addWidget(instText,lnum++,0,1,3,Qt::AlignCenter);
-	}
-
 	QLabel *dateText = new QLabel(QString("<b>%1</b>").arg(d_currentScan.timeStamp().toString()));
 	dateText->setAlignment(Qt::AlignCenter);
     sl->addWidget(dateText,lnum++,0,1,3,Qt::AlignCenter);
@@ -649,7 +639,7 @@ QFrame *AnalysisWidget::renderPrintSidebar()
 	scanVal->setAlignment(Qt::AlignRight);
     sl->addWidget(scanVal,lnum,1,Qt::AlignRight);
 
-	QLabel *scanUnit = new QLabel();
+    QLabel *scanUnit = new QLabel(QString("FTM%1").arg(QTFTM_SPECTROMETER));
 	scanUnit->setAlignment(Qt::AlignLeft);
     sl->addWidget(scanUnit,lnum++,2,Qt::AlignLeft);
 
@@ -1038,7 +1028,7 @@ QFrame *AnalysisWidget::renderPrintSidebar()
 		notesTitle->setAlignment(Qt::AlignCenter);
 		vbl->addWidget(notesTitle,0,Qt::AlignCenter);
 
-		QLabel *notesText = new QLabel(ui->analysisNotes->document()->toPlainText());
+        QLabel *notesText = new QLabel(ui->analysisNotes->toPlainText());
 		notesText->setWordWrap(true);
 		notesText->setAlignment(Qt::AlignLeft);
 		vbl->addWidget(notesText,0,Qt::AlignLeft);
