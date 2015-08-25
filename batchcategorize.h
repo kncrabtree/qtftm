@@ -42,6 +42,7 @@ public:
         int currentValueIndex;
         QString currentTestKey;
         QVariant currentTestValue;
+        int currentAttn;
         int currentExtraAttn;
 	   TestResult bestDipoleResult;
         QList<double> frequencies;
