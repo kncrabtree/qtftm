@@ -233,23 +233,23 @@ void BatchCategorize::writeReport()
 
 void BatchCategorize::advanceBatch(const Scan s)
 {
-	//in order to determine what scan to do next, we need to do the processing here
-	//instead of in processScan
+    //in order to determine what scan to do next, we need to do the processing here
+    //instead of in processScan
 
-	FitResult res;
-	if(d_loading && d_fitter->type() == FitResult::NoFitting)
-	    res = FitResult(s.number());
-	else
-	    res = d_fitter->doFit(s);
+    FitResult res;
+    if(d_loading && d_fitter->type() == FitResult::NoFitting)
+        res = FitResult(s.number());
+    else
+        res = d_fitter->doFit(s);
 
-	auto p = d_fitter->doStandardFT(s.fid());
-	QVector<QPointF> ft = p.first;
-	double max = p.second;
+    auto p = d_fitter->doStandardFT(s.fid());
+    QVector<QPointF> ft = p.first;
+    double max = p.second;
 
-	double mdMin = (double)s.number() - ((double)ft.size()/2.0 + 1.0)/(double)ft.size()*0.9;
-	double mdMax = (double)s.number() - ((double)ft.size()/2.0 - (double)ft.size())/(double)ft.size()*0.9;
-	bool badTune = (s.tuningVoltage() <= 0);
-	QString labelText;
+    double mdMin = (double)s.number() - ((double)ft.size()/2.0 + 1.0)/(double)ft.size()*0.9;
+    double mdMax = (double)s.number() - ((double)ft.size()/2.0 - (double)ft.size())/(double)ft.size()*0.9;
+    bool badTune = (s.tuningVoltage() <= 0);
+    QString labelText;
     bool isRef = false;
 
     if(d_loading)
@@ -269,15 +269,15 @@ void BatchCategorize::advanceBatch(const Scan s)
     {
         double intensity = 0.0;
         if(res.freqAmpPairList().isEmpty())
-		  intensity = p.second;
+            intensity = p.second;
         else
         {
             //record strongest peak intensity
             for(int i=0; i<res.freqAmpPairList().size(); i++)
                 intensity = qMax(intensity,res.freqAmpPairList().at(i).second);
         }
-	   mdMin = (double)s.number();
-	   mdMax = (double)s.number();
+        mdMin = (double)s.number();
+        mdMax = (double)s.number();
 
         d_calData.append(QPointF(static_cast<double>(s.number()),intensity));
         labelText = QString("CAL");
@@ -441,58 +441,61 @@ void BatchCategorize::advanceBatch(const Scan s)
                     }
                 }
 
-                if(d_status.currentTestKey == QString("final"))
+                if(d_status.scansTaken > 0)
                 {
-                    //categorize
-                    sr.testValue = d_status.category;
-                    if(d_status.category.isEmpty())
+                    if(d_status.currentTestKey == QString("final"))
                     {
-                        sr.testValue = QString("noCat");
-                        if(!d_status.frequencies.isEmpty())
+                        //categorize
+                        sr.testValue = d_status.category;
+                        if(d_status.category.isEmpty())
                         {
-                            for(int i=1; i<d_status.frequencies.size(); i++)
-                                sr.testValue = QString(sr.testValue.toString()).append(QString("/noCat"));
+                            sr.testValue = QString("noCat");
+                            if(!d_status.frequencies.isEmpty())
+                            {
+                                for(int i=1; i<d_status.frequencies.size(); i++)
+                                    sr.testValue = QString(sr.testValue.toString()).append(QString("/noCat"));
+                            }
                         }
-                    }
-                    labelText.append(QString("FINAL"));
-                    QStringList cats = d_status.category.split(QString("/"));
-                    if(cats.size() < 2)
-                        labelText.append(QString("\n")).append(d_status.category);
-                    else
-                    {
-                        for(int i=0; i<cats.size(); i++)
+                        labelText.append(QString("FINAL"));
+                        QStringList cats = d_status.category.split(QString("/"));
+                        if(cats.size() < 2)
+                            labelText.append(QString("\n")).append(d_status.category);
+                        else
                         {
-                            if(i%2)
-                                labelText.append(QString("\n"));
-                            else
-                                labelText.append(QString("/"));
-                            labelText.append(cats.at(i));
+                            for(int i=0; i<cats.size(); i++)
+                            {
+                                if(i%2)
+                                    labelText.append(QString("\n"));
+                                else
+                                    labelText.append(QString("/"));
+                                labelText.append(cats.at(i));
+                            }
                         }
-                    }
-                    isRef = true;
-                    d_status.advance();
-                    emit advanced();
-                }
-                else
-                {
-                    if(d_status.currentTestKey == QString("u") && d_status.currentExtraAttn > 0)
-                    {
-                        if(!skipCurrentTest())
-                        {
-                            sr.testKey = QString("final");
-                            sr.testValue = QString("SAT");
-                            isRef = true;
-                            labelText.append(QString("FINAL\nSAT"));
-                            d_status.advance();
-                            emit advanced();
-                        }
+                        isRef = true;
+                        d_status.advance();
+                        emit advanced();
                     }
                     else
                     {
-                        //consider possiblity of adding new lines if this is a dipole test?
-                        labelText.append(QString("%1:%2").arg(d_status.currentTestKey).arg(d_status.currentTestValue.toString()));
-                        d_status.resultMap.insertMulti(d_status.currentTestKey,tr);
-                        setNextTest();
+                        if(d_status.currentTestKey == QString("u") && d_status.currentExtraAttn > 0)
+                        {
+                            if(!skipCurrentTest())
+                            {
+                                sr.testKey = QString("final");
+                                sr.testValue = QString("SAT");
+                                isRef = true;
+                                labelText.append(QString("FINAL\nSAT"));
+                                d_status.advance();
+                                emit advanced();
+                            }
+                        }
+                        else
+                        {
+                            //consider possiblity of adding new lines if this is a dipole test?
+                            labelText.append(QString("%1:%2").arg(d_status.currentTestKey).arg(d_status.currentTestValue.toString()));
+                            d_status.resultMap.insertMulti(d_status.currentTestKey,tr);
+                            setNextTest();
+                        }
                     }
                 }
             }
@@ -507,10 +510,10 @@ void BatchCategorize::advanceBatch(const Scan s)
     QList<QVector<QPointF>> out;
     if(d_thisScanIsCal)
         out.append(d_calData);
-	else
-		out.append(d_scanData);
+    else
+        out.append(d_scanData);
 
-	emit plotData(md,out);
+    emit plotData(md,out);
 }
 
 void BatchCategorize::processScan(Scan s)

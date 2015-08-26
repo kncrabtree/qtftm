@@ -60,7 +60,12 @@ int CategoryScanSetupPage::nextId() const
 
 void CategoryScanSetupPage::initializePage()
 {
-	int tests = field(QString("catNumTests")).toInt();
+    BatchWizard *wiz = qobject_cast<BatchWizard*>(wizard());
+
+    auto testList = wiz->catTests();
+    int tests = 0;
+    for(int i=0; i<testList.size(); i++)
+        tests += testList.at(i).valueList.size();
 	if(tests > 0)
-		p_bw->setNumTests(tests);
+        p_bw->setNumTests(tests+1);
 }
