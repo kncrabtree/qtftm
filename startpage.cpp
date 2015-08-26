@@ -97,7 +97,7 @@ bool StartPage::validatePage()
 		emit typeSelected(QtFTM::DrScan);
 	else if(batchButton->isChecked())
 		emit typeSelected(QtFTM::Batch);
-    else if(categorizeButton)
+    else if(categorizeButton->isChecked())
         emit typeSelected(QtFTM::Categorize);
 	else if(drCorrButton->isChecked())
 		emit typeSelected(QtFTM::DrCorrelation);

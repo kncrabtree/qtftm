@@ -277,20 +277,18 @@ int BatchTableModel::timeEstimate(QtFTM::BatchType type) const
 	}
 	else if(type == QtFTM::DrCorrelation)
 	{
-		for(int i=0; i<scanList.size(); i++)
+        totalShots += scanList.first().first.targetShots();
+        for(int i=1; i<scanList.size(); i++)
 		{
-			totalShots += scanList.at(i).first.targetShots();
-			if((scanList.at(i).second || !qFuzzyCompare(scanList.at(i-1).first.ftFreq(),scanList.at(i).first.ftFreq())) && i>0)
+            if((scanList.at(i).second || !qFuzzyCompare(scanList.at(i-1).first.ftFreq(),scanList.at(i).first.ftFreq())))
 				totalTime += 10;
-			else
-			{
-				for(int j=i+1; j<scanList.size(); j++)
-				{
-					if(scanList.at(j).second || !qFuzzyCompare(scanList.at(j).first.ftFreq(),scanList.at(i).first.ftFreq()))
-						break;
 
-					totalShots += scanList.at(i).first.targetShots();
-				}
+            for(int j=i+1; j<scanList.size(); j++)
+            {
+                if(scanList.at(j).second)
+                    continue;
+
+                totalShots += scanList.at(i).first.targetShots();
 			}
 		}
 	}
