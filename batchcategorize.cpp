@@ -369,6 +369,8 @@ void BatchCategorize::advanceBatch(const Scan s)
             //for any result, we need to configure the ScanResult, possibly work with the TestResult, and make the labelText
             if(isSaturated)
             {
+                //if saturated, don't waste time scanning. 20 shots should be ok
+                d_status.scanTemplate.setTargetShots(20);
                 sr.testKey = QString("sat");
                 sr.testValue = d_status.currentExtraAttn;
                 if(d_status.currentAttn + 10 >= d_maxAttn)
@@ -779,7 +781,7 @@ void BatchCategorize::getBestResult()
                         {
                             double thisLineFreq = d_status.frequencies.at(i);
                             double thisLineOffInt = 0.0;
-                            resultList[i] = false;
+                            resultList[i] = true;
                             for(int j=0; j<offTest.result.freqAmpPairList().size(); j++)
                             {
                                 if(qAbs(thisLineFreq-offTest.result.freqAmpPairList().at(j).first) < d_lineMatchMaxDiff)
@@ -792,9 +794,9 @@ void BatchCategorize::getBestResult()
                             {
                                 for(int j=0; j<onTest.result.freqAmpPairList().size(); j++)
                                 {
-                                    if(qAbs(thisLineFreq-onTest.result.freqAmpPairList().at(j).first) < d_lineMatchMaxDiff && onTest.result.freqAmpPairList().at(j).second < d_magThresh*thisLineOffInt)
+                                    if(qAbs(thisLineFreq-onTest.result.freqAmpPairList().at(j).first) < d_lineMatchMaxDiff && onTest.result.freqAmpPairList().at(j).second > d_magThresh*thisLineOffInt)
                                     {
-                                        resultList[i] = true;
+                                        resultList[i] = false;
                                         break;
                                     }
                                 }
