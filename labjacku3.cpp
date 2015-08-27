@@ -51,8 +51,6 @@ bool LabjackU3::testConnection()
     emit logMessage(QString("ID response: %1").arg(d_calInfo.prodID));
 
     configure();
-    setCwMode(false);
-    resetCounter();
 
     p_readTimer->start(5);
     return true;
@@ -141,12 +139,12 @@ long LabjackU3::setMagnet(bool mag)
         emit hardwareFailure();
         return -1;
     }
-    //magnet line is CIO2 (18) by default. If magnet is on, this channel goes high
+    //magnet line is CIO2 (18) by default. If magnet is on, this channel goes low (cuts power to vertical Helmholtz coil)
     long error = 0;
     if(mag)
-        error = eDO(d_handle,0,d_magnetLine,1);
-    else
         error = eDO(d_handle,0,d_magnetLine,0);
+    else
+        error = eDO(d_handle,0,d_magnetLine,1);
 
     if(error)
     {
