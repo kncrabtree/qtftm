@@ -32,6 +32,8 @@ public:
         FitResult result;
         int extraAttn;
         double ftMax;
+
+        TestResult() : scanNum(-1), extraAttn(-1), ftMax(-1.0) {}
     };
 
     struct CategoryStatus {

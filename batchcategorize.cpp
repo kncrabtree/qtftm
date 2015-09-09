@@ -693,6 +693,7 @@ void BatchCategorize::getBestResult()
                             //the value from the voltage test is opposite the current value (because magnet was toggled)
                             tr.extraAttn = vtr.extraAttn;
                             tr.value = !tests.first().value.toBool();
+                            tr.key = d_status.currentTestKey;
                             tr.ftMax = vtr.ftMax;
                             tr.result = vtr.result;
                             tr.scanNum = vtr.scanNum;
@@ -703,6 +704,7 @@ void BatchCategorize::getBestResult()
                 else if(d_status.resultMap.contains(QString("u"))) //otherwise, there must be a dipole test, because there is only 1 dc/mag test if a previous test has been done
                 {
                     tr.extraAttn = d_status.bestDipoleResult.extraAttn;
+                    tr.key = d_status.currentTestKey;
                     tr.value = !tests.first().value.toBool();
                     tr.ftMax = d_status.bestDipoleResult.ftMax;
                     tr.result = d_status.bestDipoleResult.result;
@@ -808,6 +810,10 @@ void BatchCategorize::getBestResult()
                                     }
                                 }
                             }
+                            else
+                            {
+                                resultList[i] = false;
+                            }
                         }
                     }
 
@@ -890,7 +896,14 @@ void BatchCategorize::getBestResult()
                 }
 
 			 if(isBetter && tr.key == QString("u"))
-				 d_status.bestDipoleResult = tr;
+             {
+                 d_status.bestDipoleResult.extraAttn = tr.extraAttn;
+                 d_status.bestDipoleResult.ftMax = tr.ftMax;
+                 d_status.bestDipoleResult.key = tr.key;
+                 d_status.bestDipoleResult.result = tr.result;
+                 d_status.bestDipoleResult.scanNum = tr.scanNum;
+                 d_status.bestDipoleResult.value = tr.value;
+             }
             } // end iteration over test results
 
             //at this point, bestResults contains the best values for each frequency.
