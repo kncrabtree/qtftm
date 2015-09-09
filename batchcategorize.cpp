@@ -318,7 +318,7 @@ void BatchCategorize::advanceBatch(const Scan s)
             //some will be overwritten later as the scan is processed
             d_status.scansTaken++;
             ScanResult sr;
-            sr.index = d_status.currentTestIndex;
+            sr.index = d_status.scanIndex;
             sr.scanNum = s.number();
             sr.extraAttn = d_status.currentExtraAttn;
             sr.attenuation = s.attenuation();
@@ -695,12 +695,19 @@ void BatchCategorize::getBestResult()
                             tr.value = !tests.first().value.toBool();
                             tr.ftMax = vtr.ftMax;
                             tr.result = vtr.result;
+                            tr.scanNum = vtr.scanNum;
 
                         } // end if voltages match
                     } // end loop over voltage tests
                 } // end if voltage tests
                 else if(d_status.resultMap.contains(QString("u"))) //otherwise, there must be a dipole test, because there is only 1 dc/mag test if a previous test has been done
-				tr = d_status.bestDipoleResult;
+                {
+                    tr.extraAttn = d_status.bestDipoleResult.extraAttn;
+                    tr.value = !tests.first().value.toBool();
+                    tr.ftMax = d_status.bestDipoleResult.ftMax;
+                    tr.result = d_status.bestDipoleResult.result;
+                    tr.scanNum = d_status.bestDipoleResult.scanNum;
+                }
 
                 //at this point, we have made the testResult structure. put it in the status list, and reassign the tests variable
                 d_status.resultMap.insertMulti(d_status.currentTestKey,tr);
