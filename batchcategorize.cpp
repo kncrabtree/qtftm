@@ -443,64 +443,61 @@ void BatchCategorize::advanceBatch(const Scan s)
                     }
                 }
 
-                if(d_status.scansTaken > 0)
-                {
-                    if(d_status.currentTestKey == QString("final"))
-                    {
-                        //categorize
-                        sr.testValue = d_status.category;
-                        if(d_status.category.isEmpty())
-                        {
-                            sr.testValue = QString("noCat");
-                            if(!d_status.frequencies.isEmpty())
-                            {
-                                for(int i=1; i<d_status.frequencies.size(); i++)
-                                    sr.testValue = QString(sr.testValue.toString()).append(QString("/noCat"));
-                            }
-                        }
-                        labelText.append(QString("FINAL"));
-                        QStringList cats = d_status.category.split(QString("/"));
-                        if(cats.size() < 2)
-                            labelText.append(QString("\n")).append(d_status.category);
-                        else
-                        {
-                            for(int i=0; i<cats.size(); i++)
-                            {
-                                if(i%2)
-                                    labelText.append(QString("\n"));
-                                else
-                                    labelText.append(QString("/"));
-                                labelText.append(cats.at(i));
-                            }
-                        }
-                        isRef = true;
-                        d_status.advance();
-                        emit advanced();
-                    }
-                    else
-                    {
-                        if(d_status.currentTestKey == QString("u") && d_status.currentExtraAttn > 0)
-                        {
-                            if(!skipCurrentTest())
-                            {
-                                sr.testKey = QString("final");
-                                sr.testValue = QString("SAT");
-                                isRef = true;
-                                labelText.append(QString("FINAL\nSAT"));
-                                d_status.advance();
-                                emit advanced();
-                            }
-                        }
-                        else
-                        {
-                            //consider possiblity of adding new lines if this is a dipole test?
-                            labelText.append(QString("%1:%2").arg(d_status.currentTestKey).arg(d_status.currentTestValue.toString()));
-                            d_status.resultMap.insertMulti(d_status.currentTestKey,tr);
-                            setNextTest();
-                        }
-                    }
-                }
-            }
+			 if(d_status.currentTestKey == QString("final"))
+			 {
+				 //categorize
+				 sr.testValue = d_status.category;
+				 if(d_status.category.isEmpty())
+				 {
+					 sr.testValue = QString("noCat");
+					 if(!d_status.frequencies.isEmpty())
+					 {
+						 for(int i=1; i<d_status.frequencies.size(); i++)
+							 sr.testValue = QString(sr.testValue.toString()).append(QString("/noCat"));
+					 }
+				 }
+				 labelText.append(QString("FINAL"));
+				 QStringList cats = d_status.category.split(QString("/"));
+				 if(cats.size() < 2)
+					 labelText.append(QString("\n")).append(d_status.category);
+				 else
+				 {
+					 for(int i=0; i<cats.size(); i++)
+					 {
+						 if(i%2)
+							 labelText.append(QString("\n"));
+						 else
+							 labelText.append(QString("/"));
+						 labelText.append(cats.at(i));
+					 }
+				 }
+				 isRef = true;
+				 d_status.advance();
+				 emit advanced();
+			 }
+			 else
+			 {
+				 if(d_status.currentTestKey == QString("u") && d_status.currentExtraAttn > 0)
+				 {
+					 if(!skipCurrentTest())
+					 {
+						 sr.testKey = QString("final");
+						 sr.testValue = QString("SAT");
+						 isRef = true;
+						 labelText.append(QString("FINAL\nSAT"));
+						 d_status.advance();
+						 emit advanced();
+					 }
+				 }
+				 else
+				 {
+					 //consider possiblity of adding new lines if this is a dipole test?
+					 labelText.append(QString("%1:%2").arg(d_status.currentTestKey).arg(d_status.currentTestValue.toString()));
+					 d_status.resultMap.insertMulti(d_status.currentTestKey,tr);
+					 setNextTest();
+				 }
+			 }
+		  }
 
             d_resultList.append(sr);
 
@@ -610,6 +607,7 @@ bool BatchCategorize::skipCurrentTest()
 
     d_status.scanTemplate.setDipoleMoment(0.0);
     d_status.scanTemplate.setMagnet(false);
+    getBestResult();
 
     return configureScanTemplate();
 
