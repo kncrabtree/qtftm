@@ -732,6 +732,7 @@ void BatchCategorize::getBestResult()
 
 
                 QList<bool> resultList;
+                bool dcOnOff = true;
                 for(int i=0; i<numLines; i++)
                     resultList.append(false);
                 if(d_status.currentTestKey == QString("dc"))
@@ -745,6 +746,9 @@ void BatchCategorize::getBestResult()
                             resultList[0] = true;
                         else
                             resultList[0] = false;
+
+                        if(offTest.ftMax > onTest.ftMax)
+                            dcOnOff = false;
                     }
                     else
                     {
@@ -752,12 +756,23 @@ void BatchCategorize::getBestResult()
                         for(int i=0; i<numLines; i++)
                         {
                             double thisLineFreq = d_status.frequencies.at(i);
+                            double thisLineOnInt = 0.0;
+                            for(int j=0; j<onTest.result.freqAmpPairList().size(); j++)
+                            {
+                                if(qAbs(thisLineFreq-onTest.result.freqAmpPairList().at(j).first) < d_lineMatchMaxDiff)
+                                {
+                                    thisLineOnInt = onTest.result.freqAmpPairList().at(j).second;
+                                    break;
+                                }
+                            }
                             resultList[i] = true;
                             for(int j=0; j<offTest.result.freqAmpPairList().size(); j++)
                             {
                                 if(qAbs(thisLineFreq-offTest.result.freqAmpPairList().at(j).first) < d_lineMatchMaxDiff)
                                 {
                                     resultList[i] = false;
+                                    if(thisLineOnInt < offTest.result.freqAmpPairList().at(j).second)
+                                        dcOnOff = false;
                                     break;
                                 }
                             }
@@ -766,7 +781,7 @@ void BatchCategorize::getBestResult()
 
                     //set next scan to DC on or off, depending on line closest to center (first in resultList)
                     PulseGenConfig pc = d_status.scanTemplate.pulseConfiguration();
-                    pc.setDcEnabled(resultList.first());
+                    pc.setDcEnabled(dcOnOff);
                     d_status.scanTemplate.setPulseConfiguration(pc);
 
                 }//end if dc
