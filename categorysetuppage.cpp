@@ -26,6 +26,27 @@ CategorySetupPage::CategorySetupPage(QWidget *parent) :
     connect(ui->dipoleRemoveButton,&QToolButton::clicked,[=](){ui->dipolesView->model()->removeRow(ui->dipolesView->currentIndex().row()); });
     connect(ui->dipoleTestBox,&QCheckBox::toggled,ui->dipolesBox,&QGroupBox::setEnabled);
 
+    connect(ui->dipoleTestBox,&QCheckBox::toggled,[=](bool en) {
+	    if(!en)
+		    ui->dipoleCategoryBox->setChecked(false);
+	    ui->dipoleCategoryBox->setEnabled(en);
+    });
+    connect(ui->dcTestBox,&QCheckBox::toggled,[=](bool en) {
+	    if(!en)
+		    ui->dcCategoryBox->setChecked(false);
+	    ui->dcCategoryBox->setEnabled(en);
+    });
+    connect(ui->voltageTestBox,&QCheckBox::toggled,[=](bool en) {
+	    if(!en)
+		    ui->voltageCategoryBox->setChecked(false);
+	    ui->voltageCategoryBox->setEnabled(en);
+    });
+    connect(ui->magnetTestBox,&QCheckBox::toggled,[=](bool en) {
+	    if(!en)
+		    ui->magnetCategoryBox->setChecked(false);
+	    ui->magnetCategoryBox->setEnabled(en);
+    });
+
     registerField(QString("catDipole"),ui->dipoleCategoryBox);
     registerField(QString("catDc"),ui->dcCategoryBox);
     registerField(QString("catVoltage"),ui->voltageCategoryBox);

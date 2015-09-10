@@ -33,7 +33,7 @@ public:
 	void moveRows(int first, int last, int delta);
 	QPair<Scan,bool> getScan(int row) const;
 	Scan getLastCalScan() const;
-	int timeEstimate(QtFTM::BatchType type = QtFTM::Batch) const;
+	int timeEstimate(QtFTM::BatchType type = QtFTM::Batch, int numRepeats = 1) const;
 
 	QList<QPair<Scan,bool> > getList() const { return scanList; }
 

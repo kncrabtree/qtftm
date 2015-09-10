@@ -80,6 +80,9 @@
        <layout class="QVBoxLayout" name="verticalLayout_5">
         <item>
          <widget class="QCheckBox" name="dipoleCategoryBox">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Dipole Moment</string>
           </property>
@@ -87,6 +90,9 @@
         </item>
         <item>
          <widget class="QCheckBox" name="dcCategoryBox">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Discharge On/Off</string>
           </property>
@@ -94,6 +100,9 @@
         </item>
         <item>
          <widget class="QCheckBox" name="voltageCategoryBox">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Discharge Voltage</string>
           </property>
@@ -101,6 +110,9 @@
         </item>
         <item>
          <widget class="QCheckBox" name="magnetCategoryBox">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Magnet On/Off</string>
           </property>

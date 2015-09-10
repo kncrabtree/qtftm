@@ -5,7 +5,7 @@
 DipoleTestModel::DipoleTestModel(QObject *parent) :
     QAbstractListModel(parent)
 {
-    d_dipoles << 0.1 << 0.3 << 1.0 << 3.0 << 10.0;
+    d_dipoles << 0.1 << 1.0 << 10.0;
 }
 
 QList<double> DipoleTestModel::dipoleList()

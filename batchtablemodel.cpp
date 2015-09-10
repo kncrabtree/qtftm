@@ -256,7 +256,7 @@ Scan BatchTableModel::getLastCalScan() const
 	return out;
 }
 
-int BatchTableModel::timeEstimate(QtFTM::BatchType type) const
+int BatchTableModel::timeEstimate(QtFTM::BatchType type, int numRepeats) const
 {
 	if(scanList.isEmpty())
 		return 0;
@@ -267,12 +267,12 @@ int BatchTableModel::timeEstimate(QtFTM::BatchType type) const
 
 	if(type == QtFTM::Batch || type == QtFTM::Categorize)
 	{
-		totalShots += scanList.first().first.targetShots();
+		totalShots += scanList.first().first.targetShots() * numRepeats;
 		for(int i=1;i<scanList.size();i++)
 		{
 			if(fabs(scanList.at(i).first.ftFreq() - scanList.at(i-1).first.ftFreq()) > 1.0)
 				totalTime += 10;
-			totalTime += scanList.at(i).first.targetShots();
+			totalShots += scanList.at(i).first.targetShots() * numRepeats;
 		}
 	}
 	else if(type == QtFTM::DrCorrelation)

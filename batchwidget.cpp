@@ -87,7 +87,10 @@ bool BatchWidget::isEmpty()
 void BatchWidget::updateLabel()
 {
 	//get the time esimate and calculate hours, minutes, and seconds
-	int totalTime = btm.timeEstimate(d_type);
+	int repeats = 1;
+	if(d_type == QtFTM::Categorize)
+		repeats = d_numTests;
+	int totalTime = btm.timeEstimate(d_type,repeats);
 
 	QSettings set(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
 	QString name = QString("Batch Scan");
@@ -101,7 +104,6 @@ void BatchWidget::updateLabel()
 	{
 		name = QString("Category Test");
 		key = QString("catTestNum");
-		totalTime *= d_numTests;
 	}
 	QDateTime dt = QDateTime::currentDateTime().addSecs(totalTime);
 	int h = totalTime/3600;
