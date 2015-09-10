@@ -37,5 +37,10 @@ bool BatchSetupPage::validatePage()
 
 	emit batchManager(b);
 
-	return true;
+    return true;
+}
+
+void BatchSetupPage::initializePage()
+{
+	bw->updateLabel();
 }

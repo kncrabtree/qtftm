@@ -13,6 +13,7 @@ public:
 	explicit BatchSetupPage(SingleScanWidget *ssw, QWidget *parent = nullptr);
 	bool isComplete() const;
 	bool validatePage();
+	void initializePage();
 	
 signals:
 	void batchManager(BatchManager *bm);

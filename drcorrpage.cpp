@@ -23,6 +23,11 @@ int DrCorrPage::nextId() const
 	return -1;
 }
 
+void DrCorrPage::initializePage()
+{
+	bw->updateLabel();
+}
+
 
 bool DrCorrPage::validatePage()
 {

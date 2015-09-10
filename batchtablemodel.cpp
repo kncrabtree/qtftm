@@ -310,6 +310,7 @@ void BatchTableModel::updateScan(int row, Scan s)
 
 	scanList.replace(row,QPair<Scan,bool>(s,scanList.at(row).second));
 
+	emit modelChanged();
     emit dataChanged(index(row,0),index(row,headers.size()-1));
 }
 

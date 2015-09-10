@@ -65,7 +65,14 @@ void CategoryScanSetupPage::initializePage()
     auto testList = wiz->catTests();
     int tests = 0;
     for(int i=0; i<testList.size(); i++)
-        tests += testList.at(i).valueList.size();
+    {
+	    if((testList.at(i).key == QString("dc") || testList.at(i).key == QString("m")) && tests > 0)
+		    tests += 1;
+	    else
+		    tests += testList.at(i).valueList.size();
+    }
 	if(tests > 0)
         p_bw->setNumTests(tests+1);
+
+	p_bw->updateLabel();
 }

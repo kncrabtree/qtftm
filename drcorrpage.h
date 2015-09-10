@@ -13,6 +13,7 @@ class DrCorrPage : public QWizardPage
 public:
 	explicit DrCorrPage(SingleScanWidget *ssw, QWidget *parent = nullptr);
 	int nextId() const;
+	void initializePage();
 	
 signals:
 	void batchManager(BatchManager*);
