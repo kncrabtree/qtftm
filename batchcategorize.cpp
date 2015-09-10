@@ -189,6 +189,7 @@ void BatchCategorize::writeReport()
     t << nl << QString("id_") << batchNum << tab << QString("scan_") << batchNum << tab;
     t << QString("test_") << batchNum << tab << QString("value_") << batchNum << tab;
     t << QString("extraAttn_") << batchNum << tab << QString("attn_") << batchNum << tab;
+    t << QString("ftMax_") << batchNum << tab;
     t << QString("lines_") << batchNum << tab << QString("intensities_") << batchNum;
 
     for(int i=0; i<d_resultList.size(); i++)
@@ -196,6 +197,7 @@ void BatchCategorize::writeReport()
         const ScanResult &sr = d_resultList.at(i);
         t << nl << sr.index << tab << sr.scanNum << tab << sr.testKey << tab << sr.testValue.toString();
         t << tab << sr.extraAttn << tab << sr.attenuation << tab;
+        t << sr.ftMax << tab;
         if(sr.frequencies.isEmpty())
             t << QString("0.0");
         else
@@ -325,6 +327,7 @@ void BatchCategorize::advanceBatch(const Scan s)
             sr.testKey = d_status.currentTestKey;
             sr.testValue = d_status.currentTestValue;
             sr.frequencies = d_status.frequencies;
+            sr.ftMax = max;
 
             if(res.type() == FitResult::NoFitting)
             {

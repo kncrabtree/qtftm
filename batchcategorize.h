@@ -21,6 +21,7 @@ public:
         QVariant testValue;
         int extraAttn;
 		int attenuation;
+        double ftMax;
         QList<double> frequencies;
         QList<double> intensities;
 	};
