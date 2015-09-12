@@ -60,6 +60,12 @@ SingleScanWidget::SingleScanWidget(QWidget *parent) :
 	ui->ssShotsSpinBox->setFocus();
 
 	connect(ui->ssShotsSpinBox,static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),this,&SingleScanWidget::shotsChanged);
+	connect(ui->magnetOnOffButton,&QAbstractButton::toggled,[=](bool on){
+		if(on)
+			ui->magnetOnOffButton->setText(QString("On"));
+		else
+			ui->magnetOnOffButton->setText(QString("Off"));
+	});
 }
 
 SingleScanWidget::~SingleScanWidget()
