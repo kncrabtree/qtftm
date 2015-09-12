@@ -164,7 +164,7 @@ void DrPlot::print()
     yMaxBox->setToolTip(QString("Maximum value on y axis of each graph"));
     yMaxBox->setDecimals(3);
     yMaxBox->setMinimum(0.0);
-    yMaxBox->setMaximum(autoScaleYRange.second);
+    yMaxBox->setMaximum(10.0*autoScaleYRange.second);
     yMaxBox->setValue(autoScaleYRange.second);
     yMaxBox->setSingleStep(autoScaleYRange.second*0.1);
     gbl->addRow(QString("Y max"),yMaxBox);

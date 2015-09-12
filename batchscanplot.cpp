@@ -172,7 +172,7 @@ void BatchScanPlot::print()
     yMaxBox->setToolTip(QString("Maximum value on y axis of each graph"));
     yMaxBox->setDecimals(3);
     yMaxBox->setMinimum(0.0);
-    yMaxBox->setMaximum(ym);
+    yMaxBox->setMaximum(10.0*ym);
     yMaxBox->setValue(ym);
     yMaxBox->setSingleStep(ym*0.1);
     gbl->addRow(QString("Y max"),yMaxBox);
