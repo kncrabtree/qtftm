@@ -395,7 +395,73 @@ void BatchCategorize::advanceBatch(const Scan s)
             }
             else
             {
-                if(d_status.frequencies.isEmpty())
+                if(d_status.currentTestKey == QString("u") && d_fitter->type() != FitResult::NoFitting)
+                {
+                    //during the dipole test, we will check for new lines and eliminate false positives if using the autofitter
+                    //the line closest to the ft frequency comes first
+                    for(int i=0; i<res.freqAmpPairList().size(); i++)
+                    {
+                        double thisLineFreq = res.freqAmpPairList().at(i).first;
+                        double thisLineInt = res.freqAmpPairList().at(i).second;
+                        bool addToFreqList = (thisLineInt > 2.0);
+
+                        if(!addToFreqList) //we are skeptical of this line's intensity, so we'd like to see it again
+                        {
+                            //look in our current list of candidates. If there is a match, add it to the frequency list
+                            for(int j=0; j<d_status.candidates.size(); j++)
+                            {
+                                double candidateFreq = d_status.candidates.at(j).frequency;
+                                if(qAbs(thisLineFreq - candidateFreq) < d_lineMatchMaxDiff)
+                                {
+                                    d_status.candidates.removeAt(j);
+                                    addToFreqList = true;
+                                    break;
+                                }
+                            }
+
+                            //if addToFreqList is still false, then store this in the list of candidates for later
+                            if(!addToFreqList)
+                            {
+                                Candidate newCandidate;
+                                newCandidate.frequency = thisLineFreq;
+                                newCandidate.intensity = thisLineInt;
+                                newCandidate.dipole = d_status.currentTestValue.toDouble();
+                                d_status.candidates.append(newCandidate);
+                            }
+
+                        }
+
+                        if(addToFreqList)
+                        {
+                            //make sure this line isn't already there
+                            for(int j=0; j<d_status.frequencies.size(); j++)
+                            {
+                                if(qAbs(d_status.frequencies.at(j)-thisLineFreq) < d_lineMatchMaxDiff)
+                                    addToFreqList = false;
+                            }
+
+                            if(addToFreqList)
+                            {
+                                if(d_status.frequencies.isEmpty())
+                                {
+                                    d_status.frequencies.append(thisLineFreq);
+                                    sr.intensities.append(thisLineInt);
+                                }
+                                else if(qAbs(d_status.frequencies.first()-s.ftFreq()) < qAbs(thisLineFreq-s.ftFreq()))
+                                {
+                                    d_status.frequencies.prepend(thisLineFreq);
+                                    sr.intensities.prepend(thisLineInt);
+                                }
+                                else
+                                {
+                                    d_status.frequencies.append(thisLineFreq);
+                                    sr.intensities.append(thisLineInt);
+                                }
+                            }
+                        }
+                    }
+                }
+                else if(d_status.frequencies.isEmpty())
                 {
                     //check to see if lines are present
                     //if fitter is not being used, then we just say 1 line is here and go with the FT Max
@@ -429,12 +495,47 @@ void BatchCategorize::advanceBatch(const Scan s)
 
                     sr.frequencies = d_status.frequencies;
 
-                    //chick to see if the frequency list is still empty
-                    //if we're doing a dipole test, we can continue
-                    //otherwise, or if the dipole test is done, this is a non-detection
-                    if(d_status.frequencies.isEmpty())
+
+                }
+
+                if(d_status.currentTestKey == QString("final"))
+                {
+                    //categorize
+                    sr.testValue = d_status.category;
+                    if(d_status.category.isEmpty())
                     {
-                        if((d_status.currentTestKey == QString("u") && d_status.currentValueIndex + 1 >= d_testList.at(d_status.currentTestIndex).valueList.size()) || d_status.currentTestKey != QString("u"))
+                        sr.testValue = QString("noCat");
+                        if(!d_status.frequencies.isEmpty())
+                        {
+                            for(int i=1; i<d_status.frequencies.size(); i++)
+                                sr.testValue = QString(sr.testValue.toString()).append(QString("/noCat"));
+                        }
+                    }
+                    labelText.append(QString("FINAL"));
+                    QStringList cats = d_status.category.split(QString("/"));
+                    if(cats.size() < 2)
+                        labelText.append(QString("\n")).append(d_status.category);
+                    else
+                    {
+                        for(int i=0; i<cats.size(); i++)
+                        {
+                            if(i%2)
+                                labelText.append(QString("\n"));
+                            else
+                                labelText.append(QString("/"));
+                            labelText.append(cats.at(i));
+                        }
+                    }
+                    isRef = true;
+                    d_status.advance();
+                    emit advanced();
+                }
+                else
+                {
+                    if(d_status.currentTestKey == QString("u"))
+                    {
+                        if((d_status.currentTestValue.toString() == QString("check") && d_status.frequencies.isEmpty()) ||
+                                (d_status.currentValueIndex >= d_testList.at(d_status.currentTestIndex).valueList.size() && d_status.candidates.isEmpty()))
                         {
                             sr.testKey = QString("final");
                             sr.testValue = QString("ND");
@@ -443,64 +544,65 @@ void BatchCategorize::advanceBatch(const Scan s)
                             d_status.advance();
                             emit advanced();
                         }
+                        else if(d_status.currentExtraAttn > 0)
+                        {
+                            if(!skipCurrentTest())
+                            {
+                                sr.testKey = QString("final");
+                                sr.testValue = QString("SAT");
+                                isRef = true;
+                                labelText.append(QString("FINAL\nSAT"));
+                                d_status.advance();
+                                emit advanced();
+                            }
+                        }
+                        else if((d_status.currentValueIndex >= d_testList.at(d_status.currentTestIndex).valueList.size() && !d_status.candidates.isEmpty()))
+                        {
+                            d_status.currentTestValue = QString("check");
+                            //check dipole of strongest candidate
+                            double dipole = d_status.candidates.first().dipole;
+                            double bestInt = d_status.candidates.first().intensity;
+                            for(int i=1; i<d_status.candidates.size(); i++)
+                            {
+                                if(d_status.candidates.at(i).intensity > bestInt)
+                                {
+                                    bestInt = d_status.candidates.at(i).intensity;
+                                    dipole = d_status.candidates.at(i).dipole;
+                                }
+                            }
+                            d_status.scanTemplate.setDipoleMoment(dipole);
+                        }
+                        else
+                        {
+                            if(d_status.currentTestValue == QString("check"))
+                                d_status.currentTestValue = s.dipoleMoment();
+
+                            labelText.append(QString("%1:%2").arg(d_status.currentTestKey).arg(d_status.currentTestValue.toString()));
+                            d_status.resultMap.insertMulti(d_status.currentTestKey,tr);
+                            setNextTest();
+                        }
+                    }
+                    else
+                    {
+                        //chick to see if the frequency list is still empty. if so, this is a non detection
+                        if(d_status.frequencies.isEmpty())
+                        {
+                            sr.testKey = QString("final");
+                            sr.testValue = QString("ND");
+                            isRef = true;
+                            labelText.append(QString("FINAL\nND"));
+                            d_status.advance();
+                            emit advanced();
+                        }
+                        else
+                        {
+                            labelText.append(QString("%1:%2").arg(d_status.currentTestKey).arg(d_status.currentTestValue.toString()));
+                            d_status.resultMap.insertMulti(d_status.currentTestKey,tr);
+                            setNextTest();
+                        }
                     }
                 }
-
-			 if(d_status.currentTestKey == QString("final"))
-			 {
-				 //categorize
-				 sr.testValue = d_status.category;
-				 if(d_status.category.isEmpty())
-				 {
-					 sr.testValue = QString("noCat");
-					 if(!d_status.frequencies.isEmpty())
-					 {
-						 for(int i=1; i<d_status.frequencies.size(); i++)
-							 sr.testValue = QString(sr.testValue.toString()).append(QString("/noCat"));
-					 }
-				 }
-				 labelText.append(QString("FINAL"));
-				 QStringList cats = d_status.category.split(QString("/"));
-				 if(cats.size() < 2)
-					 labelText.append(QString("\n")).append(d_status.category);
-				 else
-				 {
-					 for(int i=0; i<cats.size(); i++)
-					 {
-						 if(i%2)
-							 labelText.append(QString("\n"));
-						 else
-							 labelText.append(QString("/"));
-						 labelText.append(cats.at(i));
-					 }
-				 }
-				 isRef = true;
-				 d_status.advance();
-				 emit advanced();
-			 }
-			 else
-			 {
-				 if(d_status.currentTestKey == QString("u") && d_status.currentExtraAttn > 0)
-				 {
-					 if(!skipCurrentTest())
-					 {
-						 sr.testKey = QString("final");
-						 sr.testValue = QString("SAT");
-						 isRef = true;
-						 labelText.append(QString("FINAL\nSAT"));
-						 d_status.advance();
-						 emit advanced();
-					 }
-				 }
-				 else
-				 {
-					 //consider possiblity of adding new lines if this is a dipole test?
-					 labelText.append(QString("%1:%2").arg(d_status.currentTestKey).arg(d_status.currentTestValue.toString()));
-					 d_status.resultMap.insertMulti(d_status.currentTestKey,tr);
-					 setNextTest();
-				 }
-			 }
-		  }
+            }
 
             d_resultList.append(sr);
 
