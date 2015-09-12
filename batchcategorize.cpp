@@ -325,7 +325,7 @@ void BatchCategorize::advanceBatch(const Scan s)
             d_scanData.append(QPointF(num - ((double)ft.size()/2.0 - (double)i)/(double)ft.size()*0.9,ft.at(i).y()));
         d_scanData.append(QPointF(num - ((double)ft.size()/2.0 - (double)ft.size())/(double)ft.size()*0.9,0.0));
 
-        labelText.append(QString("%1/%2\n").arg(s.ftFreq(),0,'f',3).arg(s.attenuation()));
+	   labelText.append(QString("%1:%2/%3\n").arg(d_status.scanIndex).arg(s.ftFreq(),0,'f',3).arg(s.attenuation()));
         if(d_loading)
         {
             QString lt = d_loadLabelTextMap.value(s.number());
