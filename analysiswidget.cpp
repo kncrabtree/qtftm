@@ -384,9 +384,9 @@ void AnalysisWidget::loadScanMetaData()
 			{
 				double split = res.allFitParams().at(2);
 				for(int i=0;i<res.freqAmpPairList().size();i++)
-                    llm->addUniqueLine(res.freqAmpPairList().at(i).first,split/2.0,res.freqAmpPairList().at(i).second);
+					llm->addUniqueLine(res.freqAmpPairList().at(i).first,split/2.0,res.freqAmpPairList().at(i).second);
 				for(int i=0;i<res.freqAmpSingleList().size();i++)
-                    llm->addUniqueLine(res.freqAmpSingleList().at(i).first,res.freqAmpSingleList().at(i).second);
+					llm->addUniqueLine(res.freqAmpSingleList().at(i).first,0.0,res.freqAmpSingleList().at(i).second);
 			}
 		}
 
