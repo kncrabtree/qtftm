@@ -16,6 +16,13 @@ class Batch : public BatchManager
 public:
     explicit Batch(QList<QPair<Scan,bool> > l, AbstractFitter *ftr = new NoFitter());
     explicit Batch(int num);
+
+    struct ScanResult {
+        Scan scan;
+        bool isCal;
+        double ftMax;
+        FitResult result;
+    };
 	
 signals:
 	
@@ -32,7 +39,7 @@ private:
     QList<QPair<Scan,bool> > d_scanList;
     QVector<QPointF> d_theData;
     QVector<QPointF> d_calData;
-    QList<QPair<int,QPair<double,QString> > > d_saveData;
+    QList<ScanResult> d_saveData;
 
     QList<bool> d_loadCalList;
     int d_loadingIndex;

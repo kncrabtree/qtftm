@@ -55,7 +55,7 @@ Batch::Batch(int num) : BatchManager(QtFTM::Batch,true), d_loadingIndex(0), d_pr
         if(scanNum>0)
         {
             d_loadScanList.append(scanNum);
-            if(l.at(2).startsWith(QString("CAL")))
+            if(l.at(2).startsWith(QString("CAL")) || l.at(2).toInt() == 1)
                 d_loadCalList.append(true);
             else
                 d_loadCalList.append(false);
@@ -106,9 +106,6 @@ void Batch::processScan(Scan s)
         res = FitResult(s.number());
     else
         res = d_fitter->doFit(s);
-
-    //don't need the fit result here
-    Q_UNUSED(res)
 
 	//the scan number will be used on the X axis of the plot
 	double num = (double)s.number();
@@ -167,8 +164,12 @@ void Batch::processScan(Scan s)
     QtFTM::BatchPlotMetaData md(QtFTM::Batch,s.number(),mdmin,mdmax,d_processScanIsCal,badTune,markerText);
 
 	//record the marker text and FT max for saving
-	QPair<double,QString> scanInfo(max,markerText.replace(QString("\n"),QString("; ")));
-    d_saveData.append(QPair<int,QPair<double,QString> >(s.number(),scanInfo));
+    ScanResult sr;
+    sr.scan = s;
+    sr.isCal = d_processScanIsCal;
+    sr.ftMax = max;
+    sr.result = res;
+    d_saveData.append(sr);
 
 	//send the data to the plot
 	QList<QVector<QPointF> > out;
@@ -211,6 +212,10 @@ void Batch::writeReport()
 	QTextStream t(&out);
 	QString tab = QString("\t");
 	QString nl = QString("\n");
+    QString zerop = QString("0.0");
+    QString zero = QString("0");
+    QString one = QString("1");
+    QString sc = QString(";");
 
 	if(!out.open(QIODevice::WriteOnly))
 	{
@@ -230,9 +235,55 @@ void Batch::writeReport()
     t << QString("#FID zero padding") << tab << (d_fitter->autoPad() ? QString("Yes") : QString("No")) << tab << nl;
 
 	//write save data to file
-	t << nl << QString("batchscan") << batchNum << tab << QString("batchmax") << batchNum << tab << QString("batchinfo") << batchNum;
+    t << nl << QString("batchscan") << batchNum << tab << QString("batchmax") << batchNum << tab << QString("batchiscal") << batchNum << tab << QString("batchftfreq") << batchNum << tab;
+    t << QString("batchattn") << batchNum << tab << QString("batchdrfreq") << batchNum << tab << QString("batchdrpower") << batchNum << tab << QString("batchpulses") << batchNum << tab << QString("batchshots") << batchNum << tab;
+    t << QString("batchautofitpairfreqs") << batchNum << tab << QString("batchautofitpairints") << batchNum << tab << QString("batchautofitsinglefreqs") << batchNum << tab;
+    t << QString("batchautofitsingleints") << batchNum << tab;
     for(int i=0;i<d_saveData.size(); i++)
-        t << nl << d_saveData.at(i).first << tab << d_saveData.at(i).second.first << tab << d_saveData.at(i).second.second;
+    {
+        const ScanResult &sr = d_saveData.at(i);
+        t << nl << sr.scan.number() << tab << sr.ftMax << tab << sr.isCal << tab << sr.scan.ftFreq() << tab << sr.scan.attenuation() << tab << sr.scan.drFreq() << tab << sr.scan.drPower() << tab;
+
+        PulseGenConfig pc = sr.scan.pulseConfiguration();
+        QString pulses;
+        for(int j=0; j<pc.size(); j++)
+        {
+            if(pc.setting(j,QtFTM::PulseEnabled).toBool())
+                pulses.append(one);
+            else
+                pulses.append(zero);
+        }
+        t << pulses << tab << sr.scan.completedShots() << tab;
+
+        if(sr.result.freqAmpPairList().isEmpty())
+            t << zerop << tab << zerop;
+        else
+        {
+            auto list = sr.result.freqAmpPairList();
+            t << list.first().first;
+            for(int j=1; j<list.size(); j++)
+                t << sc << list.at(j).first;
+
+            t << tab << list.first().second;
+            for(int j=1; j<list.size(); j++)
+                t << sc << list.at(j).second;
+        }
+
+        t << tab;
+        if(sr.result.freqAmpSingleList().isEmpty())
+            t << zerop << tab << zerop;
+        else
+        {
+            auto list = sr.result.freqAmpSingleList();
+            t << list.first().first;
+            for(int j=1; j<list.size(); j++)
+                t << sc << list.at(j).first;
+
+            t << tab << list.first().second;
+            for(int j=1; j<list.size(); j++)
+                t << sc << list.at(j).second;
+        }
+    }
 
 	t.flush();
 	out.close();
