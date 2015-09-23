@@ -111,8 +111,11 @@ void PeakListWidget::addLine(int scanNum, double freq, double amp, QString comme
         ui->peakListTable->selectRow(row);
 
     ui->peakListTable->setSortingEnabled(true);
-    for(int i=0; i<colNum; i++)
-        ui->peakListTable->resizeColumnToContents(i);
+    if(row == 0)
+    {
+        for(int i=0; i<colNum; i++)
+            ui->peakListTable->resizeColumnToContents(i);
+    }
 }
 
 void PeakListWidget::removeSelectedLine()
