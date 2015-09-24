@@ -598,7 +598,7 @@ Scan BatchWidget::parseLine(Scan defaultScan, QString line)
                 s.endGroup();
 			}
 		}
-		else if(key.startsWith(QString("s"),Qt::CaseInsensitive)) //shots
+		else if(key.startsWith(QString("sh"),Qt::CaseInsensitive)) //shots
 		{
 			bool success = false;
 			int shots = val.toInt(&success);
