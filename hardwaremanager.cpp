@@ -580,7 +580,10 @@ void HardwareManager::prepareForScan(Scan s)
     d_scanActive = true;
     pauseScope(true);
 
-    tuneCavity(d_currentScan.ftFreq(),-1,d_currentScan.skipTune());
+    if(d_currentScan.skipTune())
+	    finishPreparation(true);
+    else
+	    tuneCavity(d_currentScan.ftFreq(),-1);
 
 }
 
@@ -751,7 +754,7 @@ void HardwareManager::scopeResolutionChanged()
         QMetaObject::invokeMethod(scope,"setResolution");
 }
 
-void HardwareManager::tuneCavity(double freq, int mode, bool measureOnly)
+void HardwareManager::tuneCavity(double freq, int mode)
 {
     emit statusMessage(QString("Tuning..."));
     //1.) Set synthesizer frequency to cavity f
@@ -811,13 +814,7 @@ void HardwareManager::tuneCavity(double freq, int mode, bool measureOnly)
     }
 
     //4.) Tune cavity
-    if(!measureOnly)
-	    startTune(freq,a,mode);
-    else
-    {
-	    int v = measureCavityVoltage();
-	    cavityTuneComplete(v>0);
-    }
+    startTune(freq,a,mode);
 
 }
 

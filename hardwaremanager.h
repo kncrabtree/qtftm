@@ -538,7 +538,7 @@ public slots:
      * \param freq Cavity frequency
      * \param mode Mode number to tune to (-1 for default mode)
      */
-    void tuneCavity(double freq, int mode = -1, bool measureOnly = false);
+    void tuneCavity(double freq, int mode = -1);
 
     /*!
      * \brief Restores settings to pre-tune values, and proceeds with scan preparation if necessary.
