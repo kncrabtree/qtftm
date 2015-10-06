@@ -51,8 +51,8 @@ DrCorrelation::DrCorrelation(QList<QPair<Scan,bool>> templateList, AbstractFitte
 		d_totalShots += d_scanList.at(i).first.targetShots();
 }
 
-DrCorrelation::DrCorrelation(int num) :
-    BatchManager(QtFTM::DrCorrelation,true), d_thisScanIsRef(false), d_processScanIsCal(false),
+DrCorrelation::DrCorrelation(int num, AbstractFitter *ftr) :
+    BatchManager(QtFTM::DrCorrelation,true,ftr), d_thisScanIsRef(false), d_processScanIsCal(false),
     d_processScanIsRef(false), d_loadIndex(0)
 {
 	d_prettyName = QString("DR Correlation");

@@ -15,7 +15,7 @@ class Batch : public BatchManager
 	Q_OBJECT
 public:
     explicit Batch(QList<QPair<Scan,bool> > l, AbstractFitter *ftr = new NoFitter());
-    explicit Batch(int num);
+    explicit Batch(int num, AbstractFitter *ftr = new NoFitter());
 
     struct ScanResult {
         Scan scan;

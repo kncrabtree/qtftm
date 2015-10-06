@@ -15,7 +15,7 @@ class BatchViewWidget : public QWidget
     Q_OBJECT
     
 public:
-    explicit BatchViewWidget(QtFTM::BatchType type, int num, double delay, int hpf, double exp, bool rDC = true, bool pad = false, QWidget *parent = nullptr);
+    explicit BatchViewWidget(QtFTM::BatchType type, int num, AbstractFitter *af, QWidget *parent = nullptr);
     ~BatchViewWidget();
 
 public slots:

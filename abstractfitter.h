@@ -33,6 +33,9 @@ public:
     void setBufferGas(const FitResult::BufferGas &bg) { d_bufferGas = bg; }
     void setTemperature(const double t) { d_temperature = t; }
 
+    const FitResult::BufferGas& bufferGas() const { return d_bufferGas; }
+    double temperature() const { return d_temperature; }
+
 
 protected:
     const FitResult::FitterType d_type;

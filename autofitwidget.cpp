@@ -1,6 +1,19 @@
 #include "autofitwidget.h"
 #include "ui_autofitwidget.h"
 
+AutoFitWidget::AutoFitWidget(QWidget *parent) :
+    QWidget(parent),
+    ui(new Ui::AutoFitWidget)
+{
+    ui->setupUi(this);
+
+    connect(ui->autoFitEnabledCheckBox,&QAbstractButton::toggled,ui->autoFitSettingsBox,&QWidget::setEnabled);
+    connect(ui->autoFitEnabledCheckBox,&QAbstractButton::toggled,this,&AutoFitWidget::autoFitEnabledChanged);
+
+    d_gases << Analysis::bufferH2 << Analysis::bufferHe << Analysis::bufferN2 << Analysis::bufferO2
+           << Analysis::bufferNe << Analysis::bufferAr << Analysis::bufferKr << Analysis::bufferXe;
+}
+
 AutoFitWidget::AutoFitWidget(QString bgName, double d, double h, double e, bool zp, double t, QWidget *parent) :
      QWidget(parent),
      ui(new Ui::AutoFitWidget)
@@ -100,6 +113,30 @@ void AutoFitWidget::disableProcessingOptions(bool disable)
     ui->processingSettingsBox->setVisible(!disable);
 }
 
+void AutoFitWidget::setFromFitter(AbstractFitter *af)
+{
+    if(af != nullptr)
+    {
+        if(af->type() == FitResult::NoFitting)
+            ui->autoFitEnabledCheckBox->setChecked(false);
+        else
+            ui->autoFitEnabledCheckBox->setChecked(true);
+
+        if(af->type() == FitResult::LorentzianDopplerPairLMS)
+        {
+            //update indices if non-coaxial configurations are added
+            ui->sourceConfigComboBox->setCurrentIndex(0);
+        }
+        ui->bufferGasComboBox->setCurrentIndex(gasIndex(af->bufferGas()));
+        ui->temperatureDoubleSpinBox->setValue(af->temperature());
+        ui->delayDoubleSpinBox->setValue(af->delay());
+        ui->highPassDoubleSpinBox->setValue(af->hpf());
+        ui->expFilterDoubleSpinBox->setValue(af->exp());
+        ui->removeDCCheckBox->setChecked(af->removeDC());
+        ui->zeroPadFIDCheckBox->setChecked(af->autoPad());
+    }
+}
+
 AbstractFitter *AutoFitWidget::toFitter()
 {
 	AbstractFitter *af;
@@ -120,5 +157,32 @@ AbstractFitter *AutoFitWidget::toFitter()
 	af->setRemoveDC(removeDC());
 	af->setAutoPad(zeroPad());
 
-	return af;
+    return af;
+}
+
+void AutoFitWidget::setAutofitEnabled(bool enabled)
+{
+    ui->autoFitEnabledCheckBox->setChecked(enabled);
+}
+
+int AutoFitWidget::gasIndex(const FitResult::BufferGas &gas)
+{
+    if(gas.name.contains(QString("H2"),Qt::CaseSensitive))
+        return 0;
+    if(gas.name.contains(QString("He"),Qt::CaseSensitive))
+        return 1;
+    if(gas.name.contains(QString("N2"),Qt::CaseSensitive))
+        return 2;
+    if(gas.name.contains(QString("O2"),Qt::CaseSensitive))
+        return 3;
+    if(gas.name.contains(QString("Ne"),Qt::CaseSensitive))
+        return 4;
+    if(gas.name.contains(QString("Ar"),Qt::CaseSensitive))
+        return 5;
+    if(gas.name.contains(QString("Kr"),Qt::CaseSensitive))
+        return 6;
+    if(gas.name.contains(QString("Xe"),Qt::CaseSensitive))
+        return 7;
+
+    return 0;
 }

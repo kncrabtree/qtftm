@@ -66,124 +66,7 @@
         </spacer>
        </item>
        <item>
-        <layout class="QFormLayout" name="formLayout_2">
-         <property name="fieldGrowthPolicy">
-          <enum>QFormLayout::ExpandingFieldsGrow</enum>
-         </property>
-         <property name="formAlignment">
-          <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
-         </property>
-         <item row="0" column="0">
-          <widget class="QLabel" name="delayLabel">
-           <property name="text">
-            <string>Delay</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QDoubleSpinBox" name="delayDoubleSpinBox">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="specialValueText">
-            <string>Off</string>
-           </property>
-           <property name="suffix">
-            <string> μs</string>
-           </property>
-           <property name="decimals">
-            <number>1</number>
-           </property>
-           <property name="value">
-            <double>0.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="highPassFilterLabel">
-           <property name="text">
-            <string>High Pass</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QSpinBox" name="highPassFilterSpinBox">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="specialValueText">
-            <string>Off</string>
-           </property>
-           <property name="suffix">
-            <string> kHz</string>
-           </property>
-           <property name="prefix">
-            <string/>
-           </property>
-           <property name="maximum">
-            <number>1000</number>
-           </property>
-           <property name="singleStep">
-            <number>50</number>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="exponentialFilterLabel">
-           <property name="text">
-            <string>Exp. Filter</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QDoubleSpinBox" name="exponentialFilterDoubleSpinBox">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="specialValueText">
-            <string>Off</string>
-           </property>
-           <property name="suffix">
-            <string> μs</string>
-           </property>
-           <property name="maximum">
-            <double>1000.000000000000000</double>
-           </property>
-           <property name="singleStep">
-            <double>10.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QCheckBox" name="removeDCCheckBox"/>
-         </item>
-         <item row="3" column="1">
-          <widget class="QLabel" name="removeDCLabel">
-           <property name="text">
-            <string>Remove DC</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="0">
-          <widget class="QCheckBox" name="zeroPadFIDsCheckBox"/>
-         </item>
-         <item row="4" column="1">
-          <widget class="QLabel" name="zeroPadFIDsLabel">
-           <property name="text">
-            <string>Zero-pad FIDs</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
+        <widget class="AutoFitWidget" name="afw" native="true"/>
        </item>
        <item>
         <widget class="QPushButton" name="reprocessButton">
@@ -264,6 +147,12 @@
   </action>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>AutoFitWidget</class>
+   <extends>QWidget</extends>
+   <header>autofitwidget.h</header>
+   <container>1</container>
+  </customwidget>
   <customwidget>
    <class>AnalysisWidget</class>
    <extends>QWidget</extends>

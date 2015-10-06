@@ -142,7 +142,8 @@ LoadBatchDialog::LoadBatchDialog(QWidget *parent) :
     connect(ui->drCorrButton,&QAbstractButton::toggled,ui->drCorrSpinBox,&QWidget::setEnabled);
     connect(ui->catButton,&QAbstractButton::toggled,ui->catSpinBox,&QWidget::setEnabled);
 
-    ui->removeDCCheckBox->setChecked(true);
+    ui->afw->setAutofitEnabled(false);
+
 }
 
 LoadBatchDialog::~LoadBatchDialog()
@@ -188,27 +189,7 @@ QPair<QtFTM::BatchType, int> LoadBatchDialog::selection() const
     return out;
 }
 
-double LoadBatchDialog::delay() const
+AbstractFitter *LoadBatchDialog::fitter()
 {
-    return ui->delayDoubleSpinBox->value();
-}
-
-int LoadBatchDialog::hpf() const
-{
-    return ui->highPassFilterSpinBox->value();
-}
-
-double LoadBatchDialog::exp() const
-{
-	return ui->exponentialFilterDoubleSpinBox->value();
-}
-
-bool LoadBatchDialog::removeDC() const
-{
-	return ui->removeDCCheckBox->isChecked();
-}
-
-bool LoadBatchDialog::padFid() const
-{
-	return ui->zeroPadFIDsCheckBox->isChecked();
+    return ui->afw->toFitter();
 }

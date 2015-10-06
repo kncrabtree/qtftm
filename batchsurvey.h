@@ -19,7 +19,7 @@ class BatchSurvey : public BatchManager
 	Q_OBJECT
 public:
     explicit BatchSurvey(Scan first, double step, double end, bool hascal = false, Scan cal = Scan(), int scansPerCal = 0, AbstractFitter *af = new NoFitter());
-    explicit BatchSurvey(int num);
+    explicit BatchSurvey(int num, AbstractFitter *af = new NoFitter());
 	
 signals:
 	

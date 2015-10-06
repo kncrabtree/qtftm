@@ -12,7 +12,7 @@ Batch::Batch(QList<QPair<Scan, bool> > l, AbstractFitter *ftr) :
 
 }
 
-Batch::Batch(int num) : BatchManager(QtFTM::Batch,true), d_loadingIndex(0), d_processScanIsCal(false)
+Batch::Batch(int num, AbstractFitter *ftr) : BatchManager(QtFTM::Batch,true,ftr), d_loadingIndex(0), d_processScanIsCal(false)
 {
     d_prettyName = QString("Batch");
     d_batchNum = num;

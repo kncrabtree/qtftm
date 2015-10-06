@@ -49,7 +49,7 @@ BatchSurvey::BatchSurvey(Scan first, double step, double end, bool hascal, Scan 
 
 }
 
-BatchSurvey::BatchSurvey(int num) : BatchManager(QtFTM::Survey,true)
+BatchSurvey::BatchSurvey(int num, AbstractFitter *af) : BatchManager(QtFTM::Survey,true,af)
 {
     d_prettyName = QString("Survey");
     d_batchNum = num;

@@ -2,7 +2,11 @@
 #define LOADBATCHDIALOG_H
 
 #include <QDialog>
+#include <memory>
+
 #include "datastructs.h"
+
+class AbstractFitter;
 
 namespace Ui {
 class LoadBatchDialog;
@@ -17,11 +21,7 @@ public:
     ~LoadBatchDialog();
 
     QPair<QtFTM::BatchType,int> selection() const;
-    double delay() const;
-    int hpf() const;
-    double exp() const;
-    bool removeDC() const;
-    bool padFid() const;
+    AbstractFitter *fitter();
     
 private:
     Ui::LoadBatchDialog *ui;

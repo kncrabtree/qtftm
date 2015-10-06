@@ -14,7 +14,7 @@
 #include "categoryplot.h"
 #include <QThread>
 
-BatchViewWidget::BatchViewWidget(QtFTM::BatchType type, int num, double delay, int hpf, double exp, bool rDC, bool pad, QWidget *parent) :
+BatchViewWidget::BatchViewWidget(QtFTM::BatchType type, int num, AbstractFitter *af, QWidget *parent) :
     QWidget(parent), ui(new Ui::BatchViewWidget), d_number(num), d_type(type)
 {
     ui->setupUi(this);
@@ -46,21 +46,7 @@ BatchViewWidget::BatchViewWidget(QtFTM::BatchType type, int num, double delay, i
 
     ui->batchSplitter->insertWidget(d_number,batchPlot);
 
-    ui->delayDoubleSpinBox->blockSignals(true);
-    ui->highPassFilterSpinBox->blockSignals(true);
-    ui->exponentialFilterDoubleSpinBox->blockSignals(true);
-
-    ui->delayDoubleSpinBox->setValue(delay);
-    ui->highPassFilterSpinBox->setValue(hpf);
-    ui->exponentialFilterDoubleSpinBox->setValue(exp);
-    ui->removeDCCheckBox->setChecked(rDC);
-    ui->zeroPadFIDsCheckBox->setChecked(pad);
-
-    ui->analysisWidget->plot()->getDelayBox()->setValue(delay);
-    ui->analysisWidget->plot()->getHpfBox()->setValue(hpf);
-    ui->analysisWidget->plot()->getExpBox()->setValue(exp);
-    ui->analysisWidget->plot()->getRemoveDcBox()->setChecked(rDC);
-    ui->analysisWidget->plot()->getPadFidBox()->setChecked(pad);
+    ui->afw->setFromFitter(af);
 
     connect(ui->printScanButton,&QAbstractButton::clicked,ui->analysisWidget,&AnalysisWidget::print);
     connect(ui->peakListWidget,&PeakListWidget::scanSelected,ui->analysisWidget,&AnalysisWidget::loadScan);
@@ -111,22 +97,22 @@ void BatchViewWidget::process()
     switch(d_type)
     {
     case QtFTM::Survey:
-        bm = new BatchSurvey(d_number);
+        bm = new BatchSurvey(d_number,ui->afw->toFitter());
         break;
     case QtFTM::DrScan:
-        bm = new BatchDR(d_number);
+        bm = new BatchDR(d_number,ui->afw->toFitter());
         break;
     case QtFTM::Batch:
-        bm = new Batch(d_number);
+        bm = new Batch(d_number,ui->afw->toFitter());
         break;
     case QtFTM::Attenuation:
         bm = new BatchAttenuation(d_number);
         break;
     case QtFTM::DrCorrelation:
-	    bm = new DrCorrelation(d_number);
+        bm = new DrCorrelation(d_number,ui->afw->toFitter());
 	    break;
     case QtFTM::Categorize:
-	    bm = new BatchCategorize(d_number);
+        bm = new BatchCategorize(d_number,ui->afw->toFitter());
 	    break;
     case QtFTM::SingleScan:
     default:
@@ -135,17 +121,13 @@ void BatchViewWidget::process()
         return;
     }
 
-    bm->setFtDelay(ui->delayDoubleSpinBox->value());
-    bm->setFtHpf(ui->highPassFilterSpinBox->value());
-    bm->setFtExp(ui->exponentialFilterDoubleSpinBox->value());
-    bm->setRemoveDC(ui->removeDCCheckBox->isChecked());
-    bm->setPadFid(ui->zeroPadFIDsCheckBox->isChecked());
 
-    ui->analysisWidget->plot()->getDelayBox()->setValue(ui->delayDoubleSpinBox->value());
-    ui->analysisWidget->plot()->getHpfBox()->setValue(ui->highPassFilterSpinBox->value());
-    ui->analysisWidget->plot()->getExpBox()->setValue(ui->exponentialFilterDoubleSpinBox->value());
-    ui->analysisWidget->plot()->getRemoveDcBox()->setChecked(ui->removeDCCheckBox->isChecked());
-    ui->analysisWidget->plot()->getPadFidBox()->setChecked(ui->zeroPadFIDsCheckBox->isChecked());
+
+    ui->analysisWidget->plot()->getDelayBox()->setValue(ui->afw->delay());
+    ui->analysisWidget->plot()->getHpfBox()->setValue(ui->afw->hpf());
+    ui->analysisWidget->plot()->getExpBox()->setValue(ui->afw->exp());
+    ui->analysisWidget->plot()->getRemoveDcBox()->setChecked(ui->afw->removeDC());
+    ui->analysisWidget->plot()->getPadFidBox()->setChecked(ui->afw->zeroPad());
 
     QPair<int,int> range = bm->loadScanRange();
     if((range.first < 1 || range.second < 1) && d_type != QtFTM::Attenuation)

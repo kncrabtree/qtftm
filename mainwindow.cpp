@@ -538,18 +538,21 @@ void MainWindow::viewBatchCallback()
         return;
 
     QPair<QtFTM::BatchType,int> result = d.selection();
+    AbstractFitter *ftr = d.fitter();
 
     if(result.first == QtFTM::SingleScan || result.second < 1)
         return;
 
     //note: in the BatchViewWidget constructor, the Qt::WA_DeleteOnClose flag is set, so it will be deleted when the window is closed!
-    BatchViewWidget *bvw = new BatchViewWidget(result.first,result.second,d.delay(),d.hpf(),d.exp(),d.removeDC(),d.padFid());
+    BatchViewWidget *bvw = new BatchViewWidget(result.first,result.second,ftr);
     connect(this,&MainWindow::closing,bvw,&QWidget::close);
     connect(ui->analysisWidget,&AnalysisWidget::metaDataChanged,bvw,&BatchViewWidget::checkForMetaDataChanged);
     connect(bvw,&BatchViewWidget::metaDataChanged,ui->analysisWidget,&AnalysisWidget::checkForLoadScanMetaData);
     bvw->show();
     bvw->raise();
     bvw->process();
+
+    delete ftr;
 
 }
 
