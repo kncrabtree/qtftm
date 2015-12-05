@@ -32,6 +32,12 @@ public:
     QList<QPair<double,double> > ranges() { return llm->getRanges(); }
     void configureForDr();
 
+    void setPlotDelay(const double d);
+    void setPlotHpf(const double h);
+    void setPlotExp(const double e);
+    void setPlotRdc(const bool b);
+    void setPlotPad(const bool b);
+
 signals:
     void canPrint(bool);
     void scanChanged(int, bool replot = true);

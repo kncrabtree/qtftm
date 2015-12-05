@@ -79,6 +79,31 @@ void AnalysisWidget::configureForDr()
     ui->linesLabel->setText(QString("Integration ranges"));
 }
 
+void AnalysisWidget::setPlotDelay(const double d)
+{
+    ui->analysisPlot->setDelay(d);
+}
+
+void AnalysisWidget::setPlotHpf(const double h)
+{
+    ui->analysisPlot->setHpf(h);
+}
+
+void AnalysisWidget::setPlotExp(const double e)
+{
+    ui->analysisPlot->setExp(e);
+}
+
+void AnalysisWidget::setPlotRdc(const bool b)
+{
+    ui->analysisPlot->setRemoveDc(b);
+}
+
+void AnalysisWidget::setPlotPad(const bool b)
+{
+    ui->analysisPlot->setPadding(b);
+}
+
 void AnalysisWidget::peakMarkRequested()
 {
 	llm->newEntry((ui->analysisPlot->xMax()+ui->analysisPlot->xMin())/2.0,ui->analysisPlot->xMin()/4e5);
@@ -367,9 +392,9 @@ void AnalysisWidget::loadScanMetaData()
 		return;
 	}
 
-	ui->analysisPlot->getDelayBox()->setValue(res.delay());
-	ui->analysisPlot->getHpfBox()->setValue(res.hpf());
-	ui->analysisPlot->getExpBox()->setValue(res.exp());
+    setPlotDelay(res.delay());
+    setPlotHpf(res.hpf());
+    setPlotExp(res.exp());
 
 	if(res.category() == FitResult::Success)
 	{

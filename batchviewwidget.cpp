@@ -123,11 +123,11 @@ void BatchViewWidget::process()
 
 
 
-    ui->analysisWidget->plot()->getDelayBox()->setValue(ui->afw->delay());
-    ui->analysisWidget->plot()->getHpfBox()->setValue(ui->afw->hpf());
-    ui->analysisWidget->plot()->getExpBox()->setValue(ui->afw->exp());
-    ui->analysisWidget->plot()->getRemoveDcBox()->setChecked(ui->afw->removeDC());
-    ui->analysisWidget->plot()->getPadFidBox()->setChecked(ui->afw->zeroPad());
+    ui->analysisWidget->setPlotDelay(ui->afw->delay());
+    ui->analysisWidget->setPlotHpf(ui->afw->hpf());
+    ui->analysisWidget->setPlotExp(ui->afw->exp());
+    ui->analysisWidget->setPlotRdc(ui->afw->removeDC());
+    ui->analysisWidget->setPlotPad(ui->afw->zeroPad());
 
     QPair<int,int> range = bm->loadScanRange();
     if((range.first < 1 || range.second < 1) && d_type != QtFTM::Attenuation)

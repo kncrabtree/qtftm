@@ -63,62 +63,62 @@ FtPlot::FtPlot(QWidget *parent) :
 
 	auto doubleVc = static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged);
 
-	delayBox = new QDoubleSpinBox(this);
-	delayBox->setToolTip(QString("Sets beginning portion of FID to zero"));
-	delayBox->setMinimum(0.0);
-	delayBox->setMaximum(100.0);
-	delayBox->setDecimals(1);
-	delayBox->setValue(ftWorker->delay());
-	delayBox->setSingleStep(1.0);
-	delayBox->setKeyboardTracking(false);
-	delayBox->setSpecialValueText(QString("Off"));
-	delayBox->setSuffix(QString::fromUtf8(" μs"));
-	delayBox->setVisible(false);
-	connect(delayBox,doubleVc,ftWorker,&FtWorker::setDelay);
-	connect(delayBox,doubleVc,this,&FtPlot::updatePlot);
+    p_delayBox = new QDoubleSpinBox(this);
+    p_delayBox->setToolTip(QString("Sets beginning portion of FID to zero"));
+    p_delayBox->setMinimum(0.0);
+    p_delayBox->setMaximum(100.0);
+    p_delayBox->setDecimals(1);
+    p_delayBox->setValue(ftWorker->delay());
+    p_delayBox->setSingleStep(1.0);
+    p_delayBox->setKeyboardTracking(false);
+    p_delayBox->setSpecialValueText(QString("Off"));
+    p_delayBox->setSuffix(QString::fromUtf8(" μs"));
+    p_delayBox->setVisible(false);
+    connect(p_delayBox,doubleVc,ftWorker,&FtWorker::setDelay);
+    connect(p_delayBox,doubleVc,this,&FtPlot::updatePlot);
 
-	hpfBox = new QDoubleSpinBox(this);
-	hpfBox->setToolTip(QString("Cutoff frequency for high pass filter applied to FID"));
-	hpfBox->setMinimum(0.0);
-	hpfBox->setMaximum(1000.0);
-	hpfBox->setDecimals(0);
-	hpfBox->setValue(ftWorker->hpf());
-	hpfBox->setSingleStep(50.0);
-	hpfBox->setKeyboardTracking(false);
-	hpfBox->setSpecialValueText(QString("Off"));
-	hpfBox->setSuffix(QString::fromUtf8(" kHz"));
-	hpfBox->setVisible(false);
-	connect(hpfBox,doubleVc,ftWorker,&FtWorker::setHpf);
-	connect(hpfBox,doubleVc,this,&FtPlot::updatePlot);
+    p_hpfBox = new QDoubleSpinBox(this);
+    p_hpfBox->setToolTip(QString("Cutoff frequency for high pass filter applied to FID"));
+    p_hpfBox->setMinimum(0.0);
+    p_hpfBox->setMaximum(1000.0);
+    p_hpfBox->setDecimals(0);
+    p_hpfBox->setValue(ftWorker->hpf());
+    p_hpfBox->setSingleStep(50.0);
+    p_hpfBox->setKeyboardTracking(false);
+    p_hpfBox->setSpecialValueText(QString("Off"));
+    p_hpfBox->setSuffix(QString::fromUtf8(" kHz"));
+    p_hpfBox->setVisible(false);
+    connect(p_hpfBox,doubleVc,ftWorker,&FtWorker::setHpf);
+    connect(p_hpfBox,doubleVc,this,&FtPlot::updatePlot);
 
-	expBox = new QDoubleSpinBox(this);
-	expBox->setToolTip(QString("Time constant for exponential decay convolved with FID"));
-	expBox->setMinimum(0.0);
-	expBox->setMaximum(1000.0);
-	expBox->setDecimals(1);
-	expBox->setValue(ftWorker->exp());
-	expBox->setSingleStep(10.0);
-	expBox->setKeyboardTracking(false);
-	expBox->setWrapping(true);
-	expBox->setSpecialValueText(QString("Off"));
-	expBox->setSuffix(QString::fromUtf8(" μs"));
-	expBox->setVisible(false);
-	connect(expBox,doubleVc,ftWorker,&FtWorker::setExp);
-	connect(expBox,doubleVc,this,&FtPlot::updatePlot);
+    p_expBox = new QDoubleSpinBox(this);
+    p_expBox->setToolTip(QString("Time constant for exponential decay convolved with FID"));
+    p_expBox->setMinimum(0.0);
+    p_expBox->setMaximum(1000.0);
+    p_expBox->setDecimals(1);
+    p_expBox->setValue(ftWorker->exp());
+    p_expBox->setSingleStep(10.0);
+    p_expBox->setKeyboardTracking(false);
+    p_expBox->setWrapping(true);
+    p_expBox->setSpecialValueText(QString("Off"));
+    p_expBox->setSuffix(QString::fromUtf8(" μs"));
+    p_expBox->setVisible(false);
+    connect(p_expBox,doubleVc,ftWorker,&FtWorker::setExp);
+    connect(p_expBox,doubleVc,this,&FtPlot::updatePlot);
 
-	removeDcCheckBox = new QCheckBox(QString("Remove DC Offset"),this);
-	removeDcCheckBox->setToolTip(QString("The average of the entire FID will be subtracted to remove any DC offset"));
-	removeDcCheckBox->setChecked(ftWorker->removeDC());
-	removeDcCheckBox->setVisible(false);
-	connect(removeDcCheckBox,&QAbstractButton::toggled,ftWorker,&FtWorker::setRemoveDC);
-	connect(removeDcCheckBox,&QAbstractButton::toggled,this,&FtPlot::updatePlot);
+    p_removeDcCheckBox = new QCheckBox(QString("Remove DC Offset"),this);
+    p_removeDcCheckBox->setToolTip(QString("The average of the entire FID will be subtracted to remove any DC offset"));
+    p_removeDcCheckBox->setChecked(ftWorker->removeDC());
+    p_removeDcCheckBox->setVisible(false);
+    connect(p_removeDcCheckBox,&QAbstractButton::toggled,ftWorker,&FtWorker::setRemoveDC);
+    connect(p_removeDcCheckBox,&QAbstractButton::toggled,this,&FtPlot::updatePlot);
 
-	padFidCheckBox = new QCheckBox(QString("Zero-pad FID"));
-	padFidCheckBox->setToolTip(QString("Add zeroes to the end of the FID to increase apparent resolution"));
-	padFidCheckBox->setChecked(ftWorker->autoPad());
-	padFidCheckBox->setVisible(false);
-	connect(padFidCheckBox,&QAbstractButton::toggled,ftWorker,&FtWorker::setAutoPad);
-	connect(padFidCheckBox,&QAbstractButton::toggled,this,&FtPlot::updatePlot);
+    p_padFidCheckBox = new QCheckBox(QString("Zero-pad FID"));
+    p_padFidCheckBox->setToolTip(QString("Add zeroes to the end of the FID to increase apparent resolution"));
+    p_padFidCheckBox->setChecked(ftWorker->autoPad());
+    p_padFidCheckBox->setVisible(false);
+    connect(p_padFidCheckBox,&QAbstractButton::toggled,ftWorker,&FtWorker::setAutoPad);
+    connect(p_padFidCheckBox,&QAbstractButton::toggled,this,&FtPlot::updatePlot);
 
 	ftWorker->moveToThread(ftThread);
 	ftThread->start();
@@ -274,16 +274,16 @@ void FtPlot::hideTraces()
 
 void FtPlot::reclaimSpinBoxes()
 {
-	delayBox->setParent(this);
-	hpfBox->setParent(this);
-	expBox->setParent(this);
-	removeDcCheckBox->setParent(this);
-	padFidCheckBox->setParent(this);
-	delayBox->setVisible(false);
-	hpfBox->setVisible(false);
-	expBox->setVisible(false);
-	removeDcCheckBox->setVisible(false);
-	padFidCheckBox->setVisible(false);
+    p_delayBox->setParent(this);
+    p_hpfBox->setParent(this);
+    p_expBox->setParent(this);
+    p_removeDcCheckBox->setParent(this);
+    p_padFidCheckBox->setParent(this);
+    p_delayBox->setVisible(false);
+    p_hpfBox->setVisible(false);
+    p_expBox->setVisible(false);
+    p_removeDcCheckBox->setVisible(false);
+    p_padFidCheckBox->setVisible(false);
 	sender()->deleteLater();
 }
 
@@ -432,22 +432,22 @@ QMenu *FtPlot::buildContextMenu()
 	QGridLayout *processingLayout = new QGridLayout(processingWidget);
 
 	processingLayout->addWidget(new QLabel(QString("Delay "),processingWidget),0,0);
-	processingLayout->addWidget(delayBox,0,1);
-	delayBox->setVisible(true);
+    processingLayout->addWidget(p_delayBox,0,1);
+    p_delayBox->setVisible(true);
 
 	processingLayout->addWidget(new QLabel(QString("High pass "),processingWidget),1,0);
-	processingLayout->addWidget(hpfBox,1,1);
-	hpfBox->setVisible(true);
+    processingLayout->addWidget(p_hpfBox,1,1);
+    p_hpfBox->setVisible(true);
 
 	processingLayout->addWidget(new QLabel(QString("Exp filter "),processingWidget),2,0);
-	processingLayout->addWidget(expBox,2,1);
-	expBox->setVisible(true);
+    processingLayout->addWidget(p_expBox,2,1);
+    p_expBox->setVisible(true);
 
-	processingLayout->addWidget(removeDcCheckBox,3,0,1,2);
-	removeDcCheckBox->setVisible(true);
+    processingLayout->addWidget(p_removeDcCheckBox,3,0,1,2);
+    p_removeDcCheckBox->setVisible(true);
 
-	processingLayout->addWidget(padFidCheckBox,4,0,1,2);
-	padFidCheckBox->setVisible(true);
+    processingLayout->addWidget(p_padFidCheckBox,4,0,1,2);
+    p_padFidCheckBox->setVisible(true);
 
 	processingWidget->setLayout(processingLayout);
 	processingAction->setDefaultWidget(processingWidget);
@@ -509,5 +509,30 @@ double FtPlot::getExp() const
 {
 	double out = 0.0;
 	QMetaObject::invokeMethod(ftWorker,"exp",Qt::BlockingQueuedConnection,Q_RETURN_ARG(double,out));
-	return out;
+    return out;
+}
+
+void FtPlot::setDelay(const double d)
+{
+    p_delayBox->setValue(d);
+}
+
+void FtPlot::setHpf(const double hpf)
+{
+    p_hpfBox->setValue(hpf);
+}
+
+void FtPlot::setExp(const double e)
+{
+    p_expBox->setValue(e);
+}
+
+void FtPlot::setRemoveDc(const bool rdc)
+{
+    p_removeDcCheckBox->setChecked(rdc);
+}
+
+void FtPlot::setPadding(const bool pad)
+{
+    p_padFidCheckBox->setChecked(pad);
 }

@@ -31,11 +31,17 @@ public:
 	double getHpf() const;
 	double getExp() const;
 
-	QDoubleSpinBox* getDelayBox() const { return delayBox; }
-	QDoubleSpinBox* getHpfBox() const { return hpfBox; }
-	QDoubleSpinBox* getExpBox() const { return expBox; }
-	QCheckBox* getRemoveDcBox() const { return removeDcCheckBox; }
-	QCheckBox* getPadFidBox() const { return padFidCheckBox; }
+    void setDelay(const double d);
+    void setHpf(const double hpf);
+    void setExp(const double e);
+    void setRemoveDc(const bool rdc);
+    void setPadding(const bool pad);
+
+    QDoubleSpinBox* getDelayBox() const { return p_delayBox; }
+    QDoubleSpinBox* getHpfBox() const { return p_hpfBox; }
+    QDoubleSpinBox* getExpBox() const { return p_expBox; }
+    QCheckBox* getRemoveDcBox() const { return p_removeDcCheckBox; }
+    QCheckBox* getPadFidBox() const { return p_padFidCheckBox; }
 
     QVector<QPointF> currentFtXY() const { return d_currentFtXY; }
 	
@@ -89,11 +95,11 @@ protected:
 	virtual QMenu* buildContextMenu();
 	bool tracesHidden;
 
-	QDoubleSpinBox *delayBox;
-	QDoubleSpinBox *hpfBox;
-	QDoubleSpinBox *expBox;
-	QCheckBox *removeDcCheckBox;
-	QCheckBox *padFidCheckBox;
+    QDoubleSpinBox *p_delayBox;
+    QDoubleSpinBox *p_hpfBox;
+    QDoubleSpinBox *p_expBox;
+    QCheckBox *p_removeDcCheckBox;
+    QCheckBox *p_padFidCheckBox;
 
 	bool d_verticalAutoScale;
 	double d_verticalScaleMax;
