@@ -34,6 +34,7 @@ public slots:
 
 signals:
     void bandChanged();
+    void switchPointChanged();
 
 };
 

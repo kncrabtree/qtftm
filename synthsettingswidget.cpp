@@ -26,6 +26,7 @@ SynthSettingsWidget::SynthSettingsWidget(QWidget *parent) :
 	connect(ui->maxDoubleSpinBox,doubleVc,this,&SettingsWidget::somethingChanged);
 	connect(ui->minDoubleSpinBox,doubleVc,this,&SettingsWidget::somethingChanged);
 	connect(ui->switchComboBox,cmbVc,this,&SettingsWidget::somethingChanged);
+    connect(ui->switchComboBox,cmbVc,this,&SynthSettingsWidget::switchPointChanged);
 	connect(ui->multSpinBox,intVc,this,&SettingsWidget::somethingChanged);
 	connect(ui->bandComboBox,cmbVc,this,&SettingsWidget::somethingChanged);
 }
