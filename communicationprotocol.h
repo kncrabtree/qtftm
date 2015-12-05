@@ -3,6 +3,7 @@
 
 #include <QObject>
 
+#include <QIODevice>
 #include <QSettings>
 #include <QApplication>
 
