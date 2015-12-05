@@ -784,55 +784,6 @@
        <property name="currentIndex">
         <number>0</number>
        </property>
-       <widget class="QWidget" name="displayTab">
-        <attribute name="title">
-         <string>Display</string>
-        </attribute>
-        <layout class="QVBoxLayout" name="verticalLayout_8">
-         <item>
-          <widget class="QSplitter" name="batchSplitter">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <widget class="QSplitter" name="splitter_5">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <widget class="AnalysisWidget" name="analysisWidget" native="true">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-            </widget>
-            <widget class="FtPlot" name="acqFtPlot" native="true">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-            </widget>
-           </widget>
-           <widget class="QSplitter" name="batchPlotSplitter">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <widget class="QWidget" name="batchPlot" native="true"/>
-            <widget class="PeakListWidget" name="peakListWidget" native="true">
-             <property name="minimumSize">
-              <size>
-               <width>300</width>
-               <height>0</height>
-              </size>
-             </property>
-            </widget>
-           </widget>
-          </widget>
-         </item>
-        </layout>
-       </widget>
        <widget class="QWidget" name="controlTab">
         <attribute name="title">
          <string>Control</string>
@@ -1387,6 +1338,55 @@
          </item>
         </layout>
        </widget>
+       <widget class="QWidget" name="displayTab">
+        <attribute name="title">
+         <string>Display</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout_8">
+         <item>
+          <widget class="QSplitter" name="batchSplitter">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <widget class="QSplitter" name="splitter_5">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <widget class="AnalysisWidget" name="analysisWidget" native="true">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+            </widget>
+            <widget class="FtPlot" name="acqFtPlot" native="true">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+            </widget>
+           </widget>
+           <widget class="QSplitter" name="batchPlotSplitter">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <widget class="QWidget" name="batchPlot" native="true"/>
+            <widget class="PeakListWidget" name="peakListWidget" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>300</width>
+               <height>0</height>
+              </size>
+             </property>
+            </widget>
+           </widget>
+          </widget>
+         </item>
+        </layout>
+       </widget>
        <widget class="QWidget" name="logTab">
         <attribute name="title">
          <string>Log</string>
@@ -1443,12 +1443,12 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>18</height>
+     <height>27</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuAcquisition">
     <property name="title">
-     <string>Acquisition</string>
+     <string>Ac&amp;quisition</string>
     </property>
     <addaction name="actionStart_Single"/>
     <addaction name="actionStart_Batch"/>
@@ -1460,16 +1460,16 @@
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
-     <string>Settings</string>
+     <string>Setti&amp;ngs</string>
     </property>
     <widget class="QMenu" name="menuResolution">
      <property name="title">
-      <string>Resolution</string>
+      <string>&amp;Resolution</string>
      </property>
     </widget>
     <widget class="QMenu" name="menuMotor_Driver">
      <property name="title">
-      <string>Motor Driver</string>
+      <string>&amp;Motor Driver</string>
      </property>
      <addaction name="actionTune_Cavity"/>
      <addaction name="separator"/>
@@ -1480,7 +1480,7 @@
     </widget>
     <widget class="QMenu" name="menuAttenuator">
      <property name="title">
-      <string>Attenuator</string>
+      <string>&amp;Attenuator</string>
      </property>
      <addaction name="actionChange_Tuning_File"/>
      <addaction name="actionGenerate_Tuning_Table"/>
@@ -1539,7 +1539,7 @@
      <normaloff>:/icons/startsingle.png</normaloff>:/icons/startsingle.png</iconset>
    </property>
    <property name="text">
-    <string>Start Single</string>
+    <string>&amp;Start Single</string>
    </property>
    <property name="toolTip">
     <string>Start a single scan</string>
@@ -1554,7 +1554,7 @@
      <normaloff>:/icons/startbatch.png</normaloff>:/icons/startbatch.png</iconset>
    </property>
    <property name="text">
-    <string>Start Batch</string>
+    <string>Start &amp;Batch</string>
    </property>
    <property name="toolTip">
     <string>Start a survey, double resonance scan, or batch acquisition</string>
@@ -1569,7 +1569,7 @@
      <normaloff>:/icons/pause.png</normaloff>:/icons/pause.png</iconset>
    </property>
    <property name="text">
-    <string>Pause</string>
+    <string>&amp;Pause</string>
    </property>
    <property name="toolTip">
     <string>Pause active acquisition</string>
@@ -1584,7 +1584,7 @@
      <normaloff>:/icons/resume.png</normaloff>:/icons/resume.png</iconset>
    </property>
    <property name="text">
-    <string>Resume</string>
+    <string>&amp;Resume</string>
    </property>
    <property name="toolTip">
     <string>Resume paused acquisition</string>
@@ -1599,7 +1599,7 @@
      <normaloff>:/icons/abort.png</normaloff>:/icons/abort.png</iconset>
    </property>
    <property name="text">
-    <string>Abort</string>
+    <string>&amp;Abort</string>
    </property>
    <property name="toolTip">
     <string>Abort active acquisition</string>
@@ -1668,7 +1668,7 @@
      <normaloff>:/icons/communication.png</normaloff>:/icons/communication.png</iconset>
    </property>
    <property name="text">
-    <string>Communication</string>
+    <string>&amp;Communication</string>
    </property>
    <property name="toolTip">
     <string>Settings for device communication</string>
@@ -1676,12 +1676,12 @@
   </action>
   <action name="actionFT_Synth">
    <property name="text">
-    <string>FTM Synth</string>
+    <string>&amp;FTM Synth</string>
    </property>
   </action>
   <action name="actionDR_Synth">
    <property name="text">
-    <string>DR Synth</string>
+    <string>&amp;DR Synth</string>
    </property>
   </action>
   <action name="actionDf">
@@ -1695,7 +1695,7 @@
      <normaloff>:/icons/peakcavity.png</normaloff>:/icons/peakcavity.png</iconset>
    </property>
    <property name="text">
-    <string>Tune Cavity</string>
+    <string>&amp;Tune Cavity</string>
    </property>
   </action>
   <action name="actionCalibrate">
@@ -1704,7 +1704,7 @@
      <normaloff>:/icons/calibrate.png</normaloff>:/icons/calibrate.png</iconset>
    </property>
    <property name="text">
-    <string>Calibrate</string>
+    <string>&amp;Calibrate</string>
    </property>
   </action>
   <action name="actionTune_Up">
@@ -1713,7 +1713,7 @@
      <normaloff>:/icons/cavitymodeup.png</normaloff>:/icons/cavitymodeup.png</iconset>
    </property>
    <property name="text">
-    <string>Tune Up</string>
+    <string>Tune &amp;Up</string>
    </property>
    <property name="toolTip">
     <string>Tune cavity to the next higher mode number</string>
@@ -1725,7 +1725,7 @@
      <normaloff>:/icons/cavitymodedown.png</normaloff>:/icons/cavitymodedown.png</iconset>
    </property>
    <property name="text">
-    <string>Tune Down</string>
+    <string>Tune &amp;Down</string>
    </property>
    <property name="toolTip">
     <string>Tune cavity to the next lower mode number</string>
@@ -1737,7 +1737,7 @@
      <normaloff>:/icons/view.png</normaloff>:/icons/view.png</iconset>
    </property>
    <property name="text">
-    <string>View Batch</string>
+    <string>&amp;View Batch</string>
    </property>
    <property name="toolTip">
     <string>View a previously acquired batch scan</string>
@@ -1749,7 +1749,7 @@
      <normaloff>:/icons/open.png</normaloff>:/icons/open.png</iconset>
    </property>
    <property name="text">
-    <string>Change Tuning File...</string>
+    <string>&amp;Change Tuning File...</string>
    </property>
    <property name="toolTip">
     <string>Changes the file from which the tuning attentuation lookup table is loaded</string>
@@ -1757,7 +1757,7 @@
   </action>
   <action name="actionGenerate_Tuning_Table">
    <property name="text">
-    <string>Generate Tuning Table</string>
+    <string>&amp;Generate Tuning Table</string>
    </property>
    <property name="toolTip">
     <string>Automatically determine tuning attenuations to use over the range of the spectrometer. This operation takes a long time!</string>
@@ -1765,7 +1765,7 @@
   </action>
   <action name="actionIO_Board">
    <property name="text">
-    <string>IO Board</string>
+    <string>&amp;IO Board</string>
    </property>
    <property name="toolTip">
     <string>Configure IO Board Settings</string>
