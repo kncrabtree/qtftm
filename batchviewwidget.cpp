@@ -123,12 +123,6 @@ void BatchViewWidget::process()
 
 
 
-    ui->analysisWidget->setPlotDelay(ui->afw->delay());
-    ui->analysisWidget->setPlotHpf(ui->afw->hpf());
-    ui->analysisWidget->setPlotExp(ui->afw->exp());
-    ui->analysisWidget->setPlotRdc(ui->afw->removeDC());
-    ui->analysisWidget->setPlotPad(ui->afw->zeroPad());
-
     QPair<int,int> range = bm->loadScanRange();
     if((range.first < 1 || range.second < 1) && d_type != QtFTM::Attenuation)
     {
@@ -225,7 +219,15 @@ void BatchViewWidget::processingComplete(bool failure)
         }
 
         ui->statusLabel->setText(QString("Processing complete."));
+
+        ui->analysisWidget->setPlotDelay(ui->afw->delay());
+        ui->analysisWidget->setPlotHpf(ui->afw->hpf());
+        ui->analysisWidget->setPlotExp(ui->afw->exp());
+        ui->analysisWidget->setPlotRdc(ui->afw->removeDC());
+        ui->analysisWidget->setPlotPad(ui->afw->zeroPad());
     }
+
+
 
     batchPlot->enableReplotting();
     unsetCursor();
