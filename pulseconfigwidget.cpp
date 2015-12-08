@@ -5,6 +5,7 @@
 #include <QPushButton>
 #include <QToolButton>
 #include <QLineEdit>
+#include <QRadioButton>
 #include <QDialog>
 #include <QFormLayout>
 #include <QDialogButtonBox>
@@ -22,10 +23,10 @@ PulseConfigWidget::PulseConfigWidget(QWidget *parent) :
     s.beginGroup(QString("pulseGenerator"));
     s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
 
-    double minWidth = s.value(QString("minWidth"),0.004).toDouble();
-    double maxWidth = s.value(QString("maxWidth"),100000.0).toDouble();
-    double minDelay = s.value(QString("minDelay"),0.0).toDouble();
-    double maxDelay = s.value(QString("maxDelay"),100000.0).toDouble();
+    d_minWidth = s.value(QString("minWidth"),0.004).toDouble();
+    d_maxWidth = s.value(QString("maxWidth"),100000.0).toDouble();
+    d_minDelay = s.value(QString("minDelay"),0.0).toDouble();
+    d_maxDelay = s.value(QString("maxDelay"),100000.0).toDouble();
 
     s.beginReadArray(QString("channels"));
     for(int i=0; i<QTFTM_PGEN_NUMCHANNELS; i++)
@@ -41,24 +42,43 @@ PulseConfigWidget::PulseConfigWidget(QWidget *parent) :
 
         ch.delayBox = new QDoubleSpinBox(this);
         ch.delayBox->setKeyboardTracking(false);
-	   ch.delayBox->setRange(minDelay,maxDelay);
+       ch.delayBox->setRange(d_minDelay,d_maxDelay);
         ch.delayBox->setDecimals(3);
         ch.delayBox->setSuffix(QString::fromUtf16(u" µs"));
         ch.delayBox->setValue(s.value(QString("defaultDelay"),0.0).toDouble());
         ch.delayBox->setSingleStep(s.value(QString("delayStep"),1.0).toDouble());
         ui->pulseConfigBoxLayout->addWidget(ch.delayBox,i+1,col,1,1);
-        connect(ch.delayBox,vc,this,[=](double val){ emit changeSetting(i,QtFTM::PulseDelay,val); } );
+        connect(ch.delayBox,vc,this,[=](double val){ changeDelay(i,val); } );
         col++;
+
+        ch.endActive = s.value(QString("endActive"),false).toBool();
+
 
         ch.widthBox = new QDoubleSpinBox(this);
         ch.widthBox->setKeyboardTracking(false);
-	   ch.widthBox->setRange(minWidth,maxWidth);
+       ch.widthBox->setRange(d_minWidth,d_maxWidth);
         ch.widthBox->setDecimals(3);
-        ch.widthBox->setSuffix(QString::fromUtf16(u" µs"));
+        ch.widthBox->setSuffix(QString::fromUtf16(u" µs (Width)"));
         ch.widthBox->setValue(s.value(QString("defaultWidth"),0.050).toDouble());
         ch.widthBox->setSingleStep(s.value(QString("widthStep"),1.0).toDouble());
-        ui->pulseConfigBoxLayout->addWidget(ch.widthBox,i+1,col,1,1);
-        connect(ch.widthBox,vc,this,[=](double val){ emit changeSetting(i,QtFTM::PulseWidth,val); } );
+        if(ch.endActive)
+            ch.widthBox->hide();
+        else
+            ui->pulseConfigBoxLayout->addWidget(ch.widthBox,i+1,col,1,1);
+        connect(ch.widthBox,vc,this,[=](double val){ changeWidth(i,val); } );
+
+        ch.endBox = new QDoubleSpinBox(this);
+        ch.endBox->setKeyboardTracking(false);
+        ch.endBox->setRange(ch.delayBox->value()+d_minWidth, ch.delayBox->value()+d_maxWidth);
+        ch.endBox->setDecimals(3);
+        ch.endBox->setSuffix(QString::fromUtf16(u" µs (End)"));
+        ch.endBox->setValue(s.value(QString("defaultDelay")).toDouble()+s.value(QString("defaultWidth"),0.050).toDouble());
+        ch.endBox->setSingleStep(s.value(QString("endStep"),1.0).toDouble());
+        if(ch.endActive)
+            ui->pulseConfigBoxLayout->addWidget(ch.endBox,i+1,col,1,1);
+        else
+            ch.endBox->hide();
+        connect(ch.endBox,vc,this,[=](double val){ changeEnd(i,val); } );
         col++;
 
         ch.onButton = new QPushButton(this);
@@ -125,6 +145,21 @@ PulseConfigWidget::PulseConfigWidget(QWidget *parent) :
         ch.widthStepBox->setSuffix(QString::fromUtf16(u" µs"));
         ch.widthStepBox->setValue(s.value(QString("widthStep"),1.0).toDouble());
         ch.widthStepBox->hide();
+
+        ch.endStepBox = new QDoubleSpinBox(this);
+        ch.endStepBox->setDecimals(3);
+        ch.endStepBox->setRange(0.001,1000.0);
+        ch.endStepBox->setSuffix(QString::fromUtf16(u" µs"));
+        ch.endStepBox->setValue(s.value(QString("endStep"),1.0).toDouble());
+        ch.endStepBox->hide();
+
+        ch.widthButton = new QRadioButton(QString("Delay/Width Mode"),this);
+        ch.widthButton->setChecked(!ch.endActive);
+        ch.widthButton->hide();
+
+        ch.endButton = new QRadioButton(QString("Delay/End Mode"),this);
+        ch.endButton->setChecked(ch.endActive);
+        ch.endButton->hide();
 
         d_widgetList.append(ch);
     }
@@ -199,17 +234,34 @@ void PulseConfigWidget::launchChannelConfig(int ch)
     connect(bb->button(QDialogButtonBox::Ok),&QPushButton::clicked,&d,&QDialog::accept);
     connect(bb->button(QDialogButtonBox::Cancel),&QPushButton::clicked,&d,&QDialog::reject);
 
-    ChWidgets chw = d_widgetList.at(ch);
+    ChWidgets chw = d_widgetList[ch];
 
     fl->addRow(QString("Channel Name"),chw.nameEdit);
     fl->addRow(QString("Active Level"),chw.levelButton);
     fl->addRow(QString("Delay Step Size"),chw.delayStepBox);
     fl->addRow(QString("Width Step Size"),chw.widthStepBox);
+    fl->addRow(QString("End Step Size"),chw.endStepBox);
+    fl->addRow(chw.widthButton);
+    fl->addRow(chw.endButton);
+
+    if(chw.endActive)
+    {
+        chw.widthButton->setChecked(false);
+        chw.endButton->setChecked(true);
+    }
+    else
+    {
+        chw.widthButton->setChecked(true);
+        chw.endButton->setChecked(false);
+    }
 
     chw.nameEdit->show();
     chw.levelButton->show();
     chw.delayStepBox->show();
     chw.widthStepBox->show();
+    chw.endStepBox->show();
+    chw.widthButton->show();
+    chw.endButton->show();
 
     vbl->addLayout(fl,1);
     vbl->addWidget(bb);
@@ -234,6 +286,9 @@ void PulseConfigWidget::launchChannelConfig(int ch)
         chw.widthBox->setSingleStep(chw.widthStepBox->value());
         s.setValue(QString("widthStep"),chw.widthStepBox->value());
 
+        chw.endBox->setSingleStep(chw.endStepBox->value());
+        s.setValue(QString("endStep"),chw.endStepBox->value());
+
         if(chw.levelButton->isChecked())
         {
             s.setValue(QString("level"),QtFTM::PulseLevelActiveHigh);
@@ -244,6 +299,23 @@ void PulseConfigWidget::launchChannelConfig(int ch)
             s.setValue(QString("level"),QtFTM::PulseLevelActiveLow);
             emit changeSetting(ch,QtFTM::PulseLevel,QVariant::fromValue(QtFTM::PulseLevelActiveLow));
         }
+
+        if(chw.widthButton->isChecked() && chw.endActive)
+        {
+            ui->pulseConfigBoxLayout->replaceWidget(chw.endBox,chw.widthBox);
+            chw.widthBox->show();
+            chw.endBox->hide();
+            chw.endActive = false;
+        }
+        else if(chw.endButton->isChecked() && !chw.endActive)
+        {
+            ui->pulseConfigBoxLayout->replaceWidget(chw.widthBox,chw.endBox);
+            chw.endBox->show();
+            chw.widthBox->hide();
+            chw.endActive = true;
+        }
+        s.setValue(QString("endActive"),chw.endActive);
+        d_widgetList[ch].endActive = chw.endActive;
 
         s.endArray();
         s.endGroup();
@@ -259,6 +331,12 @@ void PulseConfigWidget::launchChannelConfig(int ch)
     chw.delayStepBox->hide();
     chw.widthStepBox->setParent(this);
     chw.widthStepBox->hide();
+    chw.endStepBox->setParent(this);
+    chw.endStepBox->hide();
+    chw.widthButton->setParent(this);
+    chw.widthButton->hide();
+    chw.endButton->setParent(this);
+    chw.endButton->hide();
 
 }
 
@@ -268,6 +346,11 @@ void PulseConfigWidget::newSetting(int index, QtFTM::PulseSetting s, QVariant va
         return;
 
     blockSignals(true);
+    d_widgetList.at(index).delayBox->blockSignals(true);
+    d_widgetList.at(index).widthBox->blockSignals(true);
+    d_widgetList.at(index).endBox->blockSignals(true);
+    d_widgetList.at(index).onButton->blockSignals(true);
+    d_widgetList.at(index).levelButton->blockSignals(true);
 
     switch(s) {
     case QtFTM::PulseName:
@@ -276,9 +359,16 @@ void PulseConfigWidget::newSetting(int index, QtFTM::PulseSetting s, QVariant va
         break;
     case QtFTM::PulseDelay:
         d_widgetList.at(index).delayBox->setValue(val.toDouble());
+        d_widgetList.at(index).endBox->setRange(val.toDouble()+d_minWidth,val.toDouble()+d_maxWidth);
+        if(d_widgetList.at(index).endActive)
+            d_widgetList.at(index).widthBox->setValue(qAbs(d_widgetList.at(index).endBox->value() - val.toDouble()));
+        else
+            d_widgetList.at(index).endBox->setValue(qAbs(d_widgetList.at(index).widthBox->value() + val.toDouble()));
         break;
     case QtFTM::PulseWidth:
         d_widgetList.at(index).widthBox->setValue(val.toDouble());
+        if(!d_widgetList.at(index).endActive)
+            d_widgetList.at(index).endBox->setValue(val.toDouble() + d_widgetList.at(index).delayBox->value());
         break;
     case QtFTM::PulseLevel:
         d_widgetList.at(index).levelButton->setChecked(val == QVariant(QtFTM::PulseLevelActiveHigh));
@@ -288,6 +378,11 @@ void PulseConfigWidget::newSetting(int index, QtFTM::PulseSetting s, QVariant va
         break;
     }
 
+    d_widgetList.at(index).delayBox->blockSignals(false);
+    d_widgetList.at(index).widthBox->blockSignals(false);
+    d_widgetList.at(index).endBox->blockSignals(false);
+    d_widgetList.at(index).onButton->blockSignals(false);
+    d_widgetList.at(index).levelButton->blockSignals(false);
     blockSignals(false);
 
     ui->pulsePlot->newSetting(index,s,val);
@@ -302,6 +397,8 @@ void PulseConfigWidget::newConfig(const PulseGenConfig c)
         d_widgetList.at(i).nameEdit->setText(c.at(i).channelName);
         d_widgetList.at(i).delayBox->setValue(c.at(i).delay);
         d_widgetList.at(i).widthBox->setValue(c.at(i).width);
+        d_widgetList.at(i).endBox->setRange(c.at(i).delay + d_minWidth, c.at(i).delay + d_maxWidth);
+        d_widgetList.at(i).endBox->setValue(c.at(i).delay + c.at(i).width);
         d_widgetList.at(i).levelButton->setChecked(c.at(i).level == QtFTM::PulseLevelActiveHigh);
         d_widgetList.at(i).onButton->setChecked(c.at(i).enabled);
     }
@@ -309,6 +406,40 @@ void PulseConfigWidget::newConfig(const PulseGenConfig c)
     blockSignals(false);
 
     ui->pulsePlot->newConfig(c);
+}
+
+void PulseConfigWidget::changeDelay(int i, double d)
+{
+    if(d_widgetList.at(i).endActive)
+        emit changeSetting(i,QtFTM::PulseWidth,qAbs(d_widgetList.at(i).endBox->value() - d));
+    emit changeSetting(i,QtFTM::PulseDelay,d);
+
+}
+
+void PulseConfigWidget::changeWidth(int i, double w)
+{
+    double d = d_widgetList.at(i).delayBox->value();
+    if(!d_widgetList.at(i).endActive)
+    {
+        d_widgetList.at(i).endBox->blockSignals(true);
+        d_widgetList.at(i).endBox->setValue(d+w);
+        d_widgetList.at(i).endBox->blockSignals(false);
+    }
+    emit changeSetting(i,QtFTM::PulseWidth,w);
+}
+
+void PulseConfigWidget::changeEnd(int i, double e)
+{
+    if(d_widgetList.at(i).endActive)
+    {
+        double d = d_widgetList.at(i).delayBox->value();
+        double w = qAbs(e-d);
+        d_widgetList.at(i).widthBox->blockSignals(true);
+        d_widgetList.at(i).widthBox->setValue(w);
+        d_widgetList.at(i).widthBox->blockSignals(false);
+        emit changeSetting(i,QtFTM::PulseWidth,w);
+    }
+
 }
 
 void PulseConfigWidget::newRepRate(double r)

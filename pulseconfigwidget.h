@@ -11,6 +11,7 @@ class QDoubleSpinBox;
 class QPushButton;
 class QToolButton;
 class QLineEdit;
+class QRadioButton;
 
 namespace Ui {
 class PulseConfigWidget;
@@ -28,12 +29,19 @@ public:
         QLabel *label;
         QDoubleSpinBox *delayBox;
         QDoubleSpinBox *widthBox;
+        QDoubleSpinBox *endBox;
         QPushButton *onButton;
         QToolButton *cfgButton;
         QLineEdit *nameEdit;
         QPushButton *levelButton;
         QDoubleSpinBox *delayStepBox;
         QDoubleSpinBox *widthStepBox;
+        QDoubleSpinBox *endStepBox;
+        QRadioButton *widthButton;
+        QRadioButton *endButton;
+        bool endActive;
+
+        ChWidgets() : endActive(false) {}
     };
 
     PulseGenConfig getConfig();
@@ -55,6 +63,9 @@ public slots:
     void launchChannelConfig(int ch);
     void newSetting(int index,QtFTM::PulseSetting s,QVariant val);
     void newConfig(const PulseGenConfig c);
+    void changeDelay(int i, double d);
+    void changeWidth(int i, double w);
+    void changeEnd(int i, double e);
     void newRepRate(double r);
     void newProtDelay(int d);
     void newScopeDelay(int d);
@@ -63,6 +74,10 @@ private:
     Ui::PulseConfigWidget *ui;
 
     QList<ChWidgets> d_widgetList;
+    double d_minWidth;
+    double d_maxWidth;
+    double d_minDelay;
+    double d_maxDelay;
 
 
 };
