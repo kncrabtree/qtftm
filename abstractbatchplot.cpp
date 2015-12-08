@@ -951,6 +951,15 @@ void AbstractBatchPlot::doPrint(double start, double end, double xRange, int plo
     }
 
     p.end();
+
+    if(oneCurvePerPlot)
+    {
+        for(int i=0; i<d_plotCurves.size(); i++)
+        {
+            d_plotCurves[i]->setVisible(true);
+            static_cast<QwtLegendLabel*>(leg->legendWidget(itemToInfo(d_plotCurves[i])))->show();
+        }
+    }
 }
 
 
