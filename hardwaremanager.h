@@ -189,6 +189,8 @@ signals:
      */
     void mirrorPosUpdate(int pos);
 
+    void updateMotorSettings();
+
     /*!
      * \brief Emitted when one setting for one channel on the pulse generator changes
      * \param int the channel number

@@ -6,26 +6,6 @@
 #include <QDateTime>
 #include <QStringList>
 
-#if QTFTM_SPECTROMETER==1
-#define MD_MIRRORROC 83.2048
-#define MD_MINLENGTH 68.322
-#define MD_MAXLENGTH 72.893
-#define MD_HALFLENGTH (MD_MINLENGTH+MD_MAXLENGTH)/2.0
-#define MD_L0 70.91421
-#define MD_ENCODERCOUNTSPERCM 40000.0
-#define MD_CALMODEOFFSET 13000
-#define MD_CALTUNEMODE 47
-#else
-#define MD_MIRRORROC 83.2048
-#define MD_MINLENGTH 67.1
-#define MD_MAXLENGTH 72.1
-#define MD_HALFLENGTH (MD_MINLENGTH+MD_MAXLENGTH)/2.0
-#define MD_L0 69.4141
-#define MD_ENCODERCOUNTSPERCM 40000.0
-#define MD_CALMODEOFFSET -10000
-#define MD_CALTUNEMODE 46
-#endif
-
 class MotorDriver : public HardwareObject
 {
 	Q_OBJECT
@@ -48,6 +28,7 @@ signals:
     void voltageChanged(int);
 	
 public slots:
+    virtual void initialize();
     int calcNextMode(double freq, bool above);
     void cavityFreqChanged(double freq);
     virtual void tune(double freq, int currentAttn, int mode) =0;
@@ -58,6 +39,7 @@ public slots:
     int lastCalVoltage() const;
     void shutUp(bool quiet) { d_quiet = quiet; }
     int measureVoltageNoTune();
+    void readCavitySettings();
 
 protected:
     double d_lastTuneFreq;
@@ -68,6 +50,15 @@ protected:
     int d_lastCalVoltage;
     QDateTime d_lastTuneTime;
     bool d_quiet;
+
+    double d_mirrorROC;
+    double d_minLength;
+    double d_maxLength;
+    double d_halfLength;
+    double d_l0;
+    double d_encoderCountsPerCm;
+    int d_calOffset;
+    int d_calMode;
 
     virtual bool moveToPosition(int pos) =0;
     virtual bool stepMotor(int motorSteps) =0;

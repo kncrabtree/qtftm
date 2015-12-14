@@ -80,6 +80,7 @@ void HardwareManager::initializeHardware()
     connect(md,&MotorDriver::canTuneDown,this,&HardwareManager::canTuneDown);
     connect(md,&MotorDriver::modeChanged,this,&HardwareManager::modeChanged);
     connect(md,&MotorDriver::voltageChanged,this,&HardwareManager::tuningVoltageChanged);
+    connect(this,&HardwareManager::updateMotorSettings,md,&MotorDriver::readCavitySettings);
     d_hardwareList.append(qMakePair(md,new QThread(this)));
 
     iob = new IOBoardHardware();

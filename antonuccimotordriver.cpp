@@ -22,6 +22,8 @@ AntonucciMotorDriver::AntonucciMotorDriver(QObject *parent) :
 
 void AntonucciMotorDriver::initialize()
 {
+    MotorDriver::initialize();
+
     //note that read options will need to change for fine tuning, since that takes over 1 second to finish
     p_comm->setReadOptions(1500,true,QByteArray("\n\r"));
     p_comm->initialize();
@@ -104,7 +106,7 @@ void AntonucciMotorDriver::tune(double freq, int currentAttn, int mode)
             double diff = targetLength - lastLength; //distance to move, in cm
 
             //~2 motor steps per encoder tick
-            int stepsToMove = (int)round(diff*MD_ENCODERCOUNTSPERCM*2.0);
+            int stepsToMove = (int)round(diff*d_encoderCountsPerCm*2.0);
             if( abs(stepsToMove) < 2000 ) //don't do something stupid!
             {
                 if(!stepMotor(stepsToMove))
@@ -404,8 +406,8 @@ bool AntonucciMotorDriver::fineTune(int targetVoltage, int width, double freq, i
 
     //compute resonant frequencies for modes detuned by HWHM each (the current position is used to get the total length close), use a fraction of the difference for detuning
     //note width is FWHM in motor steps, need to divide by 4 for HWHM in encoder ticks
-    double lAbove = ((double)pos+(double)width/4.0)/MD_ENCODERCOUNTSPERCM+MD_L0;
-    double lBelow = ((double)pos-(double)width/4.0)/MD_ENCODERCOUNTSPERCM+MD_L0;
+    double lAbove = ((double)pos+(double)width/4.0)/d_encoderCountsPerCm+d_l0;
+    double lBelow = ((double)pos-(double)width/4.0)/d_encoderCountsPerCm+d_l0;
     double fAbove = calculateModeFrequency(lAbove,currentMode);
     double fBelow = calculateModeFrequency(lBelow,currentMode);
 
@@ -529,8 +531,10 @@ bool AntonucciMotorDriver::fineTune(int targetVoltage, int width, double freq, i
 
 void AntonucciMotorDriver::calibrate()
 {
+    readCavitySettings();
+
     QByteArray resp;
-    //the mode we're looking for is usually around -10000 or so, but some searching might be needed
+    //the mode we're looking for is usually around d_calOffset, but some searching might be needed
     bool done = false;
     int i = 0;
     QStringList itResult;
@@ -556,11 +560,11 @@ void AntonucciMotorDriver::calibrate()
 
     while(!done && i<40)
     {
-        // want to look at -10000, -11000, -9000, -12000, -8000 etc...
+        // want to look at d_calOffset, d_calOffset - 1000, d_calOffset + 1000, d_calOffset - 2000, etc
         int direction = i%2?-1:1;
         int tuneOffset = 1000*direction*((i+1)/2);
         i++;
-       itResult = roughTune(MD_CALMODEOFFSET + tuneOffset,true, 10030);
+       itResult = roughTune(d_calOffset + tuneOffset,true, 10030);
         if(itResult.size() > 9)
             done = true;
     }
@@ -635,7 +639,7 @@ void AntonucciMotorDriver::calibrate()
     while(attempts<maxAttempts && !success)
     {
         attempts++;
-       success = fineTune(tuningVMax,peakWidth,10030.0,MD_CALTUNEMODE,0);
+       success = fineTune(tuningVMax,peakWidth,10030.0,d_calMode,0);
 
         if(!success)
         {
