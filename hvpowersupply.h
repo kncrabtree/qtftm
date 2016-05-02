@@ -28,7 +28,7 @@ protected:
 #if QTFTM_HVPS==1
 #include "glassmanfj02r60.h"
 class GlassmanFJ02R60;
-typedef GlassmanFJ02R60 HvPowerSupplyHardware
+typedef GlassmanFJ02R60 HvPowerSupplyHardware;
 #else
 #include "virtualhvps.h"
 class VirtualHVPS;
