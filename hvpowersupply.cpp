@@ -15,11 +15,22 @@ HvPowerSupply::~HvPowerSupply()
 int HvPowerSupply::setVoltage(int v)
 {
 	if(v < d_hardwareMin || v > d_hardwareMax)
+    {
 		emit logMessage(QString("Requested voltage (%1) is outside the hardware range (%2 - %3). Voltage was not set."),
 					 QtFTM::LogWarning);
+        return readVoltage();
+    }
 	else
-		hwSetVoltage(v);
-	return readVoltage();
+    {
+        if(hwSetVoltage(v))
+            return readVoltage();
+        else
+            return -1;
+    }
+
+    //not reached
+    return -1;
+
 }
 
 int HvPowerSupply::readVoltage()

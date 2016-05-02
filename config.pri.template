@@ -98,9 +98,9 @@ PGEN_DR=3
 PGEN_CHANNELS=8
 
 #####################################################
-#HV power supply (discharge). 0 = virtual, 1 = ???? (not implemented as of 2015-07-04)
+#HV power supply (discharge). 0 = virtual, 1 = Glassman FJ02R60.OETH
 #####################################################
-HVPS=0
+HVPS=1
 }
 
 ######################################################

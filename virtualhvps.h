@@ -16,7 +16,7 @@ public slots:
 
 	// HvPowerSupply interface
 protected:
-	void hwSetVoltage(int v);
+    bool hwSetVoltage(int v);
 	int hwReadVoltage();
 
 private:

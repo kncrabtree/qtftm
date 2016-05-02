@@ -14,21 +14,21 @@ signals:
 	void voltageUpdate(int);
 
 public slots:
-	int setVoltage(int v);
+    int setVoltage(int v);
 	int readVoltage();
 
 protected:
 	int d_hardwareMin;
 	int d_hardwareMax;
-	virtual void hwSetVoltage(int v) =0;
+    virtual bool hwSetVoltage(int v) =0;
 	virtual int hwReadVoltage() =0;
 };
 
 #ifdef QTFTM_HVPS
 #if QTFTM_HVPS==1
-#include "xxxx.h"
-class XXXX;
-typedef XXXX HvPowerSupplyHardware
+#include "glassmanfj02r60.h"
+class GlassmanFJ02R60;
+typedef GlassmanFJ02R60 HvPowerSupplyHardware
 #else
 #include "virtualhvps.h"
 class VirtualHVPS;

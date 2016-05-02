@@ -20,7 +20,8 @@ HEADERS += \
     $$PWD/virtualpulsegenerator.h \
     $$PWD/virtualmotordriver.h \
     $$PWD/virtualflowcontroller.h \
-    $$PWD/virtualhvps.h
+    $$PWD/virtualhvps.h \
+    $$PWD/glassmanfj02r60.h
 
 SOURCES += \
     $$PWD/dpo3012.cpp \
@@ -44,7 +45,8 @@ SOURCES += \
     $$PWD/virtualpulsegenerator.cpp \
     $$PWD/virtualmotordriver.cpp \
     $$PWD/virtualflowcontroller.cpp \
-    $$PWD/virtualhvps.cpp
+    $$PWD/virtualhvps.cpp \
+    $$PWD/glassmanfj02r60.cpp
 
 equals(IOB, 1) {
 HEADERS += labjacku3.h \

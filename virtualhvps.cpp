@@ -39,9 +39,10 @@ void VirtualHVPS::initialize()
 	testConnection();
 }
 
-void VirtualHVPS::hwSetVoltage(int v)
+bool VirtualHVPS::hwSetVoltage(int v)
 {
 	d_currentVoltage = v;
+    return true;
 }
 
 int VirtualHVPS::hwReadVoltage()
