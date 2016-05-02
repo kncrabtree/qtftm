@@ -7,6 +7,8 @@ GlassmanFJ02R60::GlassmanFJ02R60() : d_fullScaleVoltage(2000), d_fullScaleCurren
     d_subKey = QString("glassmanfj02r60");
     d_prettyName = QString("Glassman FJ02R60 HV Power Supply");
 
+    d_isCritical = false;
+
     p_comm = new TcpInstrument(d_key,d_subKey,this);
     connect(p_comm,&CommunicationProtocol::logMessage,this,&GlassmanFJ02R60::logMessage);
     connect(p_comm,&CommunicationProtocol::hardwareFailure,this,&GlassmanFJ02R60::hardwareFailure);
