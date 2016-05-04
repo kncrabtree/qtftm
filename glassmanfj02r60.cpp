@@ -229,8 +229,3 @@ bool GlassmanFJ02R60::checkFault()
     return true;
 }
 
-QByteArray GlassmanFJ02R60::telnetQuery(QString cmd)
-{
-    QByteArray resp = p_comm->queryCmd(cmd);
-
-}
