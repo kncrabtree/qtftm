@@ -31,6 +31,16 @@ bool GlassmanFJ02R60::testConnection()
         return false;
     }
 
+    QByteArray telnetOptions;
+    telnetOptions.append(255);
+    telnetOptions.append(253);
+    telnetOptions.append(3);
+    telnetOptions.append(255);
+    telnetOptions.append(252);
+    telnetOptions.append(1);
+
+    p_comm->queryCmd(QString(telnetOptions));
+
     QByteArray resp = p_comm->queryCmd(formatMessage(QString("V")));
 
     if(resp.isEmpty())
@@ -125,7 +135,7 @@ QByteArray GlassmanFJ02R60::calculateChecksum(QByteArray cmd)
     for(int i=0; i<cmd.length(); i++)
         checksum += cmd.at(i);
 
-    return QString("%1").arg(checksum,2,10,QChar('0')).toLatin1();
+    return QString("%1").arg(checksum,2,16,QChar('0')).toLatin1();
 }
 
 QString GlassmanFJ02R60::formatMessage(QString cmd)
@@ -217,4 +227,10 @@ bool GlassmanFJ02R60::checkFault()
     }
 
     return true;
+}
+
+QByteArray GlassmanFJ02R60::telnetQuery(QString cmd)
+{
+    QByteArray resp = p_comm->queryCmd(cmd);
+
 }
