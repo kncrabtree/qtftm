@@ -72,7 +72,6 @@ bool GlassmanFJ02R60::hwSetVoltage(int v)
 {
     int scaledV = v*0xfff;
     scaledV /= d_fullScaleVoltage;
-    QString vString = QString::number(scaledV,16).toUpper();
 
     int tries = 0, maxTries = 3;
     int res = -1;
@@ -81,12 +80,12 @@ bool GlassmanFJ02R60::hwSetVoltage(int v)
         if(!checkFault())
             break;
 
-        res = sendSetCommand(QString("S%1FFF000002").arg(vString));
+        res = sendSetCommand(QString("S%1FFF000002").arg(scaledV,3,16,QChar('0')));
         if(res == 5 || res == 6)
         {
             tries++;
             emit logMessage(QString("Trying again to set voltage (%1/%2)").arg(tries+1).arg(maxTries));
-            res = sendSetCommand(QString("S%1FFF000002").arg(vString));
+            res = sendSetCommand(QString("S%1FFF000002").arg(scaledV,3,16,QChar('0')));
         }
         else
             break;
