@@ -1,6 +1,6 @@
 #include "glassmanfj02r60.h"
 
-#include "tcpinstrument.h"
+#include "rs232instrument.h"
 
 GlassmanFJ02R60::GlassmanFJ02R60() : d_fullScaleVoltage(2000), d_fullScaleCurrent(60), d_currentVoltage(0)
 {
@@ -9,7 +9,7 @@ GlassmanFJ02R60::GlassmanFJ02R60() : d_fullScaleVoltage(2000), d_fullScaleCurren
 
     d_isCritical = false;
 
-    p_comm = new TcpInstrument(d_key,d_subKey,this);
+    p_comm = new Rs232Instrument(d_key,d_subKey,this);
     connect(p_comm,&CommunicationProtocol::logMessage,this,&GlassmanFJ02R60::logMessage);
     connect(p_comm,&CommunicationProtocol::hardwareFailure,this,&GlassmanFJ02R60::hardwareFailure);
 
@@ -30,16 +30,6 @@ bool GlassmanFJ02R60::testConnection()
         emit connected(false);
         return false;
     }
-
-    QByteArray telnetOptions;
-    telnetOptions.append(255);
-    telnetOptions.append(253);
-    telnetOptions.append(3);
-    telnetOptions.append(255);
-    telnetOptions.append(252);
-    telnetOptions.append(1);
-
-    p_comm->queryCmd(QString(telnetOptions));
 
     QByteArray resp = p_comm->queryCmd(formatMessage(QString("V")));
 
@@ -62,6 +52,8 @@ bool GlassmanFJ02R60::testConnection()
         emit connected(false,QString("Could not disable timeout feature."));
         return false;
     }
+
+    readVoltage();
 
     emit connected();
     return true;
