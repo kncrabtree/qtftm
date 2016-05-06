@@ -465,7 +465,9 @@ void AbstractBatchPlot::exportXY()
 
     QString labelBase = title().text().toLower();
     labelBase.replace(QString(" "),QString(""));
-    QString fileName = QFileDialog::getSaveFileName(this,QString("XY Export"),QString("~/%1.txt").arg(labelBase));
+    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+    QString path = s.value(QString("exportPath"),QDir::homePath()).toString();
+    QString fileName = QFileDialog::getSaveFileName(this,QString("XY Export"),path + QString("/%1.txt").arg(labelBase));
 
     if(fileName.isEmpty())
         return;
@@ -473,9 +475,12 @@ void AbstractBatchPlot::exportXY()
     QFile f(fileName);
     if(!f.open(QIODevice::WriteOnly))
     {
-        QMessageBox::critical(this,QString("File Error"),QString("Could not open selected file (%1) for writing. Please try again with a different filename.").arg(f.fileName()));
+        QMessageBox::critical(this,QString("Export Failed"),QString("Could not open selected file (%1) for writing. Please try again with a different filename.").arg(f.fileName()));
         return;
     }
+
+    QString newPath = QFileInfo(fileName).dir().absolutePath();
+    s.setValue(QString("exportPath"),newPath);
 
     QTextStream t(&f);
     t.setRealNumberNotation(QTextStream::ScientificNotation);

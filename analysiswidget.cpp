@@ -432,7 +432,9 @@ void AnalysisWidget::exportFt()
 	if(d_currentScan.number() < 0)
 		return;
 
-	QString name = QFileDialog::getSaveFileName(this,QString("Export FT"),QString("~/%1_ft.txt").arg(d_currentScan.number()));
+    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+    QString path = s.value(QString("exportPath"),QDir::homePath()).toString();
+    QString name = QFileDialog::getSaveFileName(this,QString("Export FT"),path + QString("/%1_ft.txt").arg(d_currentScan.number()));
 	if(name.isEmpty())
 		return;
 
@@ -443,6 +445,9 @@ void AnalysisWidget::exportFt()
 		QMessageBox::critical(this,QString("FT Export Failed"),QString("Could not open file %1 for writing. Please choose a different filename.").arg(name));
 		return;
 	}
+
+    QString newPath = QFileInfo(name).dir().absolutePath();
+    s.setValue(QString("exportPath"),newPath);
 
 	f.write(QString("freq%1\tft%1").arg(d_currentScan.number()).toLatin1());
 	QVector<QPointF> ft = ui->analysisPlot->getFt();
@@ -456,7 +461,9 @@ void AnalysisWidget::exportFid()
 	if(d_currentScan.number() < 0)
 		return;
 
-	QString name = QFileDialog::getSaveFileName(this,QString("Export FID"),QString("~/%1_fid.txt").arg(d_currentScan.number()));
+    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+    QString path = s.value(QString("exportPath"),QDir::homePath()).toString();
+    QString name = QFileDialog::getSaveFileName(this,QString("Export FID"),path + QString("/%1_fid.txt").arg(d_currentScan.number()));
 	if(name.isEmpty())
 		return;
 
@@ -467,6 +474,9 @@ void AnalysisWidget::exportFid()
 		QMessageBox::critical(this,QString("FID Export Failed"),QString("Could not open file %1 for writing. Please choose a different filename.").arg(name));
 		return;
 	}
+
+    QString newPath = QFileInfo(name).dir().absolutePath();
+    s.setValue(QString("exportPath"),newPath);
 
 	f.write(QString("time%1\tfid%1").arg(d_currentScan.number()).toLatin1());
 	QVector<QPointF> fid = ui->analysisPlot->getFid();
