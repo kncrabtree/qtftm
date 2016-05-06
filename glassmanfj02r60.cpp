@@ -80,12 +80,12 @@ bool GlassmanFJ02R60::hwSetVoltage(int v)
         if(!checkFault())
             break;
 
-        res = sendSetCommand(QString("S%1FFF000002").arg(scaledV,3,16,QChar('0')));
+        res = sendSetCommand(QString("S%1FFF0000002").arg(scaledV,3,16,QChar('0')));
         if(res == 5 || res == 6)
         {
             tries++;
             emit logMessage(QString("Trying again to set voltage (%1/%2)").arg(tries+1).arg(maxTries));
-            res = sendSetCommand(QString("S%1FFF000002").arg(scaledV,3,16,QChar('0')));
+            res = sendSetCommand(QString("S%1FFF0000002").arg(scaledV,3,16,QChar('0')));
         }
         else
             break;
@@ -207,7 +207,7 @@ bool GlassmanFJ02R60::checkFault()
 
     if(resp.at(10) == 2) //fault active; clear and reset
     {
-        int res = sendSetCommand(QString("S000000000004"));
+        int res = sendSetCommand(QString("S0000000000004"));
         if(res != 0)
         {
             sendErrorMessage(res);
