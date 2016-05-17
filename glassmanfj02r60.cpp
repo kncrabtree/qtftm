@@ -126,11 +126,12 @@ QByteArray GlassmanFJ02R60::calculateChecksum(QByteArray cmd)
 QString GlassmanFJ02R60::formatMessage(QString cmd)
 {
     QByteArray dat;
+    cmd = cmd.toUpper();
     dat.append(1);
     dat.append(cmd.toLatin1());
     dat.append(calculateChecksum(cmd.toLatin1()));
     dat.append("\r");
-    return QString(dat).toUpper();
+    return QString(dat);
 }
 
 int GlassmanFJ02R60::sendSetCommand(QString cmd)
