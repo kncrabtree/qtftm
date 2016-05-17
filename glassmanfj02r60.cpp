@@ -47,12 +47,6 @@ bool GlassmanFJ02R60::testConnection()
 
     emit logMessage(QString("ID response: %1").arg(QString(resp)));
 
-    if(!sendSetCommand(QString("C1")))
-    {
-        emit connected(false,QString("Could not disable timeout feature."));
-        return false;
-    }
-
     readVoltage();
 
     emit connected();
@@ -136,7 +130,7 @@ QString GlassmanFJ02R60::formatMessage(QString cmd)
     dat.append(cmd.toLatin1());
     dat.append(calculateChecksum(cmd.toLatin1()));
     dat.append("\r");
-    return dat;
+    return QString(dat).toUpper();
 }
 
 int GlassmanFJ02R60::sendSetCommand(QString cmd)
