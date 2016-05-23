@@ -21,7 +21,8 @@ HEADERS += \
     $$PWD/virtualmotordriver.h \
     $$PWD/virtualflowcontroller.h \
     $$PWD/virtualhvps.h \
-    $$PWD/glassmanfj02r60.h
+    $$PWD/glassmanfj02r60.h \
+    $$PWD/n5183dr.h
 
 SOURCES += \
     $$PWD/dpo3012.cpp \
@@ -46,7 +47,8 @@ SOURCES += \
     $$PWD/virtualmotordriver.cpp \
     $$PWD/virtualflowcontroller.cpp \
     $$PWD/virtualhvps.cpp \
-    $$PWD/glassmanfj02r60.cpp
+    $$PWD/glassmanfj02r60.cpp \
+    $$PWD/n5183dr.cpp
 
 equals(IOB, 1) {
 HEADERS += labjacku3.h \

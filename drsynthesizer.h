@@ -24,6 +24,10 @@ typedef HP8673DR DrSynthHardware;
 #include "hp8340dr.h"
 class HP8340DR;
 typedef HP8340DR DrSynthHardware;
+#elif QTFTM_DRSYNTH == 3
+#include "n5183dr.h"
+class N5183Dr;
+typedef N5183Dr DrSynthHardware;
 #else
 #include "virtualdrsynth.h"
 class VirtualDrSynth;
