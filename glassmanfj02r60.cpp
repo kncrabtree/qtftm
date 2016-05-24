@@ -92,7 +92,10 @@ bool GlassmanFJ02R60::hwSetVoltage(int v)
         return false;
     }
     else
+    {
+        p_comm->device()->waitForReadyRead(250);
         return true;
+    }
 }
 
 int GlassmanFJ02R60::hwReadVoltage()
@@ -126,10 +129,10 @@ QByteArray GlassmanFJ02R60::calculateChecksum(QByteArray cmd)
 QString GlassmanFJ02R60::formatMessage(QString cmd)
 {
     QByteArray dat;
-    cmd = cmd.toUpper();
+    QString s = cmd.toUpper();
     dat.append(1);
-    dat.append(cmd.toLatin1());
-    dat.append(calculateChecksum(cmd.toLatin1()));
+    dat.append(s.toLatin1());
+    dat.append(calculateChecksum(s.toLatin1()));
     dat.append("\r");
     return QString(dat);
 }
