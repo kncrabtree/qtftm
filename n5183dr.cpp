@@ -38,7 +38,7 @@ bool N5183Dr::testConnection()
     }
 
 
-    QByteArray resp = p_comm->queryCmd(QString("*IDN\n"));
+    QByteArray resp = p_comm->queryCmd(QString("*IDN?\n"));
     if(resp.isEmpty())
     {
         emit connected(false,QString("Null response to ID query"));
