@@ -123,17 +123,16 @@ QByteArray GlassmanFJ02R60::calculateChecksum(QByteArray cmd)
     for(int i=0; i<cmd.length(); i++)
         checksum += cmd.at(i);
 
-    return QString("%1").arg(checksum,2,16,QChar('0')).toLatin1();
+    return QString("%1").arg(checksum,2,16,QChar('0')).toLatin1().toUpper();
 }
 
 QString GlassmanFJ02R60::formatMessage(QString cmd)
 {
-    QByteArray dat;
-    dat.append(1);
-    dat.append(cmd.toLatin1().toUpper());
-    dat.append(calculateChecksum(cmd.toLatin1().toUpper()));
+    QByteArray dat = cmd.toLatin1().toUpper();
+    dat.append(calculateChecksum(dat);
+    dat.prepend(1);
     dat.append("\r");
-    return QString(dat);
+    return QString(dat.toUpper());
 }
 
 int GlassmanFJ02R60::sendSetCommand(QString cmd)
