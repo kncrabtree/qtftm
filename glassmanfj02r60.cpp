@@ -93,7 +93,23 @@ bool GlassmanFJ02R60::hwSetVoltage(int v)
     }
     else
     {
-        p_comm->device()->waitForReadyRead(250);
+        bool done = false;
+        int max_tries = 10;
+        int i = 0;
+        while(!done && i < max_tries)
+        {
+            i++;
+            p_comm->device()->waitForReadyRead(250);
+            int vr = hwReadVoltage();
+            if(v < 0)
+                return false;
+            if(qAbs(v-vr) < 30)
+                done = true;
+        }
+
+        if(!done)
+            emit logMessage(QString("Voltage has not settled after %1 tries.").arg(max_tries),QtFTM::LogWarning);
+
         return true;
     }
 }
@@ -111,6 +127,11 @@ int GlassmanFJ02R60::hwReadVoltage()
     bool ok = false;
     int v = resp.mid(1,3).toInt(&ok,16)*d_fullScaleVoltage;
     v /= 0x3ff;
+    if(!ok)
+    {
+        emit logMessage(QString("Could not parse voltage. Response: %1 (Hex: %2)").arg(QString(resp).arg(QString(resp.toHex()))),QtFTM::LogError);
+        return -1;
+    }
 
     d_currentVoltage = v;
     return v;

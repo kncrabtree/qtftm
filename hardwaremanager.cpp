@@ -113,7 +113,7 @@ void HardwareManager::initializeHardware()
     p_hvps = new HvPowerSupplyHardware();
     connect(this,&HardwareManager::setDcVoltageFromUI,p_hvps,&HvPowerSupply::setVoltage);
     connect(p_hvps,&HvPowerSupply::voltageUpdate,this,&HardwareManager::dcVoltageUpdate);
-    d_hardwareList.append(qMakePair(p_hvps,nullptr));
+    d_hardwareList.append(qMakePair(p_hvps,new QThread(this)));
 
 	//write arrays of the connected devices for use in the Hardware Settings menu
 	//first array is for all objects accessible to the hardware manager
