@@ -1,14 +1,11 @@
 #include "virtualioboard.h"
 
-#include "virtualinstrument.h"
-
 VirtualIOBoard::VirtualIOBoard(QObject *parent) :
 	IOBoard(parent)
 {
 	d_subKey = QString("virtual");
 	d_prettyName = QString("Virtual IOBoard");
 
-	p_comm = new VirtualInstrument(d_key,d_subKey,this);
 }
 
 VirtualIOBoard::~VirtualIOBoard()

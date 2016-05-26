@@ -1,15 +1,10 @@
 #include "n5183dr.h"
 
-#include "gpibinstrument.h"
-
 N5183Dr::N5183Dr(QObject *parent) : DrSynthesizer(parent)
 {
     d_subKey = QString("n5183");
     d_prettyName = QString("Keysight N5183 DR Synthesizer");
-
-    p_comm = new GpibInstrument(d_key,d_subKey,static_cast<GpibController*>(parent),this);
-    connect(p_comm,&CommunicationProtocol::logMessage,this,&N5183Dr::logMessage);
-    connect(p_comm,&CommunicationProtocol::hardwareFailure,this,&N5183Dr::hardwareFailure);
+    d_commType = CommunicationProtocol::Tcp;
 
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
     s.beginGroup(d_key);

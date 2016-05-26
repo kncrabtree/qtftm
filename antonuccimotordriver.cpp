@@ -1,7 +1,5 @@
 #include "antonuccimotordriver.h"
 
-#include "rs232instrument.h"
-
 AntonucciMotorDriver::AntonucciMotorDriver(QObject *parent) :
     MotorDriver(parent)
 {
@@ -14,10 +12,7 @@ AntonucciMotorDriver::AntonucciMotorDriver(QObject *parent) :
 	d_quiet = false;
     d_subKey = QString("antonucci");
     d_prettyName = QString("PRAA Stepper Motor Driver");
-
-    p_comm = new Rs232Instrument(d_key,d_subKey,this);
-    connect(p_comm,&CommunicationProtocol::logMessage,this,&AntonucciMotorDriver::logMessage);
-    connect(p_comm,&CommunicationProtocol::hardwareFailure,this,&AntonucciMotorDriver::hardwareFailure);
+    d_commType = CommunicationProtocol::Rs232;
 }
 
 void AntonucciMotorDriver::initialize()

@@ -1,14 +1,11 @@
 #include "virtualattenuator.h"
 
-#include "virtualinstrument.h"
-
 VirtualAttenuator::VirtualAttenuator(QObject *parent) :
 	Attenuator(parent), d_currentAttn(0)
 {
 	d_subKey = QString("virtual");
 	d_prettyName = QString("Virtual Attenuator");
 
-	p_comm = new VirtualInstrument(d_key,d_subKey,this);
 }
 
 VirtualAttenuator::~VirtualAttenuator()

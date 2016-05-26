@@ -1,14 +1,10 @@
 #include "virtualftmsynth.h"
 
-#include "virtualinstrument.h"
-
 VirtualFtmSynth::VirtualFtmSynth(QObject *parent) :
 	FtmSynthesizer(parent)
 {
 	d_subKey = QString("virtual");
 	d_prettyName = QString("Virtual FTM Synthesizer");
-
-	p_comm = new VirtualInstrument(d_key,d_subKey,this);
 
 	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
 	s.beginGroup(d_key);

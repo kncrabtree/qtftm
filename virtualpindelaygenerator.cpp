@@ -1,14 +1,10 @@
 #include "virtualpindelaygenerator.h"
 
-#include "virtualinstrument.h"
-
 VirtualPinDelayGenerator::VirtualPinDelayGenerator(QObject *parent) :
 	PinSwitchDriveDelayGenerator(parent)
 {
 	d_subKey = QString("virtual");
 	d_prettyName = QString("Virtual Pin Switch Delay Generator");
-
-	p_comm = new VirtualInstrument(d_key,d_subKey,this);
 
 	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
 	s.beginGroup(d_key);

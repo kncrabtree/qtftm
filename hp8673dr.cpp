@@ -1,16 +1,11 @@
 #include "hp8673dr.h"
 
-#include "gpibinstrument.h"
-
 HP8673DR::HP8673DR(QObject *parent) :
     DrSynthesizer(parent)
 {
     d_subKey = QString("hp8673");
     d_prettyName = QString("HP8873 DR Synthesizer");
-
-    p_comm = new GpibInstrument(d_key,d_subKey,static_cast<GpibController*>(parent),this);
-    connect(p_comm,&CommunicationProtocol::logMessage,this,&HP8673DR::logMessage);
-    connect(p_comm,&CommunicationProtocol::hardwareFailure,this,&HP8673DR::hardwareFailure);
+    d_commType = CommunicationProtocol::Gpib;
 
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
     s.beginGroup(d_key);

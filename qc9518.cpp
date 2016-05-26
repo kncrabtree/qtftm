@@ -7,10 +7,7 @@ QC9518::QC9518(QObject *parent) :
 {
     d_subKey = QString("qc9518");
     d_prettyName = QString("Pulse Generator QC 9518");
-
-    p_comm = new Rs232Instrument(d_key,d_subKey,this);
-    connect(p_comm,&CommunicationProtocol::logMessage,this,&QC9518::logMessage);
-    connect(p_comm,&CommunicationProtocol::hardwareFailure,[=](){ emit hardwareFailure(); });
+    d_commType = CommunicationProtocol::Rs232;
 
     QSettings s(QSettings::SystemScope, QApplication::organizationName(), QApplication::applicationName());
     s.beginGroup(d_key);

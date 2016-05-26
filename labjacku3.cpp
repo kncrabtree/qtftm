@@ -1,17 +1,12 @@
 #include "labjacku3.h"
 
-#include "custominstrument.h"
-
 LabjackU3::LabjackU3(QObject *parent) :
     IOBoard(parent), d_handle(nullptr), d_serialNo(3), d_cwLine(16), d_highBandLine(17),
     d_magnetLine(18), d_counterPinOffset(4), d_blockTriggering(false), d_counterCount(0)
 {
     d_subKey = QString("labjacku3");
     d_prettyName = QString("LabJack U3 IO Board");
-
-    p_comm = new CustomInstrument(d_key,d_subKey,this);
-    connect(p_comm,&CommunicationProtocol::logMessage,this,&LabjackU3::logMessage);
-    connect(p_comm,&CommunicationProtocol::hardwareFailure,this,&LabjackU3::hardwareFailure);
+    d_commType = CommunicationProtocol::Custom;
 }
 
 

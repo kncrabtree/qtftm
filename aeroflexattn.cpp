@@ -7,10 +7,9 @@ AeroflexAttn::AeroflexAttn(QObject *parent) :
 {
     d_subKey = QString("aeroflex");
     d_prettyName = QString("Aeroflex Weinschel Attenuator");
+    d_commType = CommunicationProtocol::Tcp;
+    d_threaded = false;
 
-    p_comm = new TcpInstrument(d_key,d_subKey,this);
-    connect(p_comm,&CommunicationProtocol::logMessage,this,&AeroflexAttn::logMessage);
-    connect(p_comm,&CommunicationProtocol::hardwareFailure,this,&AeroflexAttn::hardwareFailure);
 
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
     d_min = s.value(QString("%1/%2/min").arg(d_key).arg(d_subKey),0).toInt();

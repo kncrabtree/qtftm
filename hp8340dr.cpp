@@ -1,16 +1,11 @@
 #include "hp8340dr.h"
 
-#include "gpibinstrument.h"
-
 HP8340DR::HP8340DR(QObject *parent) :
     DrSynthesizer(parent)
 {
     d_subKey = QString("hp8340");
     d_prettyName = QString("HP8340 DR Synthesizer");
-
-    p_comm = new GpibInstrument(d_key,d_subKey,static_cast<GpibController*>(parent),this);
-    connect(p_comm,&CommunicationProtocol::logMessage,this,&HP8340DR::logMessage);
-    connect(p_comm,&CommunicationProtocol::hardwareFailure,this,&HP8340DR::hardwareFailure);
+    d_commType = CommunicationProtocol::Gpib;
 
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
     s.beginGroup(d_key);

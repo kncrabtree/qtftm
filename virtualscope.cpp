@@ -1,7 +1,5 @@
 #include "virtualscope.h"
 
-#include "virtualinstrument.h"
-
 #include <QFile>
 
 VirtualScope::VirtualScope(QObject *parent) :
@@ -9,8 +7,6 @@ VirtualScope::VirtualScope(QObject *parent) :
 {
 	d_subKey = QString("virtual");
 	d_prettyName = QString("Virtual Oscilloscope");
-
-	p_comm = new VirtualInstrument(d_key,d_subKey,this);
 }
 
 VirtualScope::~VirtualScope()

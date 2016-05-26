@@ -1,16 +1,11 @@
 #include "pindelaygeneratorpa.h"
 
-#include "rs232instrument.h"
-
 PinDelayGeneratorPA::PinDelayGeneratorPA(QObject *parent) :
     PinSwitchDriveDelayGenerator(parent)
 {
     d_subKey = QString("antonucci");
     d_prettyName = QString("Antonucci Pin Switch Delay Generator");
-
-    p_comm = new Rs232Instrument(d_key,d_subKey,this);
-    connect(p_comm,&CommunicationProtocol::logMessage,this,&PinDelayGeneratorPA::logMessage);
-    connect(p_comm,&CommunicationProtocol::hardwareFailure,this,&PinDelayGeneratorPA::hardwareFailure);
+    d_commType = CommunicationProtocol::Rs232;
 
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
     s.beginGroup(d_key);

@@ -1,6 +1,6 @@
 #include "dpo3012.h"
 
-#include "tcpinstrument.h"
+#include <QTcpSocket>
 
 #include <QTimer>
 
@@ -9,10 +9,7 @@ DPO3012::DPO3012(QObject *parent) :
 {
     d_subKey = QString("dpo3012");
     d_prettyName = QString("DPO3012 Oscilloscope");
-
-    p_comm = new TcpInstrument(d_key,d_subKey,this);
-    connect(p_comm,&CommunicationProtocol::logMessage,this,&DPO3012::logMessage);
-    connect(p_comm,&CommunicationProtocol::hardwareFailure,this,&DPO3012::hardwareFailure);
+    d_commType = CommunicationProtocol::Tcp;
 }
 
 DPO3012::~DPO3012()

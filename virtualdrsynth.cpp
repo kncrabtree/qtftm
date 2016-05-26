@@ -1,14 +1,10 @@
 #include "virtualdrsynth.h"
 
-#include "virtualinstrument.h"
-
 VirtualDrSynth::VirtualDrSynth(QObject *parent) :
 	DrSynthesizer(parent)
 {
 	d_subKey = QString("virtual");
 	d_prettyName = QString("Virtual DR Synthesizer");
-
-	p_comm = new VirtualInstrument(d_key,d_subKey,this);
 
 	d_currentSynthFreq = 10000.0;
 	d_currentSynthPower = 17.0;

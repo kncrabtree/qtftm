@@ -41,22 +41,22 @@ void HardwareManager::initializeHardware()
     QThread *gpibThread = new QThread(this);
     d_hardwareList.append(qMakePair(gpib,gpibThread));
 
-    p_ftmSynth = new FtmSynthHardware(gpib);
+    p_ftmSynth = new FtmSynthHardware();
     connect(p_ftmSynth,&FtmSynthesizer::newCavityFreq,this,&HardwareManager::ftmSynthUpdate);
     connect(p_ftmSynth,&FtmSynthesizer::newProbeFreq,this,&HardwareManager::probeFreqUpdate);
     connect(p_ftmSynth,&FtmSynthesizer::rangeChanged,this,&HardwareManager::synthRangeChanged);
     connect(this,&HardwareManager::ftmSynthChangeBandFromUi,p_ftmSynth,&FtmSynthesizer::updateBandFromUi);
     connect(this,&HardwareManager::setFtmCavityFreqFromUI,p_ftmSynth,&FtmSynthesizer::setCavityFreqFromUI);
-    d_hardwareList.append(qMakePair(p_ftmSynth,gpibThread));
+    d_hardwareList.append(qMakePair(p_ftmSynth,nullptr));
 
-    p_drSynth = new DrSynthHardware(gpib);
+    p_drSynth = new DrSynthHardware();
     connect(p_drSynth,&DrSynthesizer::frequencyUpdate,this,&HardwareManager::drSynthFreqUpdate);
     connect(p_drSynth,&DrSynthesizer::powerUpdate,this,&HardwareManager::drSynthPwrUpdate);
     connect(p_drSynth,&DrSynthesizer::rangeChanged,this,&HardwareManager::synthRangeChanged);
     connect(this,&HardwareManager::drSynthChangeBandFromUi,p_drSynth,&DrSynthesizer::updateBandFromUi);
     connect(this,&HardwareManager::setDrSynthFreqFromUI,p_drSynth,&DrSynthesizer::setFreq);
     connect(this,&HardwareManager::setDrSynthPwrFromUI,p_drSynth,&DrSynthesizer::setPower);
-    d_hardwareList.append(qMakePair(p_drSynth,gpibThread));
+    d_hardwareList.append(qMakePair(p_drSynth,nullptr));
 
     attn = new AttenuatorHardware();
 	connect(attn,&Attenuator::attnUpdate,this,&HardwareManager::attenUpdate);
@@ -70,7 +70,7 @@ void HardwareManager::initializeHardware()
     connect(pin,&PinSwitchDriveDelayGenerator::scopeTriggerDelayUpdate,this,&HardwareManager::hmScopeDelayUpdate);
     connect(this,&HardwareManager::setProtectionDelayFromUI,pin,&PinSwitchDriveDelayGenerator::setProtectionDelay);
     connect(this,&HardwareManager::setScopeDelayFromUI,pin,&PinSwitchDriveDelayGenerator::setScopeDelay);
-    d_hardwareList.append(qMakePair(pin,new QThread(this)));
+    d_hardwareList.append(qMakePair(pin,nullptr));
 
     md = new MotorDriverHardware();
     connect(md,&MotorDriver::posUpdate,this,&HardwareManager::mirrorPosUpdate);
@@ -81,13 +81,13 @@ void HardwareManager::initializeHardware()
     connect(md,&MotorDriver::modeChanged,this,&HardwareManager::modeChanged);
     connect(md,&MotorDriver::voltageChanged,this,&HardwareManager::tuningVoltageChanged);
     connect(this,&HardwareManager::updateMotorSettings,md,&MotorDriver::readCavitySettings);
-    d_hardwareList.append(qMakePair(md,new QThread(this)));
+    d_hardwareList.append(qMakePair(md,nullptr));
 
     iob = new IOBoardHardware();
     connect(iob,&IOBoard::triggered,scope,&Oscilloscope::sendCurveQuery);
     connect(iob,&IOBoard::magnetUpdate,this,&HardwareManager::magnetUpdate);
     connect(this,&HardwareManager::setMagnetFromUI,iob,&IOBoard::setMagnet);
-    d_hardwareList.append(qMakePair(iob,new QThread(this)));
+    d_hardwareList.append(qMakePair(iob,nullptr));
 
 
     fc = new FlowControllerHardware();
@@ -100,7 +100,7 @@ void HardwareManager::initializeHardware()
     connect(this,&HardwareManager::setGasName,fc,&FlowController::setChannelName);
     connect(this,&HardwareManager::setFlowSetpoint,fc,&FlowController::setFlowSetpoint);
     connect(this,&HardwareManager::setPressureSetpoint,fc,&FlowController::setPressureSetpoint);
-    d_hardwareList.append(qMakePair(fc,new QThread(this)));
+    d_hardwareList.append(qMakePair(fc,nullptr));
 
     pGen = new PulseGeneratorHardware();
     connect(pGen,&PulseGenerator::settingUpdate,this,&HardwareManager::pGenChannelSetting);
@@ -108,12 +108,12 @@ void HardwareManager::initializeHardware()
     connect(this,&HardwareManager::setRepRate,pGen,&PulseGenerator::setRepRate);
     connect(pGen,&PulseGenerator::repRateUpdate,this,&HardwareManager::repRateUpdate);
     connect(this,&HardwareManager::setPulseSetting,pGen,&PulseGenerator::set);
-    d_hardwareList.append(qMakePair(pGen,new QThread(this)));
+    d_hardwareList.append(qMakePair(pGen,nullptr));
 
     p_hvps = new HvPowerSupplyHardware();
     connect(this,&HardwareManager::setDcVoltageFromUI,p_hvps,&HvPowerSupply::setVoltage);
     connect(p_hvps,&HvPowerSupply::voltageUpdate,this,&HardwareManager::dcVoltageUpdate);
-    d_hardwareList.append(qMakePair(p_hvps,new QThread(this)));
+    d_hardwareList.append(qMakePair(p_hvps,nullptr));
 
 	//write arrays of the connected devices for use in the Hardware Settings menu
 	//first array is for all objects accessible to the hardware manager
@@ -193,11 +193,26 @@ void HardwareManager::initializeHardware()
     {
         QThread *thread = d_hardwareList.at(i).second;
         HardwareObject *obj = d_hardwareList.at(i).first;
+        if(obj->isThreaded())
+        {
+            if(obj != gpib)
+            {
+                if(obj->type() != CommunicationProtocol::Gpib)
+                    thread = new QThread(this);
+                else
+                    thread = gpibThread;
 
-	   s.setValue(QString("%1/prettyName").arg(obj->key()),obj->name());
-	   s.setValue(QString("%1/subKey").arg(obj->key()),obj->subKey());
-	   s.setValue(QString("%1/connected").arg(obj->key()),false);
-	   s.setValue(QString("%1/critical").arg(obj->key()),obj->isCritical());
+                d_hardwareList[i].second = thread;
+            }
+        }
+
+        //note: gpib will only be used if the device is a GpibInstrument
+        obj->buildCommunication(gpib);
+
+        s.setValue(QString("%1/prettyName").arg(obj->key()),obj->name());
+        s.setValue(QString("%1/subKey").arg(obj->key()),obj->subKey());
+        s.setValue(QString("%1/connected").arg(obj->key()),false);
+        s.setValue(QString("%1/critical").arg(obj->key()),obj->isCritical());
 
         connect(obj,&HardwareObject::logMessage,[=](QString msg, QtFTM::LogMessageCode mc){
             emit logMessage(QString("%1: %2").arg(obj->name()).arg(msg),mc);
@@ -207,7 +222,7 @@ void HardwareManager::initializeHardware()
         {
             connect(thread,&QThread::started,obj,&HardwareObject::initialize);
             connect(thread,&QThread::finished,obj,&HardwareObject::deleteLater);
-		  if(obj->parent() == nullptr)
+            if(obj->parent() == nullptr)
                 obj->moveToThread(thread);
         }
         else

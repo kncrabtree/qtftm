@@ -1,13 +1,9 @@
 #include "virtualpulsegenerator.h"
 
-#include "virtualinstrument.h"
-
 VirtualPulseGenerator::VirtualPulseGenerator(QObject *parent) : PulseGenerator(parent)
 {
     d_subKey = QString("virtual");
     d_prettyName = QString("Virtual Pulse Generator");
-
-    p_comm = new VirtualInstrument(d_key,d_subKey,this);
 }
 
 VirtualPulseGenerator::~VirtualPulseGenerator()

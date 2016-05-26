@@ -1,17 +1,13 @@
 #include "glassmanfj02r60.h"
 
-#include "rs232instrument.h"
-
 GlassmanFJ02R60::GlassmanFJ02R60() : d_fullScaleVoltage(2000), d_fullScaleCurrent(60), d_currentVoltage(0)
 {
     d_subKey = QString("glassmanfj02r60");
     d_prettyName = QString("Glassman FJ02R60 HV Power Supply");
+    d_commType = CommunicationProtocol::Rs232;
 
     d_isCritical = false;
 
-    p_comm = new Rs232Instrument(d_key,d_subKey,this);
-    connect(p_comm,&CommunicationProtocol::logMessage,this,&GlassmanFJ02R60::logMessage);
-    connect(p_comm,&CommunicationProtocol::hardwareFailure,this,&GlassmanFJ02R60::hardwareFailure);
 
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
     d_hardwareMin = s.value(QString("%1/%2/min").arg(d_key).arg(d_subKey),0).toInt();

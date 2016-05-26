@@ -75,8 +75,9 @@ public:
 
     bool isConnected() { return d_isConnected; }
     void setConnected(bool connected) { d_isConnected = connected; }
+    bool isThreaded() { return d_threaded; }
 
-    CommunicationProtocol::CommType type() { return p_comm->type(); }
+    CommunicationProtocol::CommType type() { return d_commType; }
 	
 signals:
     /*!
@@ -113,6 +114,8 @@ public slots:
      */
 	virtual void initialize() =0;
 
+    virtual void buildCommunication(QObject *gc = nullptr);
+
     /*!
      * \brief Puts device into a standby mode. Default implementation puts a message in the log.
      * \param b If true, go into standby mode. Else, active mode.
@@ -125,7 +128,9 @@ protected:
     QString d_subKey;
 
     CommunicationProtocol *p_comm;
+    CommunicationProtocol::CommType d_commType;
     bool d_isCritical;
+    bool d_threaded = true;
 
 private:
     bool d_isConnected;

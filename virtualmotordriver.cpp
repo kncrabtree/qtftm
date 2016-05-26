@@ -1,14 +1,10 @@
 #include "virtualmotordriver.h"
 
-#include "virtualinstrument.h"
-
 VirtualMotorDriver::VirtualMotorDriver(QObject *parent) :
 	MotorDriver(parent)
 {
 	d_subKey = QString("virtual");
 	d_prettyName = QString("Virtual Motor Driver");
-
-	p_comm = new VirtualInstrument(d_key,d_subKey,this);
 }
 
 VirtualMotorDriver::~VirtualMotorDriver()
