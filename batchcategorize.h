@@ -67,7 +67,7 @@ public:
                     scanTemplate = Scan(); category.clear(); }
     };
 
-	explicit BatchCategorize(QList<QPair<Scan,bool>> scanList, QList<CategoryTest> testList, AbstractFitter *ftr);
+    explicit BatchCategorize(QList<QPair<Scan,bool>> scanList, QList<CategoryTest> testList, double freqWindow, AbstractFitter *ftr);
     explicit BatchCategorize(int num, AbstractFitter *ftr = new NoFitter());
 	~BatchCategorize();
 
@@ -83,6 +83,7 @@ private:
     const double d_lineMatchMaxDiff = 0.01;
     const double d_dcThresh = 0.2;
     const double d_magThresh = 0.75;
+    double d_frequencyWindow;
 	QList<QPair<Scan,bool>> d_templateList;
 	QList<CategoryTest> d_testList;
     QList<ScanResult> d_resultList;

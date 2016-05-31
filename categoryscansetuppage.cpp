@@ -39,8 +39,10 @@ bool CategoryScanSetupPage::validatePage()
 
     auto testList = wiz->catTests();
 
+    double fw = static_cast<double>(field(QString("freqWindow")).toInt())/1000.0;
+
 	//create batch object
-    BatchCategorize *b = new BatchCategorize(scanList,testList,ftr);
+    BatchCategorize *b = new BatchCategorize(scanList,testList,fw,ftr);
     b->setSleepWhenComplete(p_bw->sleep());
 
 	emit batchManager(b);

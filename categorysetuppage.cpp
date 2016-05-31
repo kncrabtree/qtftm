@@ -51,6 +51,7 @@ CategorySetupPage::CategorySetupPage(QWidget *parent) :
     registerField(QString("catDc"),ui->dcCategoryBox);
     registerField(QString("catVoltage"),ui->voltageCategoryBox);
     registerField(QString("catMagnet"),ui->magnetCategoryBox);
+    registerField(QString("freqWindow"),ui->frequencyWindowSpinBox);
 }
 
 CategorySetupPage::~CategorySetupPage()
@@ -61,6 +62,13 @@ CategorySetupPage::~CategorySetupPage()
 
 void CategorySetupPage::initializePage()
 {
+
+    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+    s.beginGroup(QString("wizard"));
+
+    ui->frequencyWindowSpinBox->setValue(s.value(QString("catFreqWindow"),100).toInt());
+
+    s.endGroup();
 }
 
 bool CategorySetupPage::validatePage()
@@ -141,6 +149,13 @@ bool CategorySetupPage::validatePage()
     magnetTest.categorize = field(QString("catMagnet")).toBool();
     magnetTest.valueList = mag;
     testList.append(magnetTest);
+
+    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+    s.beginGroup(QString("wizard"));
+
+    s.setValue(QString("catFreqWindow"),ui->frequencyWindowSpinBox->value());
+
+    s.endGroup();
 
     emit catTests(testList);
     return true;
