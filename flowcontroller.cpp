@@ -13,6 +13,7 @@ FlowController::FlowController(QObject *parent) :
     s.endGroup();
     p_readTimer->setInterval(interval);
     connect(p_readTimer,&QTimer::timeout,this,&FlowController::readNext);
+    connect(this,&FlowController::hardwareFailure,p_readTimer,&QTimer::stop);
 }
 
 FlowController::~FlowController()
