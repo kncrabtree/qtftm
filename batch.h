@@ -20,6 +20,7 @@ public:
     struct ScanResult {
         Scan scan;
         bool isCal;
+        bool isSat;
         double ftMax;
         FitResult result;
     };

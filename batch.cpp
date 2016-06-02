@@ -150,6 +150,9 @@ void Batch::processScan(Scan s)
 				t << 0;
 		}
 	}
+    bool sat = Analysis::isFidSaturated(s.fid());
+    if(sat)
+        t << QString("\nSAT");
 	t.flush();
 
 	//make metadata
@@ -167,6 +170,7 @@ void Batch::processScan(Scan s)
     ScanResult sr;
     sr.scan = s;
     sr.isCal = d_processScanIsCal;
+    sr.isSat = sat;
     sr.ftMax = max;
     sr.result = res;
     d_saveData.append(sr);
@@ -235,14 +239,14 @@ void Batch::writeReport()
     t << QString("#FID zero padding") << tab << (d_fitter->autoPad() ? QString("Yes") : QString("No")) << tab << nl;
 
 	//write save data to file
-    t << nl << QString("batchscan") << batchNum << tab << QString("batchmax") << batchNum << tab << QString("batchiscal") << batchNum << tab << QString("batchftfreq") << batchNum << tab;
+    t << nl << QString("batchscan") << batchNum << tab << QString("batchmax") << batchNum <<  tab << QString("batchiscal") << batchNum << tab << QString("batchissat") << batchNum  << tab << QString("batchftfreq") << batchNum << tab;
     t << QString("batchattn") << batchNum << tab << QString("batchdrfreq") << batchNum << tab << QString("batchdrpower") << batchNum << tab << QString("batchpulses") << batchNum << tab << QString("batchshots") << batchNum << tab;
     t << QString("batchautofitpairfreqs") << batchNum << tab << QString("batchautofitpairints") << batchNum << tab << QString("batchautofitsinglefreqs") << batchNum << tab;
     t << QString("batchautofitsingleints") << batchNum << tab;
     for(int i=0;i<d_saveData.size(); i++)
     {
         const ScanResult &sr = d_saveData.at(i);
-        t << nl << sr.scan.number() << tab << sr.ftMax << tab << sr.isCal << tab << sr.scan.ftFreq() << tab << sr.scan.attenuation() << tab << sr.scan.drFreq() << tab << sr.scan.drPower() << tab;
+        t << nl << sr.scan.number() << tab << sr.ftMax << tab << sr.isCal << tab << sr.isSat << tab << sr.scan.ftFreq() << tab << sr.scan.attenuation() << tab << sr.scan.drFreq() << tab << sr.scan.drPower() << tab;
 
         PulseGenConfig pc = sr.scan.pulseConfiguration();
         QString pulses;
