@@ -241,6 +241,8 @@ Scan BatchDR::prepareNextScan()
 		else
             c.setDrEnabled(true);
 	}
+    else
+        c.setDrEnabled(true);
 
 	next.setPulseConfiguration(c);
 
