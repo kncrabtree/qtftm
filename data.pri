@@ -10,7 +10,8 @@ SOURCES += fid.cpp \
     nofitter.cpp \
     fitresult.cpp \
     $$PWD/flowconfig.cpp \
-    $$PWD/pulsegenconfig.cpp
+    $$PWD/pulsegenconfig.cpp \
+    $$PWD/amdordata.cpp
 
 HEADERS += fid.h \
     ftworker.h \
@@ -25,4 +26,5 @@ HEADERS += fid.h \
     fitresult.h \
     $$PWD/datastructs.h \
     $$PWD/flowconfig.h \
-    $$PWD/pulsegenconfig.h
+    $$PWD/pulsegenconfig.h \
+    $$PWD/amdordata.h
