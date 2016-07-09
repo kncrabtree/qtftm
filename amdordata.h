@@ -2,18 +2,22 @@
 #define AMDORDATA_H
 
 #include <QSharedDataPointer>
+#include <QPointF>
+#include <QVariant>
 
 class AmdorDataData;
+
 
 class AmdorData
 {
 public:
-    AmdorData();
+    AmdorData(const QList<double> fl);
     AmdorData(const AmdorData &);
     AmdorData &operator=(const AmdorData &);
     ~AmdorData();
 
     struct AmdorScanResult {
+        int index;
         int scanNum;
         int refScanNum;
         int ftId;
@@ -22,11 +26,24 @@ public:
         double drInt;
         bool linked;
         bool isRef;
+        int set;
 
-        AmdorScanResult() : scanNum(-1), refScanNum(-1), ftId(-1), drId(-1), linked(false), isRef(false) {}
+        AmdorScanResult() : index(-1), scanNum(-1), refScanNum(-1), ftId(-1), drId(-1), linked(false), isRef(false), set(0) {}
     };
 
     void setMatchThreshold(const double t, bool recalculate = false);
+    void newRefScan(int num, int id, double i);
+    bool newDrScan(int num, int id, double i);
+    void addLinkage(int scanIndex, bool checkUnlinked = false);
+    void removeLinkage(int scanIndex);
+
+    QList<QVector<QPointF>> graphData() const;
+
+    //convenience interface for use with a QTableModel
+    QVariant modelData(int row, int column, int role) const;
+    QVariant headerData(int index, Qt::Orientation o, int role) const;
+    int numRows() const;
+    int numColumns() const;
 
 private:
     QSharedDataPointer<AmdorDataData> data;
