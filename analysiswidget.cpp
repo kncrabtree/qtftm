@@ -262,6 +262,7 @@ void AnalysisWidget::showScanDetails()
 void AnalysisWidget::enableSelection(bool enabled)
 {
     ui->currentScanButton->setEnabled(enabled);
+    ui->currentScanButton->setVisible(enabled);
     ui->analysisScanSpinBox->setEnabled(enabled);
 
 }

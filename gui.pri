@@ -19,7 +19,8 @@ SOURCES += mainwindow.cpp \
     $$PWD/pulseconfigwidget.cpp \
     $$PWD/drcorrplot.cpp \
     $$PWD/categoryplot.cpp \
-    $$PWD/amdorplot.cpp
+    $$PWD/amdorplot.cpp \
+    $$PWD/amdorwidget.cpp
 
 HEADERS += mainwindow.h \
     ftplot.h \
@@ -42,7 +43,8 @@ HEADERS += mainwindow.h \
     $$PWD/pulseconfigwidget.h \
     $$PWD/drcorrplot.h \
     $$PWD/categoryplot.h \
-    $$PWD/amdorplot.h
+    $$PWD/amdorplot.h \
+    $$PWD/amdorwidget.h
 
 
 FORMS    += mainwindow.ui \
@@ -53,6 +55,7 @@ FORMS    += mainwindow.ui \
     batchviewwidget.ui \
     autofitwidget.ui \
     peaklistwidget.ui \
-    $$PWD/pulseconfigwidget.ui
+    $$PWD/pulseconfigwidget.ui \
+    $$PWD/amdorwidget.ui
 
 OTHER_FILES +=

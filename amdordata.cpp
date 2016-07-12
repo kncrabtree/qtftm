@@ -49,7 +49,23 @@ void AmdorData::setMatchThreshold(const double t, bool recalculate)
 
     if(recalculate)
     {
-        //clear out pair lists and set lists; rebuild from resultList
+        //clear out set lists; rebuild from resultList
+        data->sets.clear();
+        data->sets.append(QSet<int>());
+
+        for(int i=0; i<data->resultList.size(); i++)
+        {
+            if(data->resultList.at(i).isRef)
+                continue;
+
+            if(data->resultList.at(i).drInt < data->matchThreshold*data->resultList.at(i).refInt)
+                addLinkage(data->resultList.size()-1,false);
+            else
+            {
+                data->resultList[i].set = 0;
+                data->sets[0].insert(i);
+            }
+        }
     }
 }
 
@@ -295,12 +311,25 @@ QList<QVector<QPointF> > AmdorData::graphData() const
 
 }
 
+QPair<double, double> AmdorData::frequencyRange() const
+{
+    QPair<double,double> out = qMakePair(data->allFrequencies.first(),data->allFrequencies.first());
+    for(int i=1; i<data->allFrequencies.size(); i++)
+    {
+        out.first = qMin(out.first,data->allFrequencies.at(i));
+        out.second = qMax(out.second,data->allFrequencies.at(i));
+    }
+
+    return out;
+}
+
 QVariant AmdorData::modelData(int row, int column, int role) const
 {
     if(row < 0 || row >= numRows())
         return QVariant();
 
     if(column < 0 || column >= numColumns())
+        return QVariant();
 
     if(role == Qt::DisplayRole)
     {
@@ -337,10 +366,51 @@ QVariant AmdorData::modelData(int row, int column, int role) const
                         return QString::number(i);
                 }
             }
+            return QString("?");
             break;
         default:
             return QVariant();
-
+        }
+    }
+    else if(role == Qt::EditRole)
+    {
+        switch(column)
+        {
+        case 0:
+            return row;
+            break;
+        case 1:
+            return data->resultList.at(row).scanNum;
+            break;
+        case 2:
+            return data->resultList.at(row).refScanNum;
+            break;
+        case 3:
+            return data->allFrequencies.at(data->resultList.at(row).ftId);
+            break;
+        case 4:
+            if(data->resultList.at(row).isRef)
+                return -1.0;
+            else
+                return data->allFrequencies.at(data->resultList.at(row).drId);
+            break;
+        case 5:
+            if(data->resultList.at(row).isRef)
+                return -1;
+            if(data->sets.at(0).contains(row))
+                return 0;
+            else
+            {
+                for(int i=1; i<data->sets.size(); i++)
+                {
+                    if(data->sets.at(i).contains(row))
+                        return i;
+                }
+            }
+            return -2;
+            break;
+        default:
+            return QVariant();
         }
     }
 
@@ -421,5 +491,35 @@ int AmdorData::numRows() const
 int AmdorData::numColumns() const
 {
     return 6;
+}
+
+int AmdorData::column(AmdorColumn c) const
+{
+    switch(c)
+    {
+    case Index:
+        return 0;
+        break;
+    case RefScanNum:
+        return 1;
+        break;
+    case DrScanNum:
+        return 2;
+        break;
+    case FtFreq:
+        return 3;
+        break;
+    case DrFreq:
+        return 4;
+        break;
+    case SetNum:
+        return 5;
+        break;
+    default:
+        return -1;
+        break;
+    }
+
+    return -1;
 }
 

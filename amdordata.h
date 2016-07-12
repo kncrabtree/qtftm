@@ -31,6 +31,15 @@ public:
         AmdorScanResult() : index(-1), scanNum(-1), refScanNum(-1), ftId(-1), drId(-1), linked(false), isRef(false), set(0) {}
     };
 
+    enum AmdorColumn {
+        Index,
+        RefScanNum,
+        DrScanNum,
+        FtFreq,
+        DrFreq,
+        SetNum
+    };
+
     void setMatchThreshold(const double t, bool recalculate = false);
     void newRefScan(int num, int id, double i);
     bool newDrScan(int num, int id, double i);
@@ -38,12 +47,14 @@ public:
     void removeLinkage(int scanIndex);
 
     QList<QVector<QPointF>> graphData() const;
+    QPair<double,double> frequencyRange() const;
 
     //convenience interface for use with a QTableModel
     QVariant modelData(int row, int column, int role) const;
     QVariant headerData(int index, Qt::Orientation o, int role) const;
     int numRows() const;
     int numColumns() const;
+    int column(AmdorColumn c) const;
 
 private:
     QSharedDataPointer<AmdorDataData> data;

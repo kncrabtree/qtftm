@@ -21,5 +21,8 @@
         <file>icons/configure.png</file>
         <file>icons/add.png</file>
         <file>icons/remove.png</file>
+        <file>icons/add-link.png</file>
+        <file>icons/remove-link.png</file>
+        <file>icons/threshold.png</file>
     </qresource>
 </RCC>
