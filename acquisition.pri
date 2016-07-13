@@ -6,7 +6,8 @@ SOURCES += batchmanager.cpp \
     batch.cpp \
     batchattenuation.cpp \
     $$PWD/drcorrelation.cpp \
-    $$PWD/batchcategorize.cpp
+    $$PWD/batchcategorize.cpp \
+    $$PWD/amdorbatch.cpp
 
 HEADERS += batchmanager.h \
     batchsingle.h \
@@ -16,4 +17,5 @@ HEADERS += batchmanager.h \
     batch.h \
     batchattenuation.h \
     $$PWD/drcorrelation.h \
-    $$PWD/batchcategorize.h
+    $$PWD/batchcategorize.h \
+    $$PWD/amdorbatch.h

@@ -9,7 +9,7 @@
 class AmdorDataData : public QSharedData
 {
 public:
-    AmdorDataData(const QList<double> fl) : allFrequencies(fl), matchThreshold(0.5), currentRefScan(-1), currentRefId(-1), currentRefInt(0.0) { sets.append(QSet<int>()); }
+    AmdorDataData(const QList<double> fl, double threshold) : allFrequencies(fl), matchThreshold(threshold), currentRefScan(-1), currentRefId(-1), currentRefInt(0.0) { sets.append(QSet<int>()); }
 
     QList<double> allFrequencies;
     QList<AmdorData::AmdorScanResult> resultList;
@@ -21,7 +21,7 @@ public:
     double currentRefInt;
 };
 
-AmdorData::AmdorData(const QList<double> fl) : data(new AmdorDataData(fl))
+AmdorData::AmdorData(const QList<double> fl, double threshold) : data(new AmdorDataData(fl,threshold))
 {
 
 }

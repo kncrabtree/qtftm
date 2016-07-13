@@ -32,6 +32,10 @@ BatchManager::BatchManager(QtFTM::BatchType b, bool load, AbstractFitter *ftr) :
 		d_prettyName = QString("Category Test");
 		d_numKey = QString("catTestNum");
 		break;
+    case QtFTM::Amdor:
+        d_prettyName = QString("AMDOR");
+        d_numKey = QString("amdorNum");
+        break;
 	default:
 		d_numKey = QString("");
 		break;

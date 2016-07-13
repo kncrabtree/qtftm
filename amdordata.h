@@ -11,7 +11,7 @@ class AmdorDataData;
 class AmdorData
 {
 public:
-    AmdorData(const QList<double> fl);
+    AmdorData(const QList<double> fl, double threshold);
     AmdorData(const AmdorData &);
     AmdorData &operator=(const AmdorData &);
     ~AmdorData();

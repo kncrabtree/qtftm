@@ -72,7 +72,8 @@ enum BatchType {
 	Batch,
 	Attenuation,
     Categorize,
-	DrCorrelation
+    DrCorrelation,
+    Amdor
 };
 
 struct BatchPlotMetaData {

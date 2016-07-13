@@ -12,7 +12,8 @@ SOURCES += fid.cpp \
     $$PWD/flowconfig.cpp \
     $$PWD/pulsegenconfig.cpp \
     $$PWD/amdordata.cpp \
-    $$PWD/amdordatamodel.cpp
+    $$PWD/amdordatamodel.cpp \
+    $$PWD/amdornode.cpp
 
 HEADERS += fid.h \
     ftworker.h \
@@ -29,4 +30,5 @@ HEADERS += fid.h \
     $$PWD/flowconfig.h \
     $$PWD/pulsegenconfig.h \
     $$PWD/amdordata.h \
-    $$PWD/amdordatamodel.h
+    $$PWD/amdordatamodel.h \
+    $$PWD/amdornode.h
