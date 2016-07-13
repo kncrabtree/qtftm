@@ -216,7 +216,7 @@ void DrCorrelation::processScan(Scan s)
     if(!d_processScanIsCal)
 	{
 		//if DR is on, show DR freq and power
-		if(s.pulseConfiguration().at(3).enabled)
+        if(s.pulseConfiguration().isDrEnabled())
 			t  << QString("\n") << QString("dr:") << QString::number(s.drFreq(),'f',1)
 			   << QString("/") << QString::number(s.drPower(),'f',1);
 		t << QString("\n");
@@ -243,7 +243,7 @@ void DrCorrelation::processScan(Scan s)
 	    mdmax = num - ((double)ft.size()/2.0 - (double)ft.size())/(double)ft.size()*0.9;
 	}
 	bool badTune = s.tuningVoltage() <= 0;
-    QtFTM::BatchPlotMetaData md(QtFTM::Batch,s.number(),mdmin,mdmax,d_processScanIsCal,badTune,markerText);
+    QtFTM::BatchPlotMetaData md(QtFTM::DrCorrelation,s.number(),mdmin,mdmax,d_processScanIsCal,badTune,markerText);
 
     md.isRef = d_processScanIsRef;
 
