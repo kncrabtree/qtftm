@@ -65,7 +65,7 @@ void AntonucciMotorDriver::tune(double freq, int currentAttn, int mode)
 
 
     //decide whether rough tuning and/or fine tuning are necessary
-    if(fabs(freq-d_lastTuneFreq)<0.5 && d_lastTuneMode == modePair.second)
+    if(fabs(freq-d_lastTuneFreq)<0.5 && d_lastTuneMode == modePair.second && d_lastTuneVoltage > 0)
     {
         //if we're already really close, we might not even need to move
         doRoughTune = false;
@@ -226,6 +226,7 @@ void AntonucciMotorDriver::tune(double freq, int currentAttn, int mode)
 
         if(!success)
         {
+            d_lastTuneVoltage = -1;
             //don't abort scan if fine tuning failed... just give a warning.
             if(!d_quiet)
                 emit logMessage(QString("Fine tuning unsuccessful! Frequency: %1 MHz, Mode %2, Position = %3.").arg(freq,0,'f',3).arg(modePair.second).arg(readPos()),QtFTM::LogWarning);
