@@ -1,4 +1,6 @@
 #include "drsummarypage.h"
+
+#include <QVBoxLayout>
 #include <QSettings>
 
 DrSummaryPage::DrSummaryPage(QWidget *parent) :
@@ -94,7 +96,7 @@ bool DrSummaryPage::validatePage()
 	BatchDR *bdr;
 
 	//get the ftm settings
-	Scan s = wiz->drScan();
+    Scan s = wiz->scanTemplate();
 
 	//set number of shots
 	s.setTargetShots(field(QString("drShots")).toInt());

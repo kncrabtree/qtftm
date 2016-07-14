@@ -3,6 +3,8 @@
 
 #include <QWizardPage>
 #include <QLabel>
+#include <QCheckBox>
+
 #include "batchwizard.h"
 #include "batchsurvey.h"
 

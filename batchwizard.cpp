@@ -5,6 +5,7 @@
 #include "surveyscansetuppage.h"
 #include "surveysummarypage.h"
 #include "drsetuppage.h"
+#include "drintsetuppage.h"
 #include "drscansetuppage.h"
 #include "drsummarypage.h"
 #include "batchtemplatepage.h"
@@ -16,7 +17,7 @@
 #include "batchprocessingpage.h"
 
 BatchWizard::BatchWizard(SingleScanWidget *w, AutoFitWidget *a, QWidget *parent) :
-	QWizard(parent), ssw(w), afw(a), bm(nullptr), ftr(nullptr)
+    QWizard(parent), p_ssw(w), p_afw(a), p_bm(nullptr), p_ftr(nullptr)
 {
 	setWindowTitle(QString("Batch Acquisition Setup"));
 	setDefaultProperty("QDoubleSpinBox","value","valueChanged");
@@ -24,43 +25,43 @@ BatchWizard::BatchWizard(SingleScanWidget *w, AutoFitWidget *a, QWidget *parent)
 	//make pages and connections, if necessary
 	StartPage *sp = new StartPage(this);
 
-    SurveySetupPage *sSetP = new SurveySetupPage(afw,this);
+    SurveySetupPage *sSetP = new SurveySetupPage(p_afw,this);
     connect(sSetP,&SurveySetupPage::fitter,this,&BatchWizard::setFitter);
 
-	SurveyCalSetupPage *scp = new SurveyCalSetupPage(ssw,this);
-	connect(scp,&SurveyCalSetupPage::calScan,this,&BatchWizard::setSurveyCal);
+    SurveyCalSetupPage *scp = new SurveyCalSetupPage(p_ssw,this);
+    connect(scp,&SurveyCalSetupPage::calScan,this,&BatchWizard::setCalTemplate);
 
-	SurveyScanSetupPage *ssp = new SurveyScanSetupPage(ssw,this);
-	connect(ssp,&SurveyScanSetupPage::surveyScan,this,&BatchWizard::setSurveyScan);
+    SurveyScanSetupPage *ssp = new SurveyScanSetupPage(p_ssw,this);
+    connect(ssp,&SurveyScanSetupPage::surveyScan,this,&BatchWizard::setScanTemplate);
 
 	SurveySummaryPage *ssump = new SurveySummaryPage(this);
 	connect(ssump,&SurveySummaryPage::batchSurvey,this,&BatchWizard::setBatchManager);
 
-	DrScanSetupPage *dsp = new DrScanSetupPage(ssw,a,this);
-	connect(dsp,&DrScanSetupPage::drScan,this,&BatchWizard::setDrScan);
+    DrScanSetupPage *dsp = new DrScanSetupPage(p_ssw,a,this);
+    connect(dsp,&DrScanSetupPage::drScan,this,&BatchWizard::setScanTemplate);
 	connect(dsp,&DrScanSetupPage::drScan,this,&BatchWizard::prepareDr);
 	connect(dsp,&DrScanSetupPage::fitter,this,&BatchWizard::setFitter);
 
-	dip = new DrIntSetupPage(this);
-	connect(dip,&DrIntSetupPage::ranges,this,&BatchWizard::setDrRanges);
+    p_dip = new DrIntSetupPage(this);
+    connect(p_dip,&DrIntSetupPage::ranges,this,&BatchWizard::setDrRanges);
 
 	DrSummaryPage *dsump = new DrSummaryPage(this);
 	connect(dsump,&DrSummaryPage::batchDr,this,&BatchWizard::setBatchManager);
 
-    BatchProcessingPage *bpp = new BatchProcessingPage(afw,this);
+    BatchProcessingPage *bpp = new BatchProcessingPage(p_afw,this);
     connect(sp,&StartPage::typeSelected,bpp,&BatchProcessingPage::setType);
     connect(bpp,&BatchProcessingPage::fitter,this,&BatchWizard::setFitter);
 
-	BatchSetupPage *bsp = new BatchSetupPage(ssw,this);
+    BatchSetupPage *bsp = new BatchSetupPage(p_ssw,this);
 	connect(bsp,&BatchSetupPage::batchManager,this,&BatchWizard::setBatchManager);
 
-	DrCorrPage *drcp = new DrCorrPage(ssw,this);
+    DrCorrPage *drcp = new DrCorrPage(p_ssw,this);
 	connect(drcp,&DrCorrPage::batchManager,this,&BatchWizard::setBatchManager);
 
 	CategorySetupPage *csp = new CategorySetupPage(this);
 	connect(csp,&CategorySetupPage::catTests,this,&BatchWizard::setCatTests);
 
-	CategoryScanSetupPage *cssp = new CategoryScanSetupPage(ssw,this);
+    CategoryScanSetupPage *cssp = new CategoryScanSetupPage(p_ssw,this);
 	connect(cssp,&CategoryScanSetupPage::batchManager,this,&BatchWizard::setBatchManager);
 
 	//insert pages into wizard
@@ -71,7 +72,7 @@ BatchWizard::BatchWizard(SingleScanWidget *w, AutoFitWidget *a, QWidget *parent)
 	setPage(Page_SurveySummary, ssump);
 	setPage(Page_DrSetup, new DrSetupPage(this));
 	setPage(Page_DrScanSetup, dsp);
-	setPage(Page_DrIntSetup, dip);
+    setPage(Page_DrIntSetup, p_dip);
 	setPage(Page_DrSummary, dsump);
 //	setPage(Page_BatchTemplate, new BatchTemplatePage(this));
 //	setPage(Page_ToggleTemplate, new TogglePulsesPage(this));
@@ -88,22 +89,22 @@ BatchWizard::BatchWizard(SingleScanWidget *w, AutoFitWidget *a, QWidget *parent)
 BatchWizard::~BatchWizard()
 {
 	//delete the fitter if it has been allocated but not assigned to a batch Manager
-	if(!bm)
+    if(!p_bm)
 	{
-		if(ftr)
-			delete ftr;
+        if(p_ftr)
+            delete p_ftr;
     }
 }
 
 void BatchWizard::setFitter(AbstractFitter *af)
 {
-    if(ftr)
+    if(p_ftr)
     {
-        delete ftr;
-        ftr = nullptr;
+        delete p_ftr;
+        p_ftr = nullptr;
     }
 
-    ftr = af;
+    p_ftr = af;
 }
 
 void BatchWizard::prepareDr(Scan s)
@@ -122,6 +123,6 @@ void BatchWizard::prepareDr(Scan s)
 void BatchWizard::drPrepComplete()
 {
 	if(currentId() == Page_DrIntSetup) {
-		connect(this,&BatchWizard::newFid,dip,&DrIntSetupPage::newFid,Qt::UniqueConnection);
+        connect(this,&BatchWizard::newFid,p_dip,&DrIntSetupPage::newFid,Qt::UniqueConnection);
 	}
 }

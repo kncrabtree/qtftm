@@ -1,8 +1,10 @@
 #include "startpage.h"
-#include <QVBoxLayout>
-#include "batchwizard.h"
-#include <QGroupBox>
 
+#include <QVBoxLayout>
+#include <QGroupBox>
+#include <QLabel>
+
+#include "batchwizard.h"
 StartPage::StartPage(QWidget *parent) :
      QWizardPage(parent)
 {

@@ -5,10 +5,11 @@
 #include "singlescanwidget.h"
 #include "scan.h"
 #include "batchmanager.h"
-#include "drintsetuppage.h"
 #include "autofitwidget.h"
 #include "abstractfitter.h"
 #include "batchcategorize.h"
+
+class DrIntSetupPage;
 
 /*!
  \brief Wizard for configuring batch acquisitions
@@ -47,14 +48,14 @@ public:
 	explicit BatchWizard(SingleScanWidget *w, AutoFitWidget *a, QWidget *parent = nullptr);
 	~BatchWizard();
 
-	enum Page { Page_Start, Page_SurveySetup, Page_SurveyCalSetup, Page_SurveyScanSetup, Page_SurveySummary, Page_DrSetup,
-                Page_DrScanSetup, Page_DrIntSetup, Page_DrSummary, Page_BatchTemplate, Page_ToggleTemplate, Page_DrCorrSetup,
-			 Page_Categorize, Page_CategorizeScanSetup, Page_BatchProcessing, Page_BatchSetup };
-	Scan surveyScan() const { return d_surveyScan; }
-	Scan surveyCal() const { return d_surveyCal; }
-	Scan drScan() const { return d_drScan; }
-	BatchManager *batchManager() const { return bm; }
-	AbstractFitter *fitter() const { return ftr; }
+    enum Page { Page_Start, Page_SurveySetup, Page_SurveyCalSetup, Page_SurveyScanSetup, Page_SurveySummary,
+                Page_DrSetup, Page_DrScanSetup, Page_DrIntSetup, Page_DrSummary, Page_BatchTemplate,
+                Page_ToggleTemplate, Page_DrCorrSetup, Page_Categorize, Page_CategorizeScanSetup,
+                Page_BatchProcessing, Page_BatchSetup, Page_AmdorConfig, Page_AmdorCalSetup, Page_AmdorSetup };
+    Scan scanTemplate() const { return d_scanTemplate; }
+    Scan calTemplate() const { return d_calTemplate; }
+    BatchManager *batchManager() const { return p_bm; }
+    AbstractFitter *fitter() const { return p_ftr; }
 	QList<QPair<double,double> > ranges() const { return d_drRanges; }
 	QList<BatchCategorize::CategoryTest> catTests() { return d_catTests; }
 	
@@ -65,28 +66,27 @@ signals:
 	void changeNumPeakupFids(int);
 	
 public slots:
-	void setSurveyScan(Scan s){ d_surveyScan = s; }
-	void setSurveyCal(Scan s){ d_surveyCal = s; }
-	void setDrScan(Scan s){ d_drScan = s; }
+    void setScanTemplate(Scan s){ d_scanTemplate = s; }
+    void setCalTemplate(Scan s){ d_calTemplate = s; }
 	void setDrRanges(const QList<QPair<double,double> > r) { d_drRanges = r; }
 	void setCatTests(const QList<BatchCategorize::CategoryTest> l) { d_catTests = l; }
-	void setBatchManager(BatchManager *b) { bm = b; }
+    void setBatchManager(BatchManager *b) { p_bm = b; }
     void setFitter(AbstractFitter *af);
 	void prepareDr(Scan s);
 	void drPrepComplete();
 
 private:
-	SingleScanWidget *ssw;
-	AutoFitWidget *afw;
-	Scan d_surveyScan;
-	Scan d_surveyCal;
+    SingleScanWidget *p_ssw;
+    AutoFitWidget *p_afw;
+    Scan d_scanTemplate;
+    Scan d_calTemplate;
 	Scan d_drScan;
 	QList<QPair<double,double> > d_drRanges;
 	QList<BatchCategorize::CategoryTest> d_catTests;
 
-	BatchManager *bm;
-	AbstractFitter *ftr;
-	DrIntSetupPage *dip;
+    BatchManager *p_bm;
+    AbstractFitter *p_ftr;
+    DrIntSetupPage *p_dip;
 	
 };
 

@@ -2,7 +2,10 @@
 #define DRSUMMARYPAGE_H
 
 #include <QWizardPage>
+
 #include <QLabel>
+#include <QCheckBox>
+
 #include "batchdr.h"
 #include "batchwizard.h"
 

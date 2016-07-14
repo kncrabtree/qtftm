@@ -1,9 +1,12 @@
 #include "surveyscansetuppage.h"
+
+#include <QLabel>
+#include <QVBoxLayout>
 #include <QDateTime>
-#include <math.h>
 #include <QSettings>
 #include <QApplication>
 
+#include <math.h>
 SurveyScanSetupPage::SurveyScanSetupPage(SingleScanWidget *ssw, QWidget *parent) :
      QWizardPage(parent)
 {

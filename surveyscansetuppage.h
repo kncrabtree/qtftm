@@ -2,6 +2,8 @@
 #define SURVEYSCANSETUPPAGE_H
 
 #include <QWizardPage>
+#include <QLabel>
+
 #include "batchwizard.h"
 
 class SurveyScanSetupPage : public QWizardPage

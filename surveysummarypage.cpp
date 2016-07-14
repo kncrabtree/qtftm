@@ -87,14 +87,14 @@ bool SurveySummaryPage::validatePage()
 	BatchSurvey *bs;
 
 	//get template from wizard
-	Scan surveyTemplate = wiz->surveyScan();
+	Scan surveyTemplate = wiz->scanTemplate();
 	double stop = field(QString("surveyStop")).toDouble();
 	double step = field(QString("surveyStep")).toDouble()/1000.0;
 	bool hasCal = field(QString("surveyCal")).toBool();
 	if(hasCal)
 	{
 		//get cal template from wizard
-		Scan calTemplate = wiz->surveyCal();
+		Scan calTemplate = wiz->calTemplate();
 		int scansPerCal = field(QString("surveyScansPerCal")).toInt();
 
 		//create survey object with cal

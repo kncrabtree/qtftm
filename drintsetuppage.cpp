@@ -110,7 +110,7 @@ void DrIntSetupPage::updateLabel()
 	if(field(QString("drCal")).toBool())
 		calScans = scans;
 
-    double repRate = qobject_cast<BatchWizard*>(wizard())->drScan().pulseConfiguration().repRate();
+    double repRate = qobject_cast<BatchWizard*>(wizard())->scanTemplate().pulseConfiguration().repRate();
 
 	//the first shot after starting a new scan is ignored, and it usually takes about one shot worth of time to measure
 	//cavity voltage and intialize hardware.

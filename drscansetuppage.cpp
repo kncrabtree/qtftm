@@ -1,4 +1,8 @@
 #include "drscansetuppage.h"
+
+#include <QHBoxLayout>
+#include <QCheckBox>
+
 #include "batchwizard.h"
 
 DrScanSetupPage::DrScanSetupPage(SingleScanWidget *ssw, AutoFitWidget *aw, QWidget *parent) :
@@ -12,10 +16,6 @@ DrScanSetupPage::DrScanSetupPage(SingleScanWidget *ssw, AutoFitWidget *aw, QWidg
     drSsw->setFromScan(ssw->toScan());
     drSsw->setShotsBoxEnabled(false);
     drSsw->enableSkipTune(true);
-//    drSsw->setFtmFreq(ssw->ftmFreq());
-//	drSsw->setAttn(ssw->attn());
-//	drSsw->setDrPower(ssw->drPower());
-//	drSsw->setPulseConfig(ssw->pulseConfig());
 
     drAfw = new AutoFitWidget(aw->bufferGas().name,aw->delay(),aw->hpf(),aw->exp(),aw->zeroPad(),aw->temperature(),this);
     drAfw->disableProcessingOptions();
@@ -43,13 +43,6 @@ bool DrScanSetupPage::validatePage()
 {
     Scan scan = drSsw->toScan();
     AbstractFitter *a = drAfw->toFitter();
-
-//	scan.setTargetShots(drSsw->shots());
-//	scan.setFtFreq(drSsw->ftmFreq());
-//	scan.setAttenuation(drSsw->attn());
-//	scan.setDrFreq(drSsw->drFreq());
-//	scan.setDrPower(drSsw->drPower());
-//	scan.setPulseConfiguration(drSsw->pulseConfig());
 
 	emit drScan(scan);
     emit fitter(a);

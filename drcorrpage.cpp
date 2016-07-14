@@ -1,6 +1,8 @@
 #include "drcorrpage.h"
-#include "batchwizard.h"
 
+#include <QVBoxLayout>
+
+#include "batchwizard.h"
 #include "batchwidget.h"
 #include "drcorrelation.h"
 
@@ -11,9 +13,9 @@ DrCorrPage::DrCorrPage(SingleScanWidget *ssw, QWidget *parent) :
 	setSubTitle(QString("Enter parameters for each FTM frequency. All frequencies will be cross-correlated by DR. Tuning and DR pulses will be set automatically."));
 
 	QVBoxLayout *vl = new QVBoxLayout(this);
-	bw = new BatchWidget(ssw,QtFTM::DrCorrelation,this);
-	connect(bw,&BatchWidget::scansChanged,this,&QWizardPage::completeChanged);
-	vl->addWidget(bw);
+    p_bw = new BatchWidget(ssw,QtFTM::DrCorrelation,this);
+    connect(p_bw,&BatchWidget::scansChanged,this,&QWizardPage::completeChanged);
+    vl->addWidget(p_bw);
 
 	setLayout(vl);
 }
@@ -25,14 +27,14 @@ int DrCorrPage::nextId() const
 
 void DrCorrPage::initializePage()
 {
-	bw->updateLabel();
+    p_bw->updateLabel();
 }
 
 
 bool DrCorrPage::validatePage()
 {
 	//there must be at least one scan in the list
-	QList<QPair<Scan,bool> > scanList = bw->getList();
+    QList<QPair<Scan,bool> > scanList = p_bw->getList();
 	if(scanList.isEmpty())
 		return false;
 
@@ -41,7 +43,7 @@ bool DrCorrPage::validatePage()
 
 	//create batch object
     BatchManager *b = new DrCorrelation(scanList,ftr);
-    b->setSleepWhenComplete(bw->sleep());
+    b->setSleepWhenComplete(p_bw->sleep());
 
 	emit batchManager(b);
 
@@ -50,5 +52,5 @@ bool DrCorrPage::validatePage()
 
 bool DrCorrPage::isComplete() const
 {
-	return !bw->isEmpty();
+    return !p_bw->isEmpty();
 }

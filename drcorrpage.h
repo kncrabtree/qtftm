@@ -21,7 +21,7 @@ signals:
 public slots:
 
 private:
-	BatchWidget *bw;
+    BatchWidget *p_bw;
 		
 	// QWizardPage interface
 public:

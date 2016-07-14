@@ -1,4 +1,7 @@
 #include "batchsetuppage.h"
+
+#include <QVBoxLayout>
+
 #include "batchwizard.h"
 
 BatchSetupPage::BatchSetupPage(SingleScanWidget *ssw, QWidget *parent) :
