@@ -26,6 +26,7 @@ private:
 	QRadioButton *batchButton;
     QRadioButton *categorizeButton;
 	QRadioButton *drCorrButton;
+    QRadioButton *amdorButton;
 	
 };
 

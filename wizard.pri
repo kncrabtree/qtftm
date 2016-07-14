@@ -2,7 +2,6 @@ HEADERS += \
     batchwizard.h \
     startpage.h \
     surveysetuppage.h \
-    surveycalsetuppage.h \
     surveyscansetuppage.h \
     surveysummarypage.h \
     drsetuppage.h \
@@ -19,13 +18,16 @@ HEADERS += \
     $$PWD/voltagetestmodel.h \
     $$PWD/categorysetuppage.h \
     $$PWD/dipoletestmodel.h \
-    $$PWD/categoryscansetuppage.h
+    $$PWD/categoryscansetuppage.h \
+    $$PWD/amdorconfigpage.h \
+    $$PWD/calsetuppage.h \
+    $$PWD/amdorsetuppage.h \
+    $$PWD/amdordronlymodel.h
 
 SOURCES += \
     batchwizard.cpp \
     startpage.cpp \
     surveysetuppage.cpp \
-    surveycalsetuppage.cpp \
     surveyscansetuppage.cpp \
     surveysummarypage.cpp \
     drsetuppage.cpp \
@@ -42,7 +44,11 @@ SOURCES += \
     $$PWD/voltagetestmodel.cpp \
     $$PWD/categorysetuppage.cpp \
     $$PWD/dipoletestmodel.cpp \
-    $$PWD/categoryscansetuppage.cpp
+    $$PWD/categoryscansetuppage.cpp \
+    $$PWD/amdorconfigpage.cpp \
+    $$PWD/calsetuppage.cpp \
+    $$PWD/amdorsetuppage.cpp \
+    $$PWD/amdordronlymodel.cpp
 
 FORMS += batchwidget.ui \
     $$PWD/categorysetuppage.ui

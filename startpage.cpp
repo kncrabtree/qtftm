@@ -28,6 +28,9 @@ StartPage::StartPage(QWidget *parent) :
 	drCorrButton = new QRadioButton(QString("DR Correlation"),this);
 	drCorrButton->setToolTip(QString("A list of FT scans that will by systematically cross-correlated by double resonance."));
 
+    amdorButton = new QRadioButton(QString("AMDOR"),this);
+    amdorButton->setToolTip(QString("Automated Microwave Double Resonance: systematic DR with optimizations to discover linked networks of lines quickly."));
+
 	surveyButton->setChecked(true);
 
 	vl->addWidget(surveyButton);
@@ -35,6 +38,7 @@ StartPage::StartPage(QWidget *parent) :
 	vl->addWidget(batchButton);
     vl->addWidget(categorizeButton);
 	vl->addWidget(drCorrButton);
+    vl->addWidget(amdorButton);
 
 	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
 	s.beginGroup(QString("ftmSynth"));
@@ -57,7 +61,8 @@ StartPage::StartPage(QWidget *parent) :
 	if(max < min)
 	{
 		drCorrButton->setEnabled(false);
-		QLabel *lbl = new QLabel(QString("DR correlation is disabled because the DR synthesizer cannot access the range of the FT. Reconfigure the DR synthesizer to match the FT range and try again."));
+        amdorButton->setEnabled(false);
+        QLabel *lbl = new QLabel(QString("DR correlation and AMDOR are disabled because the DR synthesizer cannot access the range of the FT. Reconfigure the DR synthesizer to match the FT range and try again."));
 		lbl->setWordWrap(true);
 		vl->addWidget(lbl);
 	}
@@ -87,6 +92,9 @@ int StartPage::nextId() const
 
 	if(drCorrButton->isChecked())
 		return BatchWizard::Page_BatchProcessing;
+
+    if(amdorButton->isChecked())
+        return BatchWizard::Page_AmdorConfig;
 
 	return -1;
 }

@@ -13,7 +13,7 @@
 
 BatchWidget::BatchWidget(SingleScanWidget *ssw, QtFTM::BatchType type, QWidget *parent) :
      QWidget(parent),
-	ui(new Ui::BatchWidget), d_type(type), d_numTests(1)
+    ui(new Ui::BatchWidget), d_type(type), d_numTests(1), d_calDisabled(false)
 {
 	ui->setupUi(this);
 
@@ -81,11 +81,26 @@ BatchWidget::~BatchWidget()
 
 bool BatchWidget::isEmpty()
 {
-	return btm.rowCount(QModelIndex()) == 0;
+    return btm.rowCount(QModelIndex()) == 0;
+}
+
+void BatchWidget::disableCalibration()
+{
+    d_calDisabled = true;
+    ui->batchAddCalButton->setEnabled(false);
+    ui->batchAddCalButton->setVisible(false);
+
+    ui->batchInsertCalButton->setEnabled(false);
+    ui->batchInsertCalButton->setVisible(false);
 }
 
 void BatchWidget::updateLabel()
 {
+    if(d_type == QtFTM::Amdor)
+    {
+        timeLabel->setText(QString("Cannot provide time estimate for AMDOR procedure."));
+        return;
+    }
 	//get the time esimate and calculate hours, minutes, and seconds
 	int repeats = 1;
 	if(d_type == QtFTM::Categorize)
@@ -196,6 +211,12 @@ void BatchWidget::toggleButtons()
         ui->sortButton->setEnabled(true);
     else
         ui->sortButton->setEnabled(false);
+
+    if(d_calDisabled)
+    {
+        ui->batchAddCalButton->setEnabled(false);
+        ui->batchInsertCalButton->setEnabled(false);
+    }
 }
 
 void BatchWidget::clearButtonCallBack()
@@ -407,6 +428,9 @@ void BatchWidget::parseFile()
 		}
 		else if(line.startsWith(QChar('!'))) //Modify calibration scan
 		{
+            if(d_calDisabled)
+                continue;
+
 			line.remove(0,1); //remove the ! character
 			Scan s = parseLine(calScan, line);
 			if(s.targetShots()>0)
@@ -417,10 +441,18 @@ void BatchWidget::parseFile()
 		}
 		else if(line.startsWith(QString("cal"),Qt::CaseInsensitive)) //add calibration scan
 		{
+            if(d_calDisabled)
+                continue;
+
 			//only add the calibration scan if the template has been explicitly set
 			if(calScanSet)
 				scanList.append(QPair<Scan,bool>(calScan,true));
 		}
+        else if(line.startsWith(QString("amdor")))
+        {
+            //for AMDOR scans only, read this as a DR only test
+            parseAmdorLine(line,defaultScan.drPower());
+        }
 		else
 		{
 			Scan s = parseLine(defaultScan,line);
@@ -489,6 +521,18 @@ void BatchWidget::saveFile()
 				out << QString("\n") << writeScan(thisScan,refScan);
 		}
 	}
+    if(d_type == QtFTM::Amdor)
+    {
+        out.setRealNumberNotation(QTextStream::FixedNotation);
+        out.setRealNumberPrecision(3);
+        emit requestDrOnlyList();
+        for(int i=0; i<d_amdorDrOnlyList.size(); i++)
+        {
+            out << QString("\namdor drfreq:") << d_amdorDrOnlyList.at(i).first
+                << QString(" drpower:") << d_amdorDrOnlyList.at(i).second;
+        }
+
+    }
 	out.flush();
 	saveFile.close();
 }
@@ -896,7 +940,71 @@ Scan BatchWidget::parseLine(Scan defaultScan, QString line)
 	if(parseSuccess)
 		return out;
 	else
-		return Scan();
+        return Scan();
+}
+
+void BatchWidget::parseAmdorLine(QString line, double drp)
+{
+    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+    double drFreq = -1.0;
+    double drPower = drp;
+    bool parseSuccess = false;
+
+    QStringList items = line.split(QRegExp(QString("\\s+")),QString::SkipEmptyParts);
+    for(int i=0; i<items.size(); i++)
+    {
+        QString item = items.at(i).trimmed();
+        if(item.isEmpty()) //this shouldn't happen, but whatever
+            continue;
+
+        //each item is a key-value pair, separated by a colon
+        QStringList keyVal = item.split(QChar(':'));
+
+        if(keyVal.size() != 2) // a valid entry will split into 2 pieces
+            continue;
+
+        //store key and value
+        QString key = keyVal.at(0);
+        QString val = keyVal.at(1);
+
+        if(key.startsWith(QString("drf"),Qt::CaseInsensitive)) //dr frequency
+        {
+            bool success = false;
+            double f = val.toDouble(&success);
+            if(success)
+            {
+                s.beginGroup(QString("drSynth"));
+                s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
+                if(f >= s.value(QString("min"),1000.0).toDouble() && f <= s.value(QString("max"),1000000.0).toDouble())
+                {
+                    parseSuccess = true;
+                    drFreq = f;
+                }
+                s.endGroup();
+                s.endGroup();
+            }
+        }
+        else if(key.startsWith(QString("drp"),Qt::CaseInsensitive)) //dr power
+        {
+            bool success = false;
+            double p = val.toDouble(&success);
+            if(success)
+            {
+                s.beginGroup(QString("drSynth"));
+                s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
+                if(p >= s.value(QString("minPower"),-70.0).toDouble() && p <= s.value(QString("maxPower"),17.0).toDouble())
+                {
+                    parseSuccess = true;
+                    drPower = p;
+                }
+                s.endGroup();
+                s.endGroup();
+            }
+        }
+    }
+
+    if(parseSuccess && drFreq > 0.0)
+        emit amdorDrOnly(drFreq,drPower);
 }
 
 QString BatchWidget::writeScan(Scan thisScan, Scan ref)

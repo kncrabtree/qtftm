@@ -1,7 +1,7 @@
 #include "batchwizard.h"
 #include "startpage.h"
 #include "surveysetuppage.h"
-#include "surveycalsetuppage.h"
+#include "calsetuppage.h"
 #include "surveyscansetuppage.h"
 #include "surveysummarypage.h"
 #include "drsetuppage.h"
@@ -15,6 +15,8 @@
 #include "drcorrpage.h"
 #include "batchsetuppage.h"
 #include "batchprocessingpage.h"
+#include "amdorconfigpage.h"
+#include "amdorsetuppage.h"
 
 BatchWizard::BatchWizard(SingleScanWidget *w, AutoFitWidget *a, QWidget *parent) :
     QWizard(parent), p_ssw(w), p_afw(a), p_bm(nullptr), p_ftr(nullptr)
@@ -28,8 +30,8 @@ BatchWizard::BatchWizard(SingleScanWidget *w, AutoFitWidget *a, QWidget *parent)
     SurveySetupPage *sSetP = new SurveySetupPage(p_afw,this);
     connect(sSetP,&SurveySetupPage::fitter,this,&BatchWizard::setFitter);
 
-    SurveyCalSetupPage *scp = new SurveyCalSetupPage(p_ssw,this);
-    connect(scp,&SurveyCalSetupPage::calScan,this,&BatchWizard::setCalTemplate);
+    CalSetupPage *scp = new CalSetupPage(p_ssw,Page_SurveyScanSetup, this);
+    connect(scp,&CalSetupPage::calScan,this,&BatchWizard::setCalTemplate);
 
     SurveyScanSetupPage *ssp = new SurveyScanSetupPage(p_ssw,this);
     connect(ssp,&SurveyScanSetupPage::surveyScan,this,&BatchWizard::setScanTemplate);
@@ -64,6 +66,15 @@ BatchWizard::BatchWizard(SingleScanWidget *w, AutoFitWidget *a, QWidget *parent)
     CategoryScanSetupPage *cssp = new CategoryScanSetupPage(p_ssw,this);
 	connect(cssp,&CategoryScanSetupPage::batchManager,this,&BatchWizard::setBatchManager);
 
+    AmdorConfigPage *acp = new AmdorConfigPage(p_afw,this);
+    connect(acp,&AmdorConfigPage::fitter,this,&BatchWizard::setFitter);
+
+    CalSetupPage *acsp = new CalSetupPage(p_ssw,Page_AmdorConfig,this);
+    connect(acsp,&CalSetupPage::calScan,this,&BatchWizard::setCalTemplate);
+
+    AmdorSetupPage *asp = new AmdorSetupPage(p_ssw,this);
+    connect(asp,&AmdorSetupPage::batchManager,this,&BatchWizard::setBatchManager);
+
 	//insert pages into wizard
 	setPage(Page_Start, sp);
     setPage(Page_SurveySetup, sSetP);
@@ -81,6 +92,8 @@ BatchWizard::BatchWizard(SingleScanWidget *w, AutoFitWidget *a, QWidget *parent)
 	setPage(Page_DrCorrSetup, drcp);
     setPage(Page_BatchProcessing, bpp);
 	setPage(Page_BatchSetup, bsp);
+    setPage(Page_AmdorConfig,acp);
+    setPage(Page_AmdorCalSetup,acsp);
 
 	setGeometry(parent->width()/2-350,parent->height()/2-300,700,600);
 

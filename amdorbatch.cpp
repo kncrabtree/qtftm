@@ -1,7 +1,8 @@
 #include "amdorbatch.h"
 
-AmdorBatch::AmdorBatch(QList<QPair<Scan, bool> > templateList, QList<QPair<double,double>> drOnlyList, double threshold, double fw, AbstractFitter *ftr) : BatchManager(QtFTM::Amdor,false,ftr),
-    d_currentFtIndex(0), d_currentDrIndex(0), d_currentRefInt(0.0), d_threshold(threshold), d_frequencyWindow(fw), d_calIsNext(false), d_currentScanIsRef(false),
+AmdorBatch::AmdorBatch(QList<QPair<Scan, bool> > templateList, QList<QPair<double,double>> drOnlyList, double threshold, double fw, double exc, int maxChildren, AbstractFitter *ftr) : BatchManager(QtFTM::Amdor,false,ftr),
+    d_currentFtIndex(0), d_currentDrIndex(0), d_currentRefInt(0.0), d_threshold(threshold), d_frequencyWindow(fw),
+    d_excludeRange(exc), d_maxChildren(maxChildren), d_calIsNext(false), d_currentScanIsRef(false),
     d_currentScanIsVerification(false)
 {
     //build completed and scan matrices
@@ -11,6 +12,7 @@ AmdorBatch::AmdorBatch(QList<QPair<Scan, bool> > templateList, QList<QPair<doubl
     //The other situation, drIndex < ftIndex, may only be used for verification of a match
     int totalTests = 0;
     d_hasCal = false;
+    d_scansSinceCal = 0;
     p_currentNode = nullptr;
     for(int i=0; i<templateList.size(); i++)
     {
@@ -33,10 +35,10 @@ AmdorBatch::AmdorBatch(QList<QPair<Scan, bool> > templateList, QList<QPair<doubl
             if(templateList.at(j).second)
                 continue;
 
-            cList.append(false);
 
             Scan si = templateList.at(i).first;
             Scan sj = templateList.at(j).first;
+
 
             Scan thisScan = si;
             if(d_currentDrIndex == d_currentFtIndex)
@@ -62,19 +64,36 @@ AmdorBatch::AmdorBatch(QList<QPair<Scan, bool> > templateList, QList<QPair<doubl
 
             sList.append(thisScan);
 
-            d_currentDrIndex++;
+            //if the two frequencies fall within exclude range, mark as complete to skip
+            if(qAbs(thisScan.ftFreq() - thisScan.drFreq()) < d_excludeRange && d_currentDrIndex != d_currentFtIndex)
+            {
+                cList.append(true);
+                if(d_currentDrIndex < d_currentFtIndex)
+                    totalTests--;
+            }
+            else
+            {
+                cList.append(false);
+                d_currentDrIndex++;
+            }
         }
 
         //add on DR only scans
         for(int j=0; j<drOnlyList.size(); j++)
         {
-            cList.append(false);
 
             Scan si = templateList.at(i).first;
             si.setDrFreq(drOnlyList.at(i).first);
             si.setDrPower(drOnlyList.at(i).second);
-            totalTests++;
             sList.append(si);
+
+            if(qAbs(si.ftFreq() - si.drFreq()) < d_excludeRange)
+                cList.append(true);
+            else
+            {
+                cList.append(false);
+                totalTests++;
+            }
             d_currentDrIndex++;
         }
 
@@ -114,6 +133,9 @@ AmdorBatch::AmdorBatch(int num, AbstractFitter *ftr) :
     d_threshold = 0.5;
     d_frequencyWindow = 0.1;
     d_loadIndex = 0;
+    d_scansSinceCal = 0;
+    d_excludeRange = 100.0;
+    d_maxChildren = 3;
 
     if(in.open(QIODevice::ReadOnly))
     {
@@ -146,6 +168,30 @@ AmdorBatch::AmdorBatch(int num, AbstractFitter *ftr) :
                 double w = l.at(1).trimmed().toDouble(&ok);
                 if(ok && w > 0.0 && w < 1.0)
                     d_frequencyWindow = w;
+
+                continue;
+            }
+
+            if(line.startsWith("#Exclude range"))
+            {
+                if(l.size() < 2)
+                    continue;
+
+                double w = l.at(1).trimmed().toDouble(&ok);
+                if(ok)
+                    d_excludeRange = w;
+
+                continue;
+            }
+
+            if(line.startsWith("#Max children"))
+            {
+                if(l.size() < 2)
+                    continue;
+
+                double w = l.at(1).trimmed().toInt(&ok);
+                if(ok && w > 0)
+                    d_maxChildren = w;
 
                 continue;
             }
@@ -288,6 +334,8 @@ void AmdorBatch::writeReport()
     t << QString("#FID zero padding") << tab << (d_fitter->autoPad() ? QString("Yes") : QString("No")) << tab << nl;
     t << QString("#Match threshold") << tab << QString::number(d_threshold,'f',3) << tab << nl;
     t << QString("#Frequency window") << tab << QString::number(d_frequencyWindow,'f',3) << tab << QString("MHz") << nl;
+    t << QString("#Exclude range") << tab << QString::number(d_excludeRange,'f',3) << tab << QString("MHz") << nl;
+    t << QString("#Max children") << tab << QString::number(d_maxChildren) << tab << nl;
 
     t << nl <<QString("amdorfrequencies") << batchNum << tab << QString("amdordronly") << batchNum;
     t.setRealNumberNotation(QTextStream::FixedNotation);
@@ -328,6 +376,7 @@ void AmdorBatch::advanceBatch(const Scan s)
 
     //processing needs to be done here because the result may decide what scan to perform next
     d_lastScan = s;
+    d_scansSinceCal++;
 
     FitResult res = d_fitter->doFit(s);
 
@@ -444,6 +493,7 @@ void AmdorBatch::advanceBatch(const Scan s)
 
     if(d_thisScanIsCal)
     {
+        d_scansSinceCal = 0;
         d_calIsNext = false;
     }
     else if(d_currentScanIsRef)
@@ -550,8 +600,8 @@ void AmdorBatch::advanceBatch(const Scan s)
                     if(!isSibling)
                         p_currentNode->addChild(drId);
 
-                    //if the children list is now 3, OR we've done the last DR scan we can, go to next branch if possible
-                    if(p_currentNode->children.size() >= 3 || adv)
+                    //if the children list is now at limit, OR we've done the last DR scan we can, go to next branch if possible
+                    if(p_currentNode->children.size() >= d_maxChildren || adv)
                     {
                         if(nextTreeBranch())
                             useNodeIndices = true;
@@ -581,7 +631,7 @@ void AmdorBatch::advanceBatch(const Scan s)
                 d_currentFtIndex = p_currentNode->freqIndex;
                 d_currentDrIndex = p_currentNode->freqIndex;
             }
-            else if(adv && d_hasCal)
+            else if(adv && d_hasCal && d_scansSinceCal >= 20)
             {
                 //May as well do a calibration scan here if we're done with a tree or done with a frequency
                 d_calIsNext = true;
@@ -708,6 +758,11 @@ bool AmdorBatch::nextTreeBranch()
     for(int i=0; i<p_currentNode->children.size(); i++)
     {
         int id = p_currentNode->children.at(i)->freqIndex;
+
+        //no tests are possible on DR only scans
+        if(id > d_completedMatrix.size())
+            continue;
+
         if(!d_completedMatrix.at(id).at(id+1))
         {
             p_currentNode = p_currentNode->children.at(i);

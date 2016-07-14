@@ -9,7 +9,7 @@ class AmdorBatch : public BatchManager
 {
     Q_OBJECT
 public:
-    AmdorBatch(QList<QPair<Scan,bool>> templateList, QList<QPair<double,double>> drOnlyList, double threshold, double fw, AbstractFitter *ftr);
+    AmdorBatch(QList<QPair<Scan,bool>> templateList, QList<QPair<double,double>> drOnlyList, double threshold, double fw, double exc, int maxChildren, AbstractFitter *ftr);
     AmdorBatch(int num, AbstractFitter *ftr);
     ~AmdorBatch();
 
@@ -49,11 +49,14 @@ private:
     double d_currentRefInt;
     double d_threshold;
     double d_frequencyWindow;
+    double d_excludeRange;
+    int d_maxChildren;
     Scan d_lastScan;
     Scan d_calScanTemplate;
 
     bool d_hasCal;
     bool d_calIsNext;
+    int d_scansSinceCal;
     bool d_currentScanIsRef;
     bool d_currentScanIsVerification;
     AmdorNode *p_currentNode;
