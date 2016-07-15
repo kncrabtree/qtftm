@@ -372,12 +372,20 @@ void AbstractBatchPlot::filterData()
 
     }
 
-    if(d_plotCurveData.size() < 2*canvas()->width())
-        return;
 
     for(int i=0; i<d_plotCurveData.size(); i++)
     {
+
         QVector<QPointF> d = d_plotCurveData.at(i);
+        if(d.isEmpty())
+            continue;
+
+        if(d.size() < 2*canvas()->width())
+        {
+            d_plotCurves[i]->setSamples(d);
+            continue;
+        }
+
         int firstPixel = 0;
         int lastPixel = canvas()->width();
         int pixelIncr = 1;
@@ -394,11 +402,14 @@ void AbstractBatchPlot::filterData()
 
         //find first data point that is in the range of the plot
         int dataIndex = 0;
-        while(dataIndex+1 < d_plotCurveData.first().size())
+        while(dataIndex+1 < d.size())
         {
-            if(pixelIncr > 0 && map.transform(d_plotCurveData.first().at(dataIndex).x() < static_cast<double>(firstPixel)))
-                break;
-            else if(map.transform(d_plotCurveData.first().at(dataIndex).x() > static_cast<double>(firstPixel)))
+            if(pixelIncr > 0)
+            {
+                if(map.transform(d.at(dataIndex).x()) > static_cast<double>(firstPixel))
+                    break;
+            }
+            else if(map.transform(d.at(dataIndex).x()) < static_cast<double>(firstPixel))
                 break;
 
             dataIndex++;
@@ -421,9 +432,12 @@ void AbstractBatchPlot::filterData()
 
             while(dataIndex+1 < d.size())
             {
-                if(pixelIncr > 0 && map.transform(d_plotCurveData.first().at(dataIndex).x() < pixel+1.0))
-                    break;
-                else if(map.transform(d_plotCurveData.first().at(dataIndex).x() > pixel-1.0))
+                if(pixelIncr > 0)
+                {
+                    if(map.transform(d.at(dataIndex).x()) > pixel+1.0)
+                        break;
+                }
+                else if(map.transform(d.at(dataIndex).x()) < pixel-1.0)
                     break;
 
                 if(d.at(dataIndex).y() < min)
