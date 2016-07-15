@@ -104,6 +104,21 @@ LoadBatchDialog::LoadBatchDialog(QWidget *parent) :
 	    ui->catButton->setCheckable(false);
     }
 
+    int amdorMax = s.value(QString("amdorNum"),0).toInt()-1;
+    if(amdorMax > 0)
+    {
+        ui->amdorSpinBox->setSpecialValueText(QString(""));
+        ui->amdorSpinBox->setRange(1,amdorMax);
+        ui->amdorSpinBox->setValue(amdorMax);
+    }
+    else
+    {
+        ui->amdorSpinBox->setRange(0,0);
+        ui->amdorSpinBox->setValue(0);
+        ui->amdorButton->setChecked(false);
+        ui->amdorButton->setCheckable(false);
+    }
+
     if(ui->surveyButton->isChecked())
         ui->surveySpinBox->setEnabled(true);
     else
@@ -134,6 +149,11 @@ LoadBatchDialog::LoadBatchDialog(QWidget *parent) :
     else
 	    ui->catSpinBox->setEnabled(false);
 
+    if(ui->amdorButton->isChecked())
+        ui->amdorSpinBox->setEnabled(true);
+    else
+        ui->amdorSpinBox->setEnabled(false);
+
 
     connect(ui->surveyButton,&QAbstractButton::toggled,ui->surveySpinBox,&QWidget::setEnabled);
     connect(ui->drScanButton,&QAbstractButton::toggled,ui->drScanSpinBox,&QWidget::setEnabled);
@@ -141,6 +161,7 @@ LoadBatchDialog::LoadBatchDialog(QWidget *parent) :
     connect(ui->attenuationButton,&QAbstractButton::toggled,ui->attenuationSpinBox,&QWidget::setEnabled);
     connect(ui->drCorrButton,&QAbstractButton::toggled,ui->drCorrSpinBox,&QWidget::setEnabled);
     connect(ui->catButton,&QAbstractButton::toggled,ui->catSpinBox,&QWidget::setEnabled);
+    connect(ui->amdorButton,&QAbstractButton::toggled,ui->amdorSpinBox,&QWidget::setEnabled);
 
     ui->afw->setAutofitEnabled(false);
 
@@ -184,6 +205,11 @@ QPair<QtFTM::BatchType, int> LoadBatchDialog::selection() const
     {
 	    out.first = QtFTM::Categorize;
 	    out.second = ui->catSpinBox->value();
+    }
+    else if(ui->amdorButton->isChecked())
+    {
+        out.first = QtFTM::Amdor;
+        out.second = ui->amdorSpinBox->value();
     }
 
     return out;

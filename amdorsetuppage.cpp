@@ -23,13 +23,16 @@ AmdorSetupPage::AmdorSetupPage(SingleScanWidget *ssw, QWidget *parent) : QWizard
     QHBoxLayout *hl = new QHBoxLayout(this);
 
     p_bw = new BatchWidget(ssw,QtFTM::Amdor,this);
+    p_bw->disableCalibration();
     connect(p_bw,&BatchWidget::scansChanged,this,&QWizardPage::completeChanged);
 
-    hl->addWidget(p_bw,3);
+    hl->addWidget(p_bw,4);
 
     p_table = new QTableView(this);
     p_table->setAlternatingRowColors(true);
+    p_table->setFont(QFont(QString("sans-serif"),8));
     p_model = new AmdorDrOnlyModel(this);
+    p_table->setModel(p_model);
 
     connect(p_bw,&BatchWidget::amdorDrOnly,p_model,&AmdorDrOnlyModel::addEntry);
     connect(this,&AmdorSetupPage::drOnly,p_bw,&BatchWidget::setDrOnlyList);
@@ -37,7 +40,8 @@ AmdorSetupPage::AmdorSetupPage(SingleScanWidget *ssw, QWidget *parent) : QWizard
     connect(p_table->selectionModel(),&QItemSelectionModel::selectionChanged,this,&AmdorSetupPage::configureButtons);
     connect(p_model,&AmdorDrOnlyModel::modelChanged,this,&AmdorSetupPage::configureButtons);
 
-    p_table->setModel(p_model);
+    p_table->resizeColumnsToContents();
+
 
     p_addButton = new QPushButton(QString("Add..."),this);
     connect(p_addButton,&QPushButton::clicked,[=](){ newEntryPopup(); });
@@ -57,10 +61,11 @@ AmdorSetupPage::AmdorSetupPage(SingleScanWidget *ssw, QWidget *parent) : QWizard
     hbl->addWidget(p_removeButton,0,Qt::AlignCenter);
 
     QVBoxLayout *vl = new QVBoxLayout();
+    vl->addWidget(new QLabel(QString("DR Only Tests"),this),0,Qt::AlignHCenter);
     vl->addWidget(p_table,1);
-    vl->addLayout(hl,0);
+    vl->addLayout(hbl,0);
 
-    hl->addLayout(vl,2);
+    hl->addLayout(vl,1);
 
     setLayout(hl);
 }

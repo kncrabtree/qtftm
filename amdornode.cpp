@@ -2,6 +2,7 @@
 
 AmdorNode::AmdorNode(int id, AmdorNode *_parent) : freqIndex(id), parent(_parent)
 {
+    parentIndex = 0;
 }
 
 AmdorNode::~AmdorNode()
@@ -68,7 +69,7 @@ bool AmdorNode::_tryAddChildInternal(int ftId, int drId)
 
 bool AmdorNode::isRootNode()
 {
-    return !(parent == nullptr);
+    return parent == nullptr;
 }
 
 AmdorNode *AmdorNode::rootNode()

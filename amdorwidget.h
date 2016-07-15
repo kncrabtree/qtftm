@@ -18,6 +18,8 @@ public:
     explicit AmdorWidget(AmdorData ad, QWidget *parent = 0);
     ~AmdorWidget();
 
+    void livePlotting(bool en);
+
 public slots:
     void configureButtons();
     void enableEditing(bool en);
@@ -32,6 +34,7 @@ private:
     QSortFilterProxyModel *p_proxyModel;
 
     bool d_editingPossible;
+    bool d_livePlot;
 };
 
 #endif // AMDORWIDGET_H

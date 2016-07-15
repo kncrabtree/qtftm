@@ -19,7 +19,6 @@ AmdorBatch::AmdorBatch(QList<QPair<Scan, bool> > templateList, QList<QPair<doubl
         if(templateList.at(i).second)
         {
             d_hasCal = true;
-            d_calIsNext = true;
             d_calScanTemplate = templateList.at(i).first;
             continue;
         }
@@ -41,10 +40,10 @@ AmdorBatch::AmdorBatch(QList<QPair<Scan, bool> > templateList, QList<QPair<doubl
 
 
             Scan thisScan = si;
+            PulseGenConfig pg = thisScan.pulseConfiguration();
             if(d_currentDrIndex == d_currentFtIndex)
             {
                 //this is a reference scan; disable DR
-                PulseGenConfig pg = thisScan.pulseConfiguration();
                 pg.setDrEnabled(false);
                 thisScan.setPulseConfiguration(pg);
             }
@@ -52,11 +51,13 @@ AmdorBatch::AmdorBatch(QList<QPair<Scan, bool> > templateList, QList<QPair<doubl
             {
                 //switch ft and dr frequencies; use number of shots from weaker scan
                 thisScan = sj;
+                pg.setDrEnabled(true);
                 thisScan.setDrFreq(si.ftFreq());
                 thisScan.setDrPower(si.drPower());
             }
             else
             {
+                pg.setDrEnabled(true);
                 thisScan.setDrFreq(sj.ftFreq());
                 thisScan.setDrPower(sj.drPower());
                 totalTests++;
@@ -83,8 +84,11 @@ AmdorBatch::AmdorBatch(QList<QPair<Scan, bool> > templateList, QList<QPair<doubl
         {
 
             Scan si = templateList.at(i).first;
-            si.setDrFreq(drOnlyList.at(i).first);
-            si.setDrPower(drOnlyList.at(i).second);
+            si.setDrFreq(drOnlyList.at(j).first);
+            si.setDrPower(drOnlyList.at(j).second);
+            PulseGenConfig pg = si.pulseConfiguration();
+            pg.setDrEnabled(true);
+            si.setPulseConfiguration(pg);
             sList.append(si);
 
             if(qAbs(si.ftFreq() - si.drFreq()) < d_excludeRange)
@@ -110,7 +114,10 @@ AmdorBatch::AmdorBatch(QList<QPair<Scan, bool> > templateList, QList<QPair<doubl
     d_currentFtIndex = 0;
     d_currentDrIndex = 0;
     if(d_hasCal)
+    {
+        d_calIsNext = true;
         totalTests++;
+    }
     d_totalShots = totalTests;
 }
 
@@ -294,6 +301,12 @@ double AmdorBatch::matchThreshold()
 
 void AmdorBatch::writeReport()
 {
+    if(d_saveData.isEmpty())
+    {
+        emit logMessage(QString("Did not create AMDOR report because no scans were completed."),QtFTM::LogWarning);
+        return;
+    }
+
     //figure out where to save the data
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
     int batchNum = s.value(d_numKey,1).toInt();
@@ -353,13 +366,17 @@ void AmdorBatch::writeReport()
     {
         const AmdorSaveData &sd = d_saveData.at(i);
         t << nl << sd.scanNum;
-        t << tab << (sd.isCal ? 0 : 1);
-        t << tab << (sd.isRef ? 0 : 1);
-        t << tab << (sd.isValidation ? 0 : 1);
+        t << tab << (sd.isCal ? 1 : 0);
+        t << tab << (sd.isRef ? 1 : 0);
+        t << tab << (sd.isValidation ? 1 : 0);
         t << tab << sd.ftId;
         t << tab << sd.drId;
         t << tab << sd.intensity;
     }
+
+    s.setValue(d_numKey,batchNum+1);
+    s.sync();
+
 }
 
 void AmdorBatch::advanceBatch(const Scan s)
@@ -402,6 +419,17 @@ void AmdorBatch::advanceBatch(const Scan s)
         }
     }
 
+    AmdorSaveData sd;
+    sd.scanNum = s.number();
+    sd.ftId = d_currentFtIndex;
+    sd.drId = d_currentDrIndex;
+    sd.intensity = intensity;
+    sd.isCal = d_thisScanIsCal;
+    sd.isRef = d_currentScanIsRef;
+    sd.isValidation = d_currentScanIsVerification;
+
+    d_saveData.append(sd);
+
     /****************************************
      * INFORMATION FOR BATCH PLOT
      * **************************************/
@@ -416,10 +444,12 @@ void AmdorBatch::advanceBatch(const Scan s)
         for(int i=0; i<ft.size(); i++) // make the x range go from num - 0.45 to num + 0.45
             d_drData.append(QPointF(num - ((double)ft.size()/2.0 - (double)i)/(double)ft.size()*0.9,ft.at(i).y()));
         d_drData.append(QPointF(num - ((double)ft.size()/2.0 - (double)ft.size())/(double)ft.size()*0.9,0.0));
-        t << QString("CAL\n");
     }
     else
+    {
+        t << QString("CAL\n");
         d_calData.append(QPointF(num,intensity));
+    }
 
     //show ftm frequency and attenuation
     t << QString("ftm:") << QString::number(s.ftFreq(),'f',1) << QString("/") << s.attenuation();
@@ -511,7 +541,10 @@ void AmdorBatch::advanceBatch(const Scan s)
         for(int i=d_currentFtIndex+1; i<d_completedMatrix.at(d_currentFtIndex).size(); i++)
         {
             if(!d_completedMatrix.at(d_currentFtIndex).at(i))
+            {
                 d_currentDrIndex = i;
+                break;
+            }
         }
     }
     else
@@ -623,19 +656,19 @@ void AmdorBatch::advanceBatch(const Scan s)
             }
 
             //if oldTree is true, then we just proceed as usual; not bothering to explore new subtree
+        }
             //at this point, is we're using node indices, we set them to the appropriate values for
             //the current node. Otherwise, we just use the indices set by incrementIndices
-            if(useNodeIndices)
-            {
-                //we will need to first do a reference scan
-                d_currentFtIndex = p_currentNode->freqIndex;
-                d_currentDrIndex = p_currentNode->freqIndex;
-            }
-            else if(adv && d_hasCal && d_scansSinceCal >= 20)
-            {
-                //May as well do a calibration scan here if we're done with a tree or done with a frequency
-                d_calIsNext = true;
-            }
+        if(useNodeIndices)
+        {
+            //we will need to first do a reference scan
+            d_currentFtIndex = p_currentNode->freqIndex;
+            d_currentDrIndex = p_currentNode->freqIndex;
+        }
+        else if(adv && d_hasCal && d_scansSinceCal >= 20)
+        {
+            //May as well do a calibration scan here if we're done with a tree or done with a frequency
+            d_calIsNext = true;
         }
     }
 
@@ -670,7 +703,7 @@ Scan AmdorBatch::prepareNextScan()
     }
     else
     {
-        d_currentScanIsRef = true;
+        d_currentScanIsRef = false;
         d_currentScanIsVerification = false;
         if(qAbs(d_lastScan.ftFreq() - out.ftFreq()) < 0.1)
             out.setSkiptune(true);
@@ -682,7 +715,7 @@ bool AmdorBatch::isBatchComplete()
 {
     for(int i=0; i<d_completedMatrix.size(); i++)
     {
-        for(int j=i+1; i<d_completedMatrix.at(i).size(); j++)
+        for(int j=i+1; j<d_completedMatrix.at(i).size(); j++)
         {
             if(!d_completedMatrix.at(i).at(j))
                 return false;
@@ -706,7 +739,7 @@ bool AmdorBatch::incrementIndices()
     //It returns true if the ft index changes
     for(int j=d_currentFtIndex; j < d_completedMatrix.size(); j++)
     {
-        for(int i=d_currentDrIndex+1; i<d_completedMatrix.at(d_currentFtIndex).size(); i++)
+        for(int i=j+1; i<d_completedMatrix.at(d_currentFtIndex).size(); i++)
         {
             if(!d_completedMatrix.at(j).at(i))
             {
@@ -729,7 +762,7 @@ bool AmdorBatch::incrementIndices()
     //if we've made it here, then we need to search from the beginning
     for(int j = 0; j<d_currentFtIndex; j++)
     {
-        for(int i=0; i<d_completedMatrix.at(d_currentFtIndex).size(); i++)
+        for(int i=j+1; i<d_completedMatrix.at(d_currentFtIndex).size(); i++)
         {
             if(!d_completedMatrix.at(j).at(i))
             {

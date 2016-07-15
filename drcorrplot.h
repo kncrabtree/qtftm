@@ -7,7 +7,7 @@ class DrCorrPlot : public AbstractBatchPlot
 {
 	Q_OBJECT
 public:
-	explicit DrCorrPlot(int num, QWidget *parent = nullptr);
+    explicit DrCorrPlot(int num, QtFTM::BatchType t, QWidget *parent = nullptr);
 	~DrCorrPlot();
 
 	struct DrCorrPrintGraph {

@@ -1,30 +1,34 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+
+#include <QTimer>
+#include <QSettings>
+#include <QGraphicsObject>
+#include <QMessageBox>
+#include <QFileDialog>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QWidgetAction>
+
 #include "scan.h"
 #include "singlescandialog.h"
 #include "singlescanwidget.h"
-#include <QTimer>
-#include <QSettings>
 #include "batchsingle.h"
 #include "batchsurvey.h"
 #include "batchdr.h"
+#include "amdorbatch.h"
 #include "batch.h"
 #include "batchwizard.h"
-#include <QGraphicsObject>
 #include "communicationdialog.h"
 #include "settingsdialog.h"
 #include "ftsynthsettingswidget.h"
 #include "drsynthsettingswidget.h"
 #include "ioboardconfigdialog.h"
-#include <QMessageBox>
-#include <QFileDialog>
 #include "loadbatchdialog.h"
 #include "batchviewwidget.h"
 #include "batchattenuation.h"
-#include <QDialog>
-#include <QDialogButtonBox>
 #include "lorentziandopplerlmsfitter.h"
-#include <QWidgetAction>
+#include "amdorwidget.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent), ui(new Ui::MainWindow), d_hardwareConnected(false), d_logCount(0), d_logIcon(QtFTM::LogNormal)
@@ -32,6 +36,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	//build UI and make trivial connections
 	ui->setupUi(this);
+
+    p_amdorWidget = nullptr;
 
 	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
 	ui->rollingAvgsSpinBox->setValue(s.value(QString("peakUpAvgs"),20).toInt());
@@ -121,7 +127,7 @@ MainWindow::MainWindow(QWidget *parent) :
 			if(d_logCount > 0)
 			{
 				d_logCount = 0;
-				ui->tabWidget->setTabText(ui->tabWidget->count()-1,QString("Log"));
+                ui->tabWidget->setTabText(ui->tabWidget->indexOf(ui->logTab),QString("Log"));
 			}
 		}
 	});
@@ -156,7 +162,7 @@ MainWindow::MainWindow(QWidget *parent) :
 		if(ui->tabWidget->currentIndex() != ui->tabWidget->count()-1)
 		{
 			d_logCount++;
-			ui->tabWidget->setTabText(ui->tabWidget->count()-1,QString("Log (%1)").arg(d_logCount));
+            ui->tabWidget->setTabText(ui->tabWidget->indexOf(ui->logTab),QString("Log (%1)").arg(d_logCount));
 		}
 	});
 	connect(lh,&LogHandler::sendStatusMessage,statusLabel,&QLabel::setText);
@@ -1137,30 +1143,30 @@ void MainWindow::attnTableBatchComplete(bool aborted)
 
 void MainWindow::setLogIcon(QtFTM::LogMessageCode c)
 {
-	if(ui->tabWidget->currentIndex() != ui->tabWidget->count()-1)
+    if(ui->tabWidget->currentIndex() != ui->tabWidget->indexOf(ui->logTab))
 	{
 		switch(c) {
 		case QtFTM::LogWarning:
 			if(d_logIcon != QtFTM::LogError)
 			{
-				ui->tabWidget->setTabIcon(ui->tabWidget->count()-1,QIcon(QString(":/icons/warning.png")));
+                ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(ui->logTab),QIcon(QString(":/icons/warning.png")));
 				d_logIcon = c;
 			}
 			break;
 		case QtFTM::LogError:
-			ui->tabWidget->setTabIcon(ui->tabWidget->count()-1,QIcon(QString(":/icons/error.png")));
+            ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(ui->logTab),QIcon(QString(":/icons/error.png")));
 			d_logIcon = c;
 			break;
 		default:
 			d_logIcon = c;
-			ui->tabWidget->setTabIcon(ui->tabWidget->count()-1,QIcon());
+            ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(ui->logTab),QIcon());
 			break;
 		}
 	}
 	else
 	{
 		d_logIcon = QtFTM::LogNormal;
-		ui->tabWidget->setTabIcon(ui->tabWidget->count()-1,QIcon());
+        ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(ui->logTab),QIcon());
 	}
 }
 
@@ -1201,7 +1207,17 @@ void MainWindow::dcVoltageUpdate(int v)
 }
 
 void MainWindow::startBatchManager(BatchManager *bm)
-{
+{    
+    if(bm->type() != QtFTM::SingleScan)
+    {
+        if(ui->batchSplitter->sizes().at(1) == 0)
+        {
+            QList<int> sizes(ui->batchSplitter->sizes());
+            sizes[0]-=250;
+            sizes[1]+=250;
+            ui->batchSplitter->setSizes(sizes);
+        }
+    }
 	QByteArray state = ui->batchPlotSplitter->saveState();
 	delete ui->batchPlot;
 
@@ -1218,10 +1234,10 @@ void MainWindow::startBatchManager(BatchManager *bm)
 			plot = new DrPlot(bm->number());
 		else if(bm->type() == QtFTM::Survey)
 			plot = new SurveyPlot(bm->number());
-		else if(bm->type() == QtFTM::DrCorrelation)
-			plot = new DrCorrPlot(bm->number());
-		else if(bm->type() == QtFTM::Categorize)
-			plot = new CategoryPlot(bm->number());
+        else if(bm->type() == QtFTM::DrCorrelation || bm->type() == QtFTM::Amdor)
+            plot = new DrCorrPlot(bm->number(),bm->type());
+        else if(bm->type() == QtFTM::Categorize)
+            plot = new CategoryPlot(bm->number());
 
 		connect(plot,&AbstractBatchPlot::requestScan,ui->analysisWidget,&AnalysisWidget::loadScan);
 		connect(ui->analysisWidget,&AnalysisWidget::scanChanged,plot,&AbstractBatchPlot::setSelectedZone);
@@ -1258,7 +1274,7 @@ void MainWindow::startBatchManager(BatchManager *bm)
 	}
 	else
 	{
-        if(bm->type() == QtFTM::Categorize)
+        if(bm->type() == QtFTM::Categorize || bm->type() == QtFTM::Amdor)
             connect(bm,&BatchManager::advanced,this,&MainWindow::updateBatchProgressBar,Qt::UniqueConnection);
         else
             connect(sm,&ScanManager::scanShotAcquired,this,&MainWindow::updateBatchProgressBar,Qt::UniqueConnection);
@@ -1272,16 +1288,7 @@ void MainWindow::startBatchManager(BatchManager *bm)
     //Don't clear peak list widget!
 //    ui->peakListWidget->clearAll();
 
-	if(bm->type() != QtFTM::SingleScan)
-	{
-		if(ui->batchSplitter->sizes().at(1) == 0)
-		{
-			QList<int> sizes(ui->batchSplitter->sizes());
-			sizes[0]-=250;
-			sizes[1]+=250;
-			ui->batchSplitter->setSizes(sizes);
-		}
-	}
+
 
 	ui->analysisWidget->plot()->clearRanges();
 
@@ -1292,6 +1299,25 @@ void MainWindow::startBatchManager(BatchManager *bm)
 		ui->analysisWidget->plot()->attachIntegrationRanges(ranges);
 		connect(batchThread,&QThread::finished,ui->acqFtPlot,&FtPlot::clearRanges);
 	}
+
+    //configure/hide AMDOR widget
+    if(p_amdorWidget != nullptr)
+    {
+        p_amdorWidget->deleteLater();
+        p_amdorWidget = nullptr;
+        ui->tabWidget->removeTab(ui->tabWidget->count()-1);
+    }
+    if(bm->type() == QtFTM::Amdor)
+    {
+        AmdorBatch *ab = static_cast<AmdorBatch*>(bm);
+        p_amdorWidget = new AmdorWidget(AmdorData(ab->allFrequencies(),ab->matchThreshold()),this);
+        p_amdorWidget->enableEditing(false);
+        connect(ab,&AmdorBatch::newRefScan,p_amdorWidget,&AmdorWidget::newRefScan);
+        connect(ab,&AmdorBatch::newDrScan,p_amdorWidget,&AmdorWidget::newDrScan);
+
+        ui->tabWidget->addTab(p_amdorWidget,QIcon(QString(":/icons/amdor.png")),QString("AMDOR"));
+    }
+
 
     connect(batchThread,&QThread::started,bm,&BatchManager::beginBatch);
     if(bm->sleepWhenComplete())

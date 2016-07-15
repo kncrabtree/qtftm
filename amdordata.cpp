@@ -501,10 +501,10 @@ int AmdorData::column(AmdorColumn c) const
         return 0;
         break;
     case RefScanNum:
-        return 1;
+        return 2;
         break;
     case DrScanNum:
-        return 2;
+        return 1;
         break;
     case FtFreq:
         return 3;

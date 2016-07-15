@@ -69,7 +69,7 @@ BatchWizard::BatchWizard(SingleScanWidget *w, AutoFitWidget *a, QWidget *parent)
     AmdorConfigPage *acp = new AmdorConfigPage(p_afw,this);
     connect(acp,&AmdorConfigPage::fitter,this,&BatchWizard::setFitter);
 
-    CalSetupPage *acsp = new CalSetupPage(p_ssw,Page_AmdorConfig,this);
+    CalSetupPage *acsp = new CalSetupPage(p_ssw,Page_AmdorSetup,this);
     connect(acsp,&CalSetupPage::calScan,this,&BatchWizard::setCalTemplate);
 
     AmdorSetupPage *asp = new AmdorSetupPage(p_ssw,this);
@@ -94,6 +94,7 @@ BatchWizard::BatchWizard(SingleScanWidget *w, AutoFitWidget *a, QWidget *parent)
 	setPage(Page_BatchSetup, bsp);
     setPage(Page_AmdorConfig,acp);
     setPage(Page_AmdorCalSetup,acsp);
+    setPage(Page_AmdorSetup,asp);
 
 	setGeometry(parent->width()/2-350,parent->height()/2-300,700,600);
 

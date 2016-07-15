@@ -27,6 +27,7 @@ void AmdorPlot::setPlotRange(double min, double max)
     //add an extra GHz on either side to be safe
     setAxisAutoScaleRange(QwtPlot::yLeft,min-1000.0,max+1000.0);
     setAxisAutoScaleRange(QwtPlot::xBottom,min-1000.0,max+1000.0);
+    replot();
 }
 
 void AmdorPlot::updateData(QList<QVector<QPointF>> l)
@@ -37,7 +38,7 @@ void AmdorPlot::updateData(QList<QVector<QPointF>> l)
     for(int i=0; i<l.size(); i++)
     {
         s.setArrayIndex(i);
-        while(d_curves.size() <= i)
+        while(d_curves.size() <= i+1)
         {
             QwtPlotCurve *c = new QwtPlotCurve(QString("Set %1"));
             if(i == 0)
@@ -51,6 +52,7 @@ void AmdorPlot::updateData(QList<QVector<QPointF>> l)
 
             QwtSymbol *sym = new QwtSymbol(style);
             sym->setColor(color);
+            sym->setSize(5);
             c->setSymbol(sym);
 
             c->setLegendAttribute(QwtPlotCurve::LegendShowSymbol);
@@ -63,6 +65,8 @@ void AmdorPlot::updateData(QList<QVector<QPointF>> l)
     }
     s.endArray();
     s.endGroup();
+
+    replot();
 }
 
 

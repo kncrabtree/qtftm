@@ -108,7 +108,7 @@ QVariant AmdorDrOnlyModel::headerData(int section, Qt::Orientation orientation, 
         return QVariant();
 
     if(orientation == Qt::Vertical)
-        return section;
+        return section+1;
 
     switch(section)
     {

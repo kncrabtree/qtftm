@@ -3,7 +3,7 @@
 
 AmdorWidget::AmdorWidget(AmdorData ad, QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::AmdorWidget), d_editingPossible(false)
+    ui(new Ui::AmdorWidget), d_editingPossible(false), d_livePlot(true)
 {
     ui->setupUi(this);
 
@@ -16,6 +16,9 @@ AmdorWidget::AmdorWidget(AmdorData ad, QWidget *parent) :
     p_proxyModel->setSourceModel(p_amdorModel);
     ui->amdorDataTable->setModel(p_proxyModel);
 
+    connect(ui->amdorDataTable->selectionModel(),&QItemSelectionModel::selectionChanged,this,&AmdorWidget::updateFtPlots);
+
+
     QPair<double,double> r = ad.frequencyRange();
     ui->amdorPlot->setPlotRange(r.first,r.second);
 
@@ -25,6 +28,13 @@ AmdorWidget::AmdorWidget(AmdorData ad, QWidget *parent) :
 AmdorWidget::~AmdorWidget()
 {
     delete ui;
+}
+
+void AmdorWidget::livePlotting(bool en)
+{
+    d_livePlot = en;
+    if(d_livePlot)
+        ui->amdorPlot->updateData(p_amdorModel->graphData());
 }
 
 void AmdorWidget::configureButtons()
@@ -61,7 +71,8 @@ void AmdorWidget::newRefScan(int num, int id, double i)
 void AmdorWidget::newDrScan(int num, int id, double i)
 {
     p_amdorModel->addDrScan(num, id, i);
-    ui->amdorPlot->updateData(p_amdorModel->graphData());
+    if(d_livePlot)
+        ui->amdorPlot->updateData(p_amdorModel->graphData());
 }
 
 void AmdorWidget::updateFtPlots()

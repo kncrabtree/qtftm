@@ -3,11 +3,16 @@
 #include <qwt6/qwt_symbol.h>
 #include <qwt6/qwt_plot_renderer.h>
 
-DrCorrPlot::DrCorrPlot(int num, QWidget *parent) :
+DrCorrPlot::DrCorrPlot(int num, QtFTM::BatchType t, QWidget *parent) :
 	AbstractBatchPlot(QString("drCorrPlot"),parent)
 {
 	QFont labelFont(QString("sans serif"),8);
-	QwtText plotTitle(QString("DR Correlation %1").arg(num));
+    QString text;
+    if(t == QtFTM::DrCorrelation)
+        text = QString("DR Correlation %1").arg(num);
+    else
+        text = QString("AMDOR %1").arg(num);
+    QwtText plotTitle(text);
 	plotTitle.setFont(labelFont);
 
 	setTitle(plotTitle);

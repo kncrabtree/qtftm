@@ -169,30 +169,32 @@ void AnalysisWidget::loadScan(int num)
 
 void AnalysisWidget::showScan(Scan s)
 {
-	saveScanMetaData();
-	d_currentScan = s;
+    saveScanMetaData();
+    d_currentScan = s;
     d_currentBaseline = qMakePair(0.0,0.0);
     if(ui->analysisScanSpinBox->value() != d_currentScan.number())
     {
-	    ui->analysisScanSpinBox->blockSignals(true);
-	    ui->analysisScanSpinBox->setValue(d_currentScan.number());
-	    ui->analysisScanSpinBox->blockSignals(false);
+        ui->analysisScanSpinBox->blockSignals(true);
+        if(s.number() > ui->analysisScanSpinBox->maximum())
+            ui->analysisScanSpinBox->setMaximum(s.number());
+        ui->analysisScanSpinBox->setValue(d_currentScan.number());
+        ui->analysisScanSpinBox->blockSignals(false);
     }
     ui->analysisPlot->detachItems(QwtPlotItem::Rtti_PlotCurve,false);
     ui->analysisPlot->hideTraces();
 
-   if(d_currentScan.number()>0)
+    if(d_currentScan.number()>0)
     {
-	    ui->analysisPlot->newFid(d_currentScan.fid());
-	    emit canPrint(true);
-	    emit scanChanged(d_currentScan.number());
+        ui->analysisPlot->newFid(d_currentScan.fid());
+        emit canPrint(true);
+        emit scanChanged(d_currentScan.number());
     }
     else
     {
-	    ui->analysisPlot->hideTraces();
-	    emit canPrint(false);
+        ui->analysisPlot->hideTraces();
+        emit canPrint(false);
     }
-   loadScanMetaData();
+    loadScanMetaData();
 }
 
 void AnalysisWidget::print()

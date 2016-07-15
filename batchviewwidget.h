@@ -6,6 +6,8 @@
 #include "abstractbatchplot.h"
 #include <QThread>
 
+class AmdorWidget;
+
 namespace Ui {
 class BatchViewWidget;
 }
@@ -31,6 +33,8 @@ private:
     QtFTM::BatchType d_type;
     int d_firstScan;
     int d_lastScan;
+
+    AmdorWidget *p_amdorWidget;
 
 signals:
     void metaDataChanged(int);

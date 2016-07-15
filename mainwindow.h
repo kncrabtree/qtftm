@@ -20,6 +20,8 @@
 #include "drcorrplot.h"
 #include "categoryplot.h"
 
+class AmdorWidget;
+
 namespace Ui {
 class MainWindow;
 }
@@ -113,6 +115,7 @@ private:
 	ScanManager *sm;
 	HardwareManager *hwm;
 	LogHandler *lh;
+    AmdorWidget *p_amdorWidget;
 
 	QList<QPair<QLabel*,Led*>> d_ledList;
     QList<QLineEdit*> d_gasBoxes;

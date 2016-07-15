@@ -80,7 +80,6 @@ private:
     AutoFitWidget *p_afw;
     Scan d_scanTemplate;
     Scan d_calTemplate;
-	Scan d_drScan;
 	QList<QPair<double,double> > d_drRanges;
 	QList<BatchCategorize::CategoryTest> d_catTests;
 

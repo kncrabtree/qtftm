@@ -12,12 +12,15 @@
 #include "batchattnplot.h"
 #include "drcorrplot.h"
 #include "categoryplot.h"
+#include "amdorwidget.h"
+#include "amdorbatch.h"
 #include <QThread>
 
 BatchViewWidget::BatchViewWidget(QtFTM::BatchType type, int num, AbstractFitter *af, QWidget *parent) :
     QWidget(parent), ui(new Ui::BatchViewWidget), d_number(num), d_type(type)
 {
     ui->setupUi(this);
+    p_amdorWidget = nullptr;
 
     switch(d_type)
     {
@@ -34,7 +37,8 @@ BatchViewWidget::BatchViewWidget(QtFTM::BatchType type, int num, AbstractFitter 
         batchPlot = new BatchAttnPlot(d_number,this);
         break;
     case QtFTM::DrCorrelation:
-	    batchPlot = new DrCorrPlot(d_number,this);
+    case QtFTM::Amdor:
+        batchPlot = new DrCorrPlot(d_number,d_type,this);
 	    break;
     case QtFTM::Categorize:
 	    batchPlot = new CategoryPlot(d_number,this);
@@ -93,6 +97,7 @@ void BatchViewWidget::process()
     setCursor(Qt::BusyCursor);
 
     BatchManager *bm;
+    AmdorBatch *ab;
 
     switch(d_type)
     {
@@ -114,6 +119,21 @@ void BatchViewWidget::process()
     case QtFTM::Categorize:
         bm = new BatchCategorize(d_number,ui->afw->toFitter());
 	    break;
+    case QtFTM::Amdor:
+        if(p_amdorWidget != nullptr)
+        {
+            ui->tabWidget->removeTab(ui->tabWidget->count()-1);
+            p_amdorWidget->deleteLater();
+        }
+
+        ab = new AmdorBatch(d_number,ui->afw->toFitter());
+        bm = ab;
+        p_amdorWidget = new AmdorWidget(AmdorData(ab->allFrequencies(),ab->matchThreshold()),this);
+        ui->tabWidget->addTab(p_amdorWidget,QIcon(QString(":/icons/amdor.png")),QString("AMDOR"));
+        connect(ab,&AmdorBatch::newRefScan,p_amdorWidget,&AmdorWidget::newRefScan);
+        connect(ab,&AmdorBatch::newDrScan,p_amdorWidget,&AmdorWidget::newDrScan);
+        p_amdorWidget->livePlotting(false);
+        break;
     case QtFTM::SingleScan:
     default:
         ui->statusLabel->setText(QString("Somehow, an invalid batch type was selected. Please close and try again."));
@@ -172,7 +192,8 @@ void BatchViewWidget::process()
         batchPlot = new BatchAttnPlot(d_number,this);
         break;
     case QtFTM::DrCorrelation:
-	    batchPlot = new DrCorrPlot(d_number,this);
+    case QtFTM::Amdor:
+        batchPlot = new DrCorrPlot(d_number,d_type,this);
 	    break;
     case QtFTM::Categorize:
 	    batchPlot = new CategoryPlot(d_number,this);
@@ -227,6 +248,8 @@ void BatchViewWidget::processingComplete(bool failure)
         ui->analysisWidget->setPlotPad(ui->afw->zeroPad());
     }
 
+    if(p_amdorWidget != nullptr)
+        p_amdorWidget->livePlotting(true);
 
 
     batchPlot->enableReplotting();

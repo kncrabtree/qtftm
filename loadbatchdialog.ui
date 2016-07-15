@@ -166,6 +166,26 @@
        </property>
       </widget>
      </item>
+     <item row="6" column="0">
+      <widget class="QRadioButton" name="amdorButton">
+       <property name="text">
+        <string>AMDOR</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="1">
+      <widget class="QSpinBox" name="amdorSpinBox">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="specialValueText">
+        <string>None!</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
