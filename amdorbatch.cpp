@@ -45,7 +45,6 @@ AmdorBatch::AmdorBatch(QList<QPair<Scan, bool> > templateList, QList<QPair<doubl
             {
                 //this is a reference scan; disable DR
                 pg.setDrEnabled(false);
-                thisScan.setPulseConfiguration(pg);
             }
             else if(d_currentDrIndex < d_currentFtIndex)
             {
@@ -63,6 +62,7 @@ AmdorBatch::AmdorBatch(QList<QPair<Scan, bool> > templateList, QList<QPair<doubl
                 totalTests++;
             }
 
+            thisScan.setPulseConfiguration(pg);
             sList.append(thisScan);
 
             //if the two frequencies fall within exclude range, mark as complete to skip
@@ -148,7 +148,7 @@ AmdorBatch::AmdorBatch(int num, AbstractFitter *ftr) :
     {
         while(!in.atEnd())
         {
-            QByteArray line = in.readLine();
+            QByteArray line = in.readLine().trimmed();
             QByteArrayList l = line.split('\t');
             bool ok = false;
 
@@ -211,7 +211,10 @@ AmdorBatch::AmdorBatch(int num, AbstractFitter *ftr) :
         QList<bool> drOnly;
         while(!in.atEnd())
         {
-            QByteArray line = in.readLine();
+            QByteArray line = in.readLine().trimmed();
+            if(line.startsWith("amdor"))
+                break;
+
             QByteArrayList l = line.split('\t');
             bool ok = false;
             if(line.isEmpty() || l.size() < 2)
@@ -228,14 +231,12 @@ AmdorBatch::AmdorBatch(int num, AbstractFitter *ftr) :
             d_frequencies.append(f);
             drOnly.append(b);
 
-            if(line.startsWith("amdor"))
-                break;
         }
 
         //read in scan information
         while(!in.atEnd())
         {
-            QByteArray line = in.readLine();
+            QByteArray line = in.readLine().trimmed();
             QByteArrayList l = line.split('\t');
             bool ok = false;
             if(line.isEmpty() || l.size() < 7)
@@ -597,6 +598,8 @@ void AmdorBatch::advanceBatch(const Scan s)
             {
                 if(nextTreeBranch())
                     useNodeIndices = true;
+                else
+                    resumeFromBranch();
             }
 
         }
@@ -651,6 +654,8 @@ void AmdorBatch::advanceBatch(const Scan s)
                     {
                         if(nextTreeBranch())
                             useNodeIndices = true;
+                        else
+                            resumeFromBranch();
                     }
                 }
             }
@@ -793,7 +798,7 @@ bool AmdorBatch::nextTreeBranch()
         int id = p_currentNode->children.at(i)->freqIndex;
 
         //no tests are possible on DR only scans
-        if(id > d_completedMatrix.size())
+        if(id >= d_completedMatrix.size())
             continue;
 
         if(!d_completedMatrix.at(id).at(id+1))
@@ -816,4 +821,20 @@ bool AmdorBatch::nextTreeBranch()
     d_trees.append(p_currentNode);
     p_currentNode = nullptr;
     return false;
+}
+
+void AmdorBatch::resumeFromBranch()
+{
+    for(int i=0; i<d_completedMatrix.size(); i++)
+    {
+        for(int j=i+1; j<d_completedMatrix.size(); j++)
+        {
+            if(!d_completedMatrix.at(i).at(j))
+            {
+                //pick up where we originally branched off
+                d_currentFtIndex = i;
+                d_currentDrIndex = i;
+            }
+        }
+    }
 }

@@ -121,7 +121,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->analysisWidget,&AnalysisWidget::scanChanged,ui->peakListWidget,&PeakListWidget::selectScan);
     connect(ui->analysisWidget,&AnalysisWidget::peakAddRequested,ui->peakListWidget,&PeakListWidget::addUniqueLine);
 	connect(ui->tabWidget,&QTabWidget::currentChanged,[=](int i){
-		if(i == ui->tabWidget->count()-1)
+        if(i == ui->tabWidget->indexOf(ui->logTab))
 		{
 			setLogIcon(QtFTM::LogNormal);
 			if(d_logCount > 0)

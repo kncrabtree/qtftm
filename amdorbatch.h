@@ -68,6 +68,7 @@ private:
 
     bool incrementIndices();
     bool nextTreeBranch();
+    void resumeFromBranch();
 };
 
 #endif // AMDORBATCH_H
