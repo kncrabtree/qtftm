@@ -48,6 +48,7 @@ public:
 
     QList<QVector<QPointF>> graphData() const;
     QPair<double,double> frequencyRange() const;
+    bool exportAscii(const QList<int> sets, const QString savePath) const;
 
     //convenience interface for use with a QTableModel
     QVariant modelData(int row, int column, int role) const;

@@ -52,6 +52,8 @@ QVariant AmdorDrOnlyModel::data(const QModelIndex &index, int role) const
             break;
         }
     }
+    else if(role == Qt::TextAlignmentRole)
+        return Qt::AlignCenter;
 
     return QVariant();
 }

@@ -25,5 +25,6 @@
         <file>icons/remove-link.png</file>
         <file>icons/threshold.png</file>
         <file>icons/amdor.png</file>
+        <file>icons/export.png</file>
     </qresource>
 </RCC>

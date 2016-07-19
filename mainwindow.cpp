@@ -1310,7 +1310,7 @@ void MainWindow::startBatchManager(BatchManager *bm)
     if(bm->type() == QtFTM::Amdor)
     {
         AmdorBatch *ab = static_cast<AmdorBatch*>(bm);
-        p_amdorWidget = new AmdorWidget(AmdorData(ab->allFrequencies(),ab->matchThreshold()),this);
+        p_amdorWidget = new AmdorWidget(AmdorData(ab->allFrequencies(),ab->matchThreshold()),ab->number(),this);
         p_amdorWidget->enableEditing(false);
         connect(ab,&AmdorBatch::newRefScan,p_amdorWidget,&AmdorWidget::newRefScan);
         connect(ab,&AmdorBatch::newDrScan,p_amdorWidget,&AmdorWidget::newDrScan);

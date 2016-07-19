@@ -23,8 +23,6 @@ AmdorBatch::AmdorBatch(QList<QPair<Scan, bool> > templateList, QList<QPair<doubl
             continue;
         }
 
-        d_currentDrIndex = 0;
-
         QList<bool> cList;
         QList<Scan> sList;
         d_frequencies.append(templateList.at(i).first.ftFreq());
@@ -41,12 +39,12 @@ AmdorBatch::AmdorBatch(QList<QPair<Scan, bool> > templateList, QList<QPair<doubl
 
             Scan thisScan = si;
             PulseGenConfig pg = thisScan.pulseConfiguration();
-            if(d_currentDrIndex == d_currentFtIndex)
+            if(j == i)
             {
                 //this is a reference scan; disable DR
                 pg.setDrEnabled(false);
             }
-            else if(d_currentDrIndex < d_currentFtIndex)
+            else if(j < i)
             {
                 //switch ft and dr frequencies; use number of shots from weaker scan
                 thisScan = sj;
@@ -66,17 +64,15 @@ AmdorBatch::AmdorBatch(QList<QPair<Scan, bool> > templateList, QList<QPair<doubl
             sList.append(thisScan);
 
             //if the two frequencies fall within exclude range, mark as complete to skip
-            if(qAbs(thisScan.ftFreq() - thisScan.drFreq()) < d_excludeRange && d_currentDrIndex != d_currentFtIndex)
+            if(qAbs(thisScan.ftFreq() - thisScan.drFreq()) < d_excludeRange && i != j)
             {
                 cList.append(true);
-                if(d_currentDrIndex < d_currentFtIndex)
+                if(j > i)
                     totalTests--;
             }
             else
-            {
                 cList.append(false);
-                d_currentDrIndex++;
-            }
+
         }
 
         //add on DR only scans
@@ -98,10 +94,9 @@ AmdorBatch::AmdorBatch(QList<QPair<Scan, bool> > templateList, QList<QPair<doubl
                 cList.append(false);
                 totalTests++;
             }
-            d_currentDrIndex++;
+
         }
 
-        d_currentFtIndex++;
         d_completedMatrix.append(cList);
         d_scanMatrix.append(sList);
 
@@ -118,6 +113,7 @@ AmdorBatch::AmdorBatch(QList<QPair<Scan, bool> > templateList, QList<QPair<doubl
         d_calIsNext = true;
         totalTests++;
     }
+
     d_totalShots = totalTests;
 }
 
@@ -530,12 +526,9 @@ void AmdorBatch::advanceBatch(const Scan s)
     else if(d_currentScanIsRef)
     {
         emit newRefScan(s.number(),d_currentFtIndex,intensity);
-        //emit advance signal only if this ref was previously unmeasured
         if(!d_completedMatrix.at(d_currentFtIndex).at(d_currentDrIndex))
-        {
-            emit advanced();
             d_completedMatrix[d_currentFtIndex][d_currentDrIndex] = true;
-        }
+
         //find next undone DR scan for this FT frequency
         //if we are doing a ref scan, there must be at least one remaining DR test to perform.
         //find the next one
@@ -571,15 +564,18 @@ void AmdorBatch::advanceBatch(const Scan s)
         //for more linkages. First, sibling linkages are tested, then children are located.
         //This procedure only examines cases in which ftIndex > drIndex.
 
-        //The program is designed to find up to 3 children at each level before descending the tree.
+        //The program is designed to find up to d_maxChildren children at each level before descending the tree.
         //This is in an effort to balance time spent tuning the cavity against the speed at which
-        //a single network is explored. When 3 children are found, or when all other possibilities
-        //are exhausted, the program will descend the tree searching for up to 3 children at each level
+        //a single network is explored. When d_maxChildren children are found, or when all other possibilities
+        //are exhausted, the program will descend the tree searching for up to d_maxChildren children at each level
         //Once no children are found at a level, the program will exit the tree and continue where
         //it left off before beginning the tree traversal. As it goes from there, each new link it finds
         //will be tested against all known trees, and if it is linked to the tree, the program will just
         //continue. However, if the program finds a new linkage that does not belong to any known tree,
         //it will begin the traversal algorithm again.
+
+        //However, it is also possible to disable the tree traversal algorithm by setting d_maxChildren to 0.
+        //Then the program will simply perform a normal DR correlation; each frequency in turn.
 
 
         //if this is set to true, then the next scan will be determined from p_currentNode
@@ -646,24 +642,42 @@ void AmdorBatch::advanceBatch(const Scan s)
                 else
                 {
                     //this is a brand new linkage for a new tree
-                    p_currentNode = new AmdorNode(ftId);
-                    p_currentNode->addChild(drId);
-
-                    //move to child if we're out of DR scans
-                    if(adv)
+                    //special case: if d_maxChildren is 0, don't explore tree
+                    if(d_maxChildren > 0)
                     {
-                        if(nextTreeBranch())
-                            useNodeIndices = true;
-                        else
-                            resumeFromBranch();
+                        p_currentNode = new AmdorNode(ftId);
+                        p_currentNode->addChild(drId);
+                        //move to child if we're out of DR scans
+                        if(adv)
+                        {
+                            if(nextTreeBranch())
+                                useNodeIndices = true;
+                            else
+                                resumeFromBranch();
+                        }
                     }
+
+                    //if maxChildren is 0, then we will only use the indices
+                    //from incrementIndices()
+
                 }
             }
-
-            //if oldTree is true, then we just proceed as usual; not bothering to explore new subtree
+            else
+            {
+                //if oldTree is true, then the current tree we're exploring is linked
+                //to one we've already looked at. Ditch this tree and resume
+                //from the place we branched off from when we started it.
+                if(p_currentNode != nullptr)
+                {
+                    d_trees.append(p_currentNode);
+                    p_currentNode = nullptr;
+                    resumeFromBranch();
+                }
+            }
         }
-            //at this point, is we're using node indices, we set them to the appropriate values for
-            //the current node. Otherwise, we just use the indices set by incrementIndices
+
+        //at this point, is we're using node indices, we set them to the appropriate values for
+        //the current node. Otherwise, we just use the indices set by incrementIndices
         if(useNodeIndices)
         {
             //we will need to first do a reference scan
@@ -827,13 +841,14 @@ void AmdorBatch::resumeFromBranch()
 {
     for(int i=0; i<d_completedMatrix.size(); i++)
     {
-        for(int j=i+1; j<d_completedMatrix.size(); j++)
+        for(int j=i+1; j<d_completedMatrix.at(i).size(); j++)
         {
             if(!d_completedMatrix.at(i).at(j))
             {
                 //pick up where we originally branched off
                 d_currentFtIndex = i;
                 d_currentDrIndex = i;
+                return;
             }
         }
     }

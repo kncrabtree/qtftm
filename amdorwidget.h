@@ -15,7 +15,7 @@ class AmdorWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit AmdorWidget(AmdorData ad, QWidget *parent = 0);
+    explicit AmdorWidget(AmdorData ad, int num, QWidget *parent = 0);
     ~AmdorWidget();
 
     void livePlotting(bool en);
@@ -27,6 +27,10 @@ public slots:
     void newDrScan(int num, int id, double i);
     void updateFtPlots();
 
+    void addLinkage();
+    void removeLinkage();
+    void exportAscii();
+
 private:
     Ui::AmdorWidget *ui;
 
@@ -35,6 +39,7 @@ private:
 
     bool d_editingPossible;
     bool d_livePlot;
+    const int d_number;
 };
 
 #endif // AMDORWIDGET_H

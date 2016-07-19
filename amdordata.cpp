@@ -3,6 +3,8 @@
 #include <QPair>
 #include <QVector>
 #include <QSet>
+#include <QFile>
+#include <QTextStream>
 
 #include <boost/foreach.hpp>
 
@@ -59,7 +61,7 @@ void AmdorData::setMatchThreshold(const double t, bool recalculate)
                 continue;
 
             if(data->resultList.at(i).drInt < data->matchThreshold*data->resultList.at(i).refInt)
-                addLinkage(data->resultList.size()-1,false);
+                addLinkage(data->resultList.at(i).index,false);
             else
             {
                 data->resultList[i].set = 0;
@@ -141,11 +143,11 @@ void AmdorData::addLinkage(int scanIndex, bool checkUnlinked)
     }
 
     //if set is still data->sets.size(), then this linkage is not connected to any other known linkage, and we need to create a new set for it
+    data->resultList[scanIndex].set = set;
     if(set == data->sets.size())
     {
         QSet<int> newSet { scanIndex };
         data->sets.append(newSet);
-        data->resultList[scanIndex].set = set;
     }
     else
     {
@@ -211,6 +213,12 @@ void AmdorData::removeLinkage(int scanIndex)
     //pull link out of set and add it to the unlinked set
     data->sets[oldSet].remove(scanIndex);
     data->sets[0].insert(scanIndex);
+
+    if(data->sets.at(oldSet).isEmpty())
+    {
+        data->sets.removeAt(oldSet);
+        return;
+    }
 
     //Removing that link could potentially break the set into 2 separate groups
     //If so, we need to separate them out and reassign the set numbers
@@ -323,6 +331,41 @@ QPair<double, double> AmdorData::frequencyRange() const
     return out;
 }
 
+bool AmdorData::exportAscii(const QList<int> sets, const QString savePath) const
+{
+    QFile f(savePath);
+    if(!f.open(QIODevice::WriteOnly))
+        return false;
+
+    QTextStream t(&f);
+    t.setRealNumberNotation(QTextStream::FixedNotation);
+    t.setRealNumberPrecision(3);
+    QString tab("\t");
+    QString nl("\n");
+
+    for(int i=0; i<sets.size(); i++)
+    {
+        int setNum = sets.at(i);
+        QString setName = QString("#Set %1").arg(setNum);
+        if(setNum == 0)
+            setName = QString("#Unlinked");
+
+        t << setName;
+        for(int j=0; j<data->resultList.size(); j++)
+        {
+            if(data->resultList.at(j).set == setNum)
+            {
+                t << nl << data->allFrequencies.at(data->resultList.at(j).ftId);
+                t << tab << data->allFrequencies.at(data->resultList.at(j).drId);
+            }
+        }
+        t << nl << nl;
+    }
+    t.flush();
+    f.close();
+    return true;
+}
+
 QVariant AmdorData::modelData(int row, int column, int role) const
 {
     if(row < 0 || row >= numRows())
@@ -359,14 +402,7 @@ QVariant AmdorData::modelData(int row, int column, int role) const
             if(data->sets.at(0).contains(row))
                 return QString("Unlinked");
             else
-            {
-                for(int i=1; i<data->sets.size(); i++)
-                {
-                    if(data->sets.at(i).contains(row))
-                        return QString::number(i);
-                }
-            }
-            return QString("?");
+                return QString::number(data->resultList.at(row).set);
             break;
         default:
             return QVariant();
@@ -395,24 +431,14 @@ QVariant AmdorData::modelData(int row, int column, int role) const
                 return data->allFrequencies.at(data->resultList.at(row).drId);
             break;
         case 5:
-            if(data->resultList.at(row).isRef)
-                return -1;
-            if(data->sets.at(0).contains(row))
-                return 0;
-            else
-            {
-                for(int i=1; i<data->sets.size(); i++)
-                {
-                    if(data->sets.at(i).contains(row))
-                        return i;
-                }
-            }
-            return -2;
+            return data->resultList.at(row).set;
             break;
         default:
             return QVariant();
         }
     }
+    else if(role == Qt::TextAlignmentRole)
+        return Qt::AlignCenter;
 
     return QVariant();
 }

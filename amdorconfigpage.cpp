@@ -47,7 +47,8 @@ AmdorConfigPage::AmdorConfigPage(AutoFitWidget *afw, QWidget *parent) :
     QSpinBox *childrenBox = new QSpinBox(this);
     childrenBox->setRange(0,100);
     childrenBox->setSingleStep(1);
-    childrenBox->setToolTip(QString("Maximum number of DR linkages to a single transition before the program begins exploring the linkage network."));
+    childrenBox->setToolTip(QString("Maximum number of DR linkages to a single transition before the program begins exploring the linkage network.\nIf set to 0, no linkage networks will be explored; the scans will proceed in order like in DR correlation mode."));
+    childrenBox->setSpecialValueText(QString("N/A"));
 
     fl->addRow(QString("Max Linkages"),childrenBox);
 

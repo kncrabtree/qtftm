@@ -128,11 +128,12 @@ void BatchViewWidget::process()
 
         ab = new AmdorBatch(d_number,ui->afw->toFitter());
         bm = ab;
-        p_amdorWidget = new AmdorWidget(AmdorData(ab->allFrequencies(),ab->matchThreshold()),this);
+        p_amdorWidget = new AmdorWidget(AmdorData(ab->allFrequencies(),ab->matchThreshold()),d_number,this);
         ui->tabWidget->addTab(p_amdorWidget,QIcon(QString(":/icons/amdor.png")),QString("AMDOR"));
         connect(ab,&AmdorBatch::newRefScan,p_amdorWidget,&AmdorWidget::newRefScan);
         connect(ab,&AmdorBatch::newDrScan,p_amdorWidget,&AmdorWidget::newDrScan);
         p_amdorWidget->livePlotting(false);
+        p_amdorWidget->enableEditing(false);
         break;
     case QtFTM::SingleScan:
     default:
@@ -246,10 +247,14 @@ void BatchViewWidget::processingComplete(bool failure)
         ui->analysisWidget->setPlotExp(ui->afw->exp());
         ui->analysisWidget->setPlotRdc(ui->afw->removeDC());
         ui->analysisWidget->setPlotPad(ui->afw->zeroPad());
+
+        if(p_amdorWidget != nullptr)
+        {
+            p_amdorWidget->livePlotting(true);
+            p_amdorWidget->enableEditing(true);
+        }
     }
 
-    if(p_amdorWidget != nullptr)
-        p_amdorWidget->livePlotting(true);
 
 
     batchPlot->enableReplotting();

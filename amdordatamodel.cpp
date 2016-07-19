@@ -1,67 +1,78 @@
 #include "amdordatamodel.h"
 
-AmdorDataModel::AmdorDataModel(AmdorData ad, QObject *parent) : QAbstractTableModel(parent), amdorData(ad)
+AmdorDataModel::AmdorDataModel(AmdorData ad, QObject *parent) : QAbstractTableModel(parent), d_amdorData(ad)
 {
 
 }
 
 void AmdorDataModel::addRefScan(int num, int id, double i)
 {
-    beginInsertRows(QModelIndex(),amdorData.numRows(),amdorData.numRows());
-    amdorData.newRefScan(num,id,i);
+    beginInsertRows(QModelIndex(),d_amdorData.numRows(),d_amdorData.numRows());
+    d_amdorData.newRefScan(num,id,i);
     endInsertRows();
 }
 
 void AmdorDataModel::addDrScan(int num, int id, double i)
 {
-    beginInsertRows(QModelIndex(),amdorData.numRows(),amdorData.numRows());
-    amdorData.newDrScan(num,id,i);
+    beginInsertRows(QModelIndex(),d_amdorData.numRows(),d_amdorData.numRows());
+    d_amdorData.newDrScan(num,id,i);
     endInsertRows();
 }
 
 void AmdorDataModel::addLinkage(int scanIndex)
 {
-    amdorData.addLinkage(scanIndex,true);
-    emit dataChanged(index(scanIndex,5),index(scanIndex,5));
+    d_amdorData.addLinkage(scanIndex,true);
+    emit dataChanged(index(0,0),index(rowCount(QModelIndex())-1,columnCount(QModelIndex())-1));
 }
 
 void AmdorDataModel::removeLinkage(int scanIndex)
 {
-    amdorData.removeLinkage(scanIndex);
-    emit dataChanged(index(scanIndex,5),index(scanIndex,5));
+    d_amdorData.removeLinkage(scanIndex);
+    emit dataChanged(index(0,0),index(rowCount(QModelIndex())-1,columnCount(QModelIndex())-1));
 }
 
 QList<QVector<QPointF>> AmdorDataModel::graphData()
 {
-    return amdorData.graphData();
+    return d_amdorData.graphData();
 }
 
 int AmdorDataModel::column(AmdorData::AmdorColumn c) const
 {
-    return amdorData.column(c);
+    return d_amdorData.column(c);
+}
+
+bool AmdorDataModel::exportAscii(const QList<int> sets, const QString savePath)
+{
+    return d_amdorData.exportAscii(sets,savePath);
+}
+
+void AmdorDataModel::applyThreshold(double thresh)
+{
+    d_amdorData.setMatchThreshold(thresh,true);
+    emit dataChanged(index(0,0),index(rowCount(QModelIndex())-1,columnCount(QModelIndex())-1));
 }
 
 
 int AmdorDataModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent)
-    return amdorData.numRows();
+    return d_amdorData.numRows();
 }
 
 int AmdorDataModel::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent)
-    return amdorData.numColumns();
+    return d_amdorData.numColumns();
 }
 
 QVariant AmdorDataModel::data(const QModelIndex &index, int role) const
 {
-    return amdorData.modelData(index.row(),index.column(),role);
+    return d_amdorData.modelData(index.row(),index.column(),role);
 }
 
 QVariant AmdorDataModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    return amdorData.headerData(section,orientation,role);
+    return d_amdorData.headerData(section,orientation,role);
 }
 
 Qt::ItemFlags AmdorDataModel::flags(const QModelIndex &index) const
