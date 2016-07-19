@@ -4,6 +4,7 @@
 #include <QMessageBox>
 #include <QSettings>
 #include <QDesktopServices>
+#include <QProcessEnvironment>
 
 #ifdef Q_OS_UNIX
 #include <sys/stat.h>
@@ -22,12 +23,26 @@ int main(int argc, char *argv[])
 
 	//QSettings information
 	const QString appName = QString("QtFTM");
-	const QString lockFileName = QString("qtftm.lock");
-	const QString appDataPath = QString("/home/data");
+    const QString lockFileName = QString("lock_qtftm.lock");
+#ifdef Q_OS_MSDOS
+    QString appDataPath = QString("c:/data");
+#else
+    QString appDataPath = QString("/home/data");
+#endif
+
+    QProcessEnvironment se = QProcessEnvironment::systemEnvironment();
+    if(se.contains(QString("QTFTM_DATADIR")))
+    {
+        QString ad = se.value(QString("QTFTM_DATADIR"));
+        if(ad.endsWith(QChar('/')))
+            ad.chop(1);
+
+        appDataPath = ad;
+    }
 
 	QApplication::setApplicationName(appName);
-	QApplication::setOrganizationDomain(QString("cfa.harvard.edu"));
-	QApplication::setOrganizationName(QString("CfA Spectroscopy Lab"));
+    QApplication::setOrganizationDomain(QString("crabtreelab.ucdavis.edu"));
+    QApplication::setOrganizationName(QString("CrabtreeLab"));
 	QSettings::setPath(QSettings::NativeFormat,QSettings::SystemScope,appDataPath);
 	const QString lockFilePath = QString("%1/%2").arg(appDataPath).arg(QApplication::organizationName());
 
