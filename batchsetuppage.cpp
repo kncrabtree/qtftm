@@ -45,5 +45,10 @@ bool BatchSetupPage::validatePage()
 
 void BatchSetupPage::initializePage()
 {
-	bw->updateLabel();
+    bw->updateLabel();
+}
+
+int BatchSetupPage::nextId() const
+{
+    return -1;
 }

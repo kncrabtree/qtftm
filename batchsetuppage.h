@@ -14,6 +14,8 @@ public:
 	bool isComplete() const;
 	bool validatePage();
 	void initializePage();
+    int nextId() const;
+
 	
 signals:
 	void batchManager(BatchManager *bm);
@@ -22,7 +24,6 @@ public slots:
 
 private:
 	BatchWidget *bw;
-	
 };
 
 #endif // BATCHSETUPPAGE_H
