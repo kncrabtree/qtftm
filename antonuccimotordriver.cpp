@@ -226,7 +226,7 @@ void AntonucciMotorDriver::tune(double freq, int currentAttn, int mode)
 
         if(!success)
         {
-            d_lastTuneVoltage = -1;
+//            d_lastTuneVoltage = -1;
             //don't abort scan if fine tuning failed... just give a warning.
             if(!d_quiet)
                 emit logMessage(QString("Fine tuning unsuccessful! Frequency: %1 MHz, Mode %2, Position = %3.").arg(freq,0,'f',3).arg(modePair.second).arg(readPos()),QtFTM::LogWarning);
