@@ -2,6 +2,8 @@
 #define HARDWAREMANAGER_H
 
 #include <QObject>
+#include <QPair>
+
 #include "datastructs.h"
 #include "oscilloscope.h"
 #include "gpibcontroller.h"
@@ -466,6 +468,10 @@ public slots:
      */
 	double setDrSynthPwr(double p);
 
+    double readDrFrequency();
+
+    double readDrPower();
+
     /*!
      * \brief Sets the IO Board's cw line for tuning more
      * \param cw Whether tuning mode is enabled
@@ -620,6 +626,8 @@ private:
     bool d_waitingForCalibration;
     PulseGenConfig d_tuningOldPulseConfig;
     int d_tuningOldA;
+    QPair<double,double> d_tuningOldDr;
+
 
     QList<QPair<HardwareObject*,QThread*>> d_hardwareList;
 	void checkStatus();

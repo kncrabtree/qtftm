@@ -538,7 +538,31 @@ double HardwareManager::setDrSynthPwr(double p)
 		double out = 0.0;
 		QMetaObject::invokeMethod(p_drSynth,"setPower",Qt::BlockingQueuedConnection,Q_RETURN_ARG(double,out),Q_ARG(double,p));
 		return out;
-	}
+    }
+}
+
+double HardwareManager::readDrFrequency()
+{
+    if(p_drSynth->thread() == thread())
+        return p_drSynth->readFreq();
+    else
+    {
+        double out = 0.0;
+        QMetaObject::invokeMethod(p_drSynth,"readFreq",Qt::BlockingQueuedConnection,Q_RETURN_ARG(double,out));
+        return out;
+    }
+}
+
+double HardwareManager::readDrPower()
+{
+    if(p_drSynth->thread() == thread())
+        return p_drSynth->readPower();
+    else
+    {
+        double out = 0.0;
+        QMetaObject::invokeMethod(p_drSynth,"readPower",Qt::BlockingQueuedConnection,Q_RETURN_ARG(double,out));
+        return out;
+    }
 }
 
 int HardwareManager::setCwMode(bool cw)
@@ -740,8 +764,9 @@ void HardwareManager::finishPreparation(bool tuneSuccess)
     if(success)
     {
 	    d_currentScan.initializationComplete();
-	    emit scanInitialized(d_currentScan);
     }
+
+    emit scanInitialized(d_currentScan);
 
     restoreSettingsAfterScanPrep();
 
@@ -817,6 +842,24 @@ void HardwareManager::tuneCavity(double freq, int mode)
     //3.) Turn MW to DC (how?), turn off all other pulses except gas (high band?)
     d_tuningOldPulseConfig = configurePGenForTuning();
 
+    double drf = readDrFrequency();
+    double drp = readDrPower();
+    d_tuningOldDr = qMakePair(drf,drp);
+
+    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+    s.beginGroup(QString("drSynth"));
+    s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
+    double minDr = s.value(QString("min")).toDouble();
+    double minPwr = s.value(QString("minPower"),-20.0).toDouble();
+    minDr += 648.21;
+    s.endGroup();
+    s.endGroup();
+
+    setDrSynthFreq(minDr);
+    setDrSynthPwr(minPwr);
+
+
+
     if(setCwMode(true) < 0)
     {
         emit statusMessage(QString("Tuning failed"));
@@ -846,6 +889,10 @@ void HardwareManager::cavityTuneComplete(bool success)
 
     goToFtmSynthProbeFreq();
     emit tuningComplete();
+
+    setDrSynthFreq(d_tuningOldDr.first);
+    setDrSynthPwr(d_tuningOldDr.second);
+    d_tuningOldDr = qMakePair(0.0,0.0);
 
     //send appropriate status message
     QString msg("Tuning");

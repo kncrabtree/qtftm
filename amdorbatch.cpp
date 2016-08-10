@@ -27,6 +27,15 @@ AmdorBatch::AmdorBatch(QList<QPair<Scan, bool> > templateList, QList<QPair<doubl
         QList<Scan> sList;
         d_frequencies.append(templateList.at(i).first.ftFreq());
 
+        QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+        s.beginGroup(QString("drSynth"));
+        s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
+        double minDr = s.value(QString("min")).toDouble();
+        double minPwr = s.value(QString("minPower"),-20.0).toDouble();
+        minDr += 648.21;
+        s.endGroup();
+        s.endGroup();
+
         for(int j=0; j<templateList.size(); j++)
         {
             if(templateList.at(j).second)
@@ -43,6 +52,8 @@ AmdorBatch::AmdorBatch(QList<QPair<Scan, bool> > templateList, QList<QPair<doubl
             {
                 //this is a reference scan; disable DR
                 pg.setDrEnabled(false);
+                thisScan.setDrPower(minPwr);
+                thisScan.setDrFreq(minDr);
             }
             else if(j < i)
             {
@@ -405,7 +416,7 @@ void AmdorBatch::advanceBatch(const Scan s)
     //Get relevant intensity information... will be used later for analysis
     if(res.type() == FitResult::LorentzianDopplerPairLMS)
     {
-        intensity = 0.0;
+        intensity = -1.0;
         QList<QPair<double,double>> faList = res.freqAmpPairList();
         double closestFreq = 100.0;
         for(int i=0; i<faList.size(); i++)
@@ -413,6 +424,15 @@ void AmdorBatch::advanceBatch(const Scan s)
             double diff = qAbs(faList.at(i).first - s.ftFreq());
             if(diff < d_frequencyWindow && diff < closestFreq)
                 intensity = faList.at(i).second;
+        }
+    }
+    else
+    {
+        intensity = 0.0;
+        for(int i=0; i<ft.size(); i++)
+        {
+            if(fabs(ft.at(i).x()-s.ftFreq()) < d_frequencyWindow)
+                intensity = qMax(intensity,ft.at(i).y());
         }
     }
 
@@ -540,6 +560,24 @@ void AmdorBatch::advanceBatch(const Scan s)
                 break;
             }
         }
+
+        if(intensity < 0.0)
+        {
+            //no detection; ignore this test and move on
+            for(int i=d_currentFtIndex; i<d_completedMatrix.at(d_currentFtIndex).size(); i++)
+                d_completedMatrix[d_currentFtIndex][i] = true;
+
+            if(nextTreeBranch())
+            {
+                //we will need to first do a reference scan
+                d_currentFtIndex = p_currentNode->freqIndex;
+                d_currentDrIndex = p_currentNode->freqIndex;
+            }
+            else
+                resumeFromBranch();
+        }
+        else
+            d_currentRefInt = intensity;
     }
     else
     {
@@ -719,6 +757,18 @@ Scan AmdorBatch::prepareNextScan()
     {
         d_currentScanIsRef = true;
         d_currentScanIsVerification = false;
+
+        QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+        s.beginGroup(QString("drSynth"));
+        s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
+        double minDr = s.value(QString("min")).toDouble();
+        double minPwr = s.value(QString("minPower"),-20.0).toDouble();
+        minDr += 648.21;
+        s.endGroup();
+        s.endGroup();
+
+        out.setDrPower(minPwr);
+        out.setDrFreq(minDr);
     }
     else
     {
