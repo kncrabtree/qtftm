@@ -84,7 +84,7 @@ FitResult DopplerPairFitter::doFit(const Scan s)
 	ftBl = Analysis::removeBaseline(ftBl,blData.at(0),blData.at(1));
     double snr = 3.0;
     if(ftw.isUseWindow())
-        snr = 7.5; //larger SNR threshold for BH-window to reduce false positives
+        snr = 6.0; //larger SNR threshold for BH-window to reduce false positives
     QList<QPair<QPointF,double> > peakList = Analysis::findPeaks(ftBl,blData.at(2),blData.at(3),snr);
 	out.setBaselineY0Slope(blData.at(0),blData.at(1));
 	if(peakList.size() == 0)
