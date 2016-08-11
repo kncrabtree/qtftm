@@ -30,6 +30,7 @@ public:
 	double getDelay() const;
 	double getHpf() const;
 	double getExp() const;
+    bool isUseWindow() const;
 
     void setDelay(const double d);
     void setHpf(const double hpf);

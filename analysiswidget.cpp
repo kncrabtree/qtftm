@@ -663,6 +663,7 @@ QFrame *AnalysisWidget::renderPrintSidebar()
 	QVBoxLayout *vbl = new QVBoxLayout;
 
 	QGridLayout *sl = new QGridLayout;
+    sl->setVerticalSpacing(0);
 
 	QLabel *dateText = new QLabel(QString("<b>%1</b>").arg(d_currentScan.timeStamp().toString()));
 	dateText->setAlignment(Qt::AlignCenter);
@@ -896,6 +897,22 @@ QFrame *AnalysisWidget::renderPrintSidebar()
 	expUnit->setAlignment(Qt::AlignLeft);
     sl->addWidget(expUnit,lnum++,2,Qt::AlignLeft);
 
+    QLabel *bhText = new QLabel(QString("B-H Window?"));
+    bhText->setAlignment(Qt::AlignLeft);
+    sl->addWidget(bhText,lnum,0,Qt::AlignLeft);
+
+    QLabel *bhVal = new QLabel();
+    if(ui->analysisPlot->isUseWindow())
+        bhVal->setText(QString("Yes"));
+    else
+        bhVal->setText(QString("No"));
+    bhVal->setAlignment(Qt::AlignRight);
+    sl->addWidget(bhVal,lnum,1,Qt::AlignRight);
+
+    QLabel *bhUnit = new QLabel(QString(""));
+    bhUnit->setAlignment(Qt::AlignLeft);
+    sl->addWidget(bhUnit,lnum++,2,Qt::AlignLeft);
+
 	QLabel *pressureText = new QLabel(QString("Pressure"));
 	pressureText->setAlignment(Qt::AlignLeft);
     sl->addWidget(pressureText,lnum,0,Qt::AlignLeft);
@@ -942,6 +959,7 @@ QFrame *AnalysisWidget::renderPrintSidebar()
 	vbl->addLayout(sl);
 
 	QGridLayout *gl = new QGridLayout;
+    gl->setVerticalSpacing(0);
 
 	QLabel *gasLabel = new QLabel(QString("<b>Gas Flow Rates (sccm)<b>"));
 	gasLabel->setAlignment(Qt::AlignHCenter);
@@ -974,6 +992,7 @@ QFrame *AnalysisWidget::renderPrintSidebar()
 	vbl->addLayout(gl);
 
 	QGridLayout *pl = new QGridLayout;
+    pl->setVerticalSpacing(0);
 
 	QLabel *pulseTitle = new QLabel(QString("<b>Pulse Configuration</b>"));
 	pulseTitle->setAlignment(Qt::AlignHCenter);

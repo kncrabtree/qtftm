@@ -527,6 +527,13 @@ double FtPlot::getExp() const
     return out;
 }
 
+bool FtPlot::isUseWindow() const
+{
+    bool out = false;
+    QMetaObject::invokeMethod(ftWorker,"isUseWindow",Qt::BlockingQueuedConnection,Q_RETURN_ARG(bool,out));
+    return out;
+}
+
 void FtPlot::setDelay(const double d)
 {
     p_delayBox->setValue(d);
