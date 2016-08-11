@@ -81,9 +81,11 @@ public slots:
 	 \param f Fid to filter
 	 \return Fid Filtered Fid
 	*/
-	Fid filterFid(const Fid f);
+    Fid filterFid(const Fid f);
 
     Fid padFid(const Fid f);
+
+    void makeWinf(int n);
 
 	/*!
 	 \brief Sets initial truncation
@@ -106,6 +108,7 @@ public slots:
 
 	void setAutoPad(bool b){ d_autoPadFids = b; }
 	void setRemoveDC(bool b){ d_removeDC = b; }
+    void setUseWindow(bool b){ d_useWindow = b; }
 	/*!
 	 \brief Access function for truncation
 
@@ -127,6 +130,7 @@ public slots:
 
 	bool autoPad() const { return d_autoPadFids; }
 	bool removeDC() const { return d_removeDC; }
+    bool isUseWindow() const { return d_useWindow; }
 
 private:
 	gsl_fft_real_wavetable *real; /*!< Wavetable for GNU Scientific Library FFT operations */
@@ -145,6 +149,8 @@ private:
 	bool d_autoPadFids;
 	bool d_removeDC;
 	double d_lastMax;
+    bool d_useWindow;
+    QVector<double> d_winf;
 
 };
 

@@ -3,6 +3,7 @@
 #include <gsl/gsl_fit.h>
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_multifit.h>
+#include <gsl/gsl_sf.h>
 #include "fitresult.h"
 
 double Analysis::lor(double x, double center, double fwhm)
@@ -10,8 +11,19 @@ double Analysis::lor(double x, double center, double fwhm)
     return 1.0/(1.0 + 4.0*(x-center)*(x-center)/(fwhm*fwhm));
 }
 
+double Analysis::gauss(double x, double center, double fwhm)
+{
+    double x_ = x-center;
+    double num = x_*x_;
+    double den = fwhm*fwhm/twoLogTwo;
 
-int Analysis::dopplerPair_f(const gsl_vector *x, void *data, gsl_vector *f)
+    double out = gsl_sf_exp(-num/den);
+    if(isnan(out))
+        out = 0.0;
+    return out;
+}
+
+int Analysis::lorDopplerPair_f(const gsl_vector *x, void *data, gsl_vector *f)
 {
     //for doppler pair fitting, we need to know how many pairs there are. Usually only 1, but maybe more
     //the function is y0 + slope*x + sum_{numPeaks} { amp*alpha*lor(x,x0-split/2,w) + amp*(1-alpha)*lor(x,x0+split/2,w) }
@@ -54,7 +66,7 @@ int Analysis::dopplerPair_f(const gsl_vector *x, void *data, gsl_vector *f)
 }
 
 
-int Analysis::dopplerPair_df(const gsl_vector *x, void *data, gsl_matrix *J)
+int Analysis::lorDopplerPair_df(const gsl_vector *x, void *data, gsl_matrix *J)
 {
     //calculate jacobian matrix (matrix of derivatives)
     int numPeaks = (x->size-4)/3;
@@ -117,16 +129,16 @@ int Analysis::dopplerPair_df(const gsl_vector *x, void *data, gsl_matrix *J)
 }
 
 
-int Analysis::dopplerPair_fdf(const gsl_vector *x, void *data, gsl_vector *f, gsl_matrix *J)
+int Analysis::lorDopplerPair_fdf(const gsl_vector *x, void *data, gsl_vector *f, gsl_matrix *J)
 {
-    dopplerPair_f(x,data,f);
-    dopplerPair_df(x,data,J);
+    lorDopplerPair_f(x,data,f);
+    lorDopplerPair_df(x,data,J);
 
     return GSL_SUCCESS;
 }
 
 
-int Analysis::dopplerMixed_f(const gsl_vector *x, void *data, gsl_vector *f)
+int Analysis::lorDopplerMixed_f(const gsl_vector *x, void *data, gsl_vector *f)
 {
 	MixedDopplerData *d = static_cast<MixedDopplerData*>(data);
 
@@ -187,7 +199,7 @@ int Analysis::dopplerMixed_f(const gsl_vector *x, void *data, gsl_vector *f)
 }
 
 
-int Analysis::dopplerMixed_df(const gsl_vector *x, void *data, gsl_matrix *J)
+int Analysis::lorDopplerMixed_df(const gsl_vector *x, void *data, gsl_matrix *J)
 {
 	MixedDopplerData *d = static_cast<MixedDopplerData*>(data);
 
@@ -271,10 +283,10 @@ int Analysis::dopplerMixed_df(const gsl_vector *x, void *data, gsl_matrix *J)
 }
 
 
-int Analysis::dopplerMixed_fdf(const gsl_vector *x, void *data, gsl_vector *f, gsl_matrix *J)
+int Analysis::lorDopplerMixed_fdf(const gsl_vector *x, void *data, gsl_vector *f, gsl_matrix *J)
 {
-	dopplerMixed_f(x,data,f);
-	dopplerMixed_df(x,data,J);
+    lorDopplerMixed_f(x,data,f);
+    lorDopplerMixed_df(x,data,J);
 
 	return GSL_SUCCESS;
 }
@@ -800,7 +812,7 @@ unsigned int Analysis::power2Nplus1(unsigned int n)
 
 
 
-FitResult Analysis::dopplerPairFit(const gsl_multifit_fdfsolver_type *solverType, const QVector<QPointF> data, const double probeFreq, const double y0, const double slope, const double split, const double width, const QList<DopplerPairParameters> dpParams, const int maxIterations)
+FitResult Analysis::dopplerPairFit(const gsl_multifit_fdfsolver_type *solverType, FitResult::LineShape lsf, const QVector<QPointF> data, const double probeFreq, const double y0, const double slope, const double split, const double width, const QList<DopplerPairParameters> dpParams, const int maxIterations)
 {
 	const size_t numPnts = data.size();
 	const size_t numParams = 4+dpParams.size()*3;
@@ -811,9 +823,18 @@ FitResult Analysis::dopplerPairFit(const gsl_multifit_fdfsolver_type *solverType
 
 	QVector<QPointF> dataCopy(data);
 
-	fitFunction.f = &dopplerPair_f;
-	fitFunction.df = &dopplerPair_df;
-	fitFunction.fdf = &dopplerPair_fdf;
+    if(lsf == FitResult::Lorentzian)
+    {
+        fitFunction.f = &lorDopplerPair_f;
+        fitFunction.df = &lorDopplerPair_df;
+        fitFunction.fdf = &lorDopplerPair_fdf;
+    }
+    else if(lsf == FitResult::Gaussian)
+    {
+        fitFunction.f = &gaussDopplerPair_f;
+        fitFunction.df = &gaussDopplerPair_df;
+        fitFunction.fdf = &gaussDopplerPair_fdf;
+    }
 	fitFunction.n = numPnts;
 	fitFunction.p = numParams;
 	fitFunction.params = &dataCopy;
@@ -835,27 +856,26 @@ FitResult Analysis::dopplerPairFit(const gsl_multifit_fdfsolver_type *solverType
 	gsl_multifit_fdfsolver_set(solver,&fitFunction,params);
 
 	int iter = 0;
-	int status;
+    int status;
 	do
 	{
 		iter++;
 		status = gsl_multifit_fdfsolver_iterate(solver);
 
-		if(status)
-			break;
+        if(status)
+            break;
 
-		status = gsl_multifit_test_delta(solver->dx,solver->x,0.0,1e-4);
+        status = gsl_multifit_test_delta(solver->dx,solver->x,0.0,1e-4);
 
-	} while(status == GSL_CONTINUE && iter < maxIterations);
+
+    } while(status == GSL_CONTINUE && iter < maxIterations);
 
 	gsl_multifit_covar(solver->J,0.0,covar);
 
 	double chi = gsl_blas_dnrm2(solver->f);
 	double dof = numPnts - numParams;
 
-	FitResult::FitterType t = FitResult::LorentzianDopplerPairLMS;
-	if(solverType == gsl_multifit_fdfsolver_lmder)
-		t = FitResult::LorentzianDopplerPairLM;
+    FitResult::FitterType t = FitResult::DopplerPair;
 	FitResult result(t,FitResult::Success);
 	result.setStatus(status);
 	result.setProbeFreq(probeFreq);
@@ -871,7 +891,7 @@ FitResult Analysis::dopplerPairFit(const gsl_multifit_fdfsolver_type *solverType
 }
 
 
-FitResult Analysis::dopplerMixedFit(const gsl_multifit_fdfsolver_type *solverType, const QVector<QPointF> data, const double probeFreq, const double y0, const double slope, const double split, const double width, const QList<DopplerPairParameters> dpParams, const QList<QPointF> singleParams, const int maxIterations)
+FitResult Analysis::dopplerMixedFit(const gsl_multifit_fdfsolver_type *solverType, FitResult::LineShape lsf, const QVector<QPointF> data, const double probeFreq, const double y0, const double slope, const double split, const double width, const QList<DopplerPairParameters> dpParams, const QList<QPointF> singleParams, const int maxIterations)
 {
 	const size_t numPnts = data.size();
 	const size_t numParams = 4+dpParams.size()*3+2*singleParams.size();
@@ -884,9 +904,18 @@ FitResult Analysis::dopplerMixedFit(const gsl_multifit_fdfsolver_type *solverTyp
 	fitData.numPairs = dpParams.size();
 	fitData.numSinglePeaks = singleParams.size();
 
-	fitFunction.f = &dopplerMixed_f;
-	fitFunction.df = &dopplerMixed_df;
-	fitFunction.fdf = &dopplerMixed_fdf;
+    if(lsf == FitResult::Lorentzian)
+    {
+        fitFunction.f = &lorDopplerMixed_f;
+        fitFunction.df = &lorDopplerMixed_df;
+        fitFunction.fdf = &lorDopplerMixed_fdf;
+    }
+    else if(lsf == FitResult::Gaussian)
+    {
+        fitFunction.f = &gaussDopplerMixed_f;
+        fitFunction.df = &gaussDopplerMixed_df;
+        fitFunction.fdf = &gaussDopplerMixed_fdf;
+    }
 	fitFunction.n = numPnts;
 	fitFunction.p = numParams;
 	fitFunction.params = &fitData;
@@ -931,9 +960,7 @@ FitResult Analysis::dopplerMixedFit(const gsl_multifit_fdfsolver_type *solverTyp
 	double chi = gsl_blas_dnrm2(solver->f);
 	double dof = numPnts - numParams;
 
-	FitResult::FitterType t = FitResult::LorentzianMixedLMS;
-	if(solverType == gsl_multifit_fdfsolver_lmder)
-		t = FitResult::LorentzianMixedLM;
+    FitResult::FitterType t = FitResult::Mixed;
 	FitResult result(t,FitResult::Success);
 	result.setStatus(status);
 	result.setProbeFreq(probeFreq);
@@ -949,7 +976,7 @@ FitResult Analysis::dopplerMixedFit(const gsl_multifit_fdfsolver_type *solverTyp
 }
 
 
-FitResult Analysis::lorSingleFit(const gsl_multifit_fdfsolver_type *solverType, const QVector<QPointF> data, const double probeFreq, const double y0, const double slope, const double width, const QList<QPointF> singleParams, const int maxIterations)
+FitResult Analysis::singleFit(const gsl_multifit_fdfsolver_type *solverType, FitResult::LineShape lsf, const QVector<QPointF> data, const double probeFreq, const double y0, const double slope, const double width, const QList<QPointF> singleParams, const int maxIterations)
 {
 	const size_t numPnts = data.size();
 	const size_t numParams = 3+singleParams.size()*2;
@@ -959,9 +986,18 @@ FitResult Analysis::lorSingleFit(const gsl_multifit_fdfsolver_type *solverType, 
 
 	QVector<QPointF> dataCopy(data);
 
-	fitFunction.f = &lorSingle_f;
-	fitFunction.df = &lorSingle_df;
-	fitFunction.fdf = &lorSingle_fdf;
+    if(lsf == FitResult::Lorentzian)
+    {
+        fitFunction.f = &lorSingle_f;
+        fitFunction.df = &lorSingle_df;
+        fitFunction.fdf = &lorSingle_fdf;
+    }
+    else if(lsf == FitResult::Gaussian)
+    {
+        fitFunction.f = &gaussSingle_f;
+        fitFunction.df = &gaussSingle_df;
+        fitFunction.fdf = &gaussSingle_fdf;
+    }
 	fitFunction.n = numPnts;
 	fitFunction.p = numParams;
 	fitFunction.params = &dataCopy;
@@ -999,9 +1035,7 @@ FitResult Analysis::lorSingleFit(const gsl_multifit_fdfsolver_type *solverType, 
 	double chi = gsl_blas_dnrm2(solver->f);
 	double dof = numPnts - numParams;
 
-	FitResult::FitterType t = FitResult::LorentzianSingleLMS;
-	if(solverType == gsl_multifit_fdfsolver_lmder)
-		t = FitResult::LorentzianSingleLM;
+    FitResult::FitterType t = FitResult::Single;
 	FitResult result(t,FitResult::Success);
 	result.setStatus(status);
 	result.setIterations(iter);
@@ -1232,4 +1266,358 @@ Fid Analysis::parseWaveform(const QByteArray d, double probeFreq)
 
     return Fid(xIncr*(double)stride,probeFreq,dat);
 
+}
+
+int Analysis::gaussDopplerPair_f(const gsl_vector *x, void *data, gsl_vector *f)
+{
+    int numPeaks = (x->size-4)/3;
+
+    double y0 = gsl_vector_get(x,0);
+    double slope = gsl_vector_get(x,1);
+    double split = gsl_vector_get(x,2);
+    double width = gsl_vector_get(x,3);
+
+    QVector<double> amp, alpha, center;
+    for(int i=0;i<numPeaks;i++)
+    {
+       amp.append(gsl_vector_get(x,4+3*i));
+       alpha.append(gsl_vector_get(x,4+3*i+1));
+       center.append(gsl_vector_get(x,4+3*i+2));
+    }
+
+    QVector<QPointF> *d = (QVector<QPointF> *)data;
+    for(int i=0;i<d->size();i++)
+    {
+       //calculate expected value
+       double xVal = d->at(i).x();
+       double val = y0 + slope*xVal;
+       for(int j=0;j<numPeaks;j++)
+       {
+          double redGauss = gauss(xVal,center.at(j)-split/2.0,width);
+          double blueGauss = gauss(xVal,center.at(j)+split/2.0,width);
+          val += 2.0*amp.at(j)*(alpha.at(j)*redGauss + (1.0-alpha.at(j))*blueGauss);
+       }
+
+       //populate output vector with calc-obs
+       gsl_vector_set(f,i,val - d->at(i).y());
+    }
+
+    return GSL_SUCCESS;
+}
+
+int Analysis::gaussDopplerPair_df(const gsl_vector *x, void *data, gsl_matrix *J)
+{
+    //calculate jacobian matrix (matrix of derivatives)
+    int numPeaks = (x->size-4)/3;
+
+//	double y0 = gsl_vector_get(x,0);
+//	double slope = gsl_vector_get(x,1);
+    double split = gsl_vector_get(x,2);
+    double width = gsl_vector_get(x,3);
+
+    QVector<double> amp, alpha, center;
+    for(int i=0;i<numPeaks;i++)
+    {
+       amp.append(gsl_vector_get(x,4+3*i));
+       alpha.append(gsl_vector_get(x,4+3*i+1));
+       center.append(gsl_vector_get(x,4+3*i+2));
+    }
+
+    QVector<QPointF> *d = (QVector<QPointF> *)data;
+
+    for(int i=0;i<d->size();i++)
+    {
+       double xVal = d->at(i).x();
+
+       //These derivatives were calculated with Mathematica
+       double dY0 = 1.0;
+       double dSlope = xVal;
+       double dSplit = 0.0, dWidth = 0.0;
+       for(int j=0;j<numPeaks;j++)
+       {
+          double A = amp.at(j);
+          double x0 = center.at(j);
+          double al = alpha.at(j);
+
+          double redGauss = gauss(xVal,x0-split/2.0,width);
+          double blueGauss = gauss(xVal,x0+split/2.0,width);
+          double redExpArg = twoLogTwo*(xVal-x0+split/2.0)*(xVal-x0+split/2.0)/(width*width);
+          double blueExpArg = twoLogTwo*(xVal-x0-split/2.0)*(xVal-x0-split/2.0)/(width*width);
+
+          dSplit += -2.0*A*twoLogTwo/(width*width)*(al*(xVal-x0+split/2.0)*redGauss - (1.0-al)*(xVal-x0-split/2.0)*blueGauss);
+          dWidth += 4.0*A/width*(al*redGauss*redExpArg + (1.0-al)*blueGauss*blueExpArg);
+
+          double dAi = 2.0*(al*redGauss + (1.0-al)*blueGauss);
+          double dAlphai = 2.0*A*(redGauss - blueGauss);
+          double dX0i = 4.0*A*twoLogTwo/(width*width)*(al*(xVal-x0+split/2.0)*redGauss + (1.0-al)*(xVal-x0-split/2.0)*blueGauss);
+
+          gsl_matrix_set(J,i,4+3*j,dAi);
+          gsl_matrix_set(J,i,4+3*j+1,dAlphai);
+          gsl_matrix_set(J,i,4+3*j+2,dX0i);
+       }
+
+       gsl_matrix_set(J,i,0,dY0);
+       gsl_matrix_set(J,i,1,dSlope);
+       gsl_matrix_set(J,i,2,dSplit);
+       gsl_matrix_set(J,i,3,dWidth);
+
+    }
+
+    return GSL_SUCCESS;
+}
+
+int Analysis::gaussDopplerPair_fdf(const gsl_vector *x, void *data, gsl_vector *f, gsl_matrix *J)
+{
+    gaussDopplerPair_f(x,data,f);
+    gaussDopplerPair_df(x,data,J);
+
+    return GSL_SUCCESS;
+}
+
+int Analysis::gaussDopplerMixed_f(const gsl_vector *x, void *data, gsl_vector *f)
+{
+    MixedDopplerData *d = static_cast<MixedDopplerData*>(data);
+
+    double y0 = gsl_vector_get(x,0);
+    double slope = gsl_vector_get(x,1);
+    double split = gsl_vector_get(x,2);
+    double width = gsl_vector_get(x,3);
+
+    QVector<double> amps, alphas, centers;
+    amps.reserve(d->numPairs);
+    alphas.reserve(d->numPairs);
+    centers.reserve(d->numPairs);
+    for(int i=0;i<d->numPairs;i++)
+    {
+        amps.append(gsl_vector_get(x,4+3*i));
+        alphas.append(gsl_vector_get(x,5+3*i));
+        centers.append(gsl_vector_get(x,6+3*i));
+    }
+
+    QVector<double> singleAmps, singleCenters;
+    singleAmps.reserve(d->numSinglePeaks);
+    singleCenters.reserve(d->numSinglePeaks);
+    for(int i=0; i<d->numSinglePeaks; i++)
+    {
+        singleAmps.append(gsl_vector_get(x,4+3*d->numPairs+2*i));
+        singleCenters.append(gsl_vector_get(x,5+3*d->numPairs+2*i));
+    }
+
+    for(int i=0;i<d->data.size();i++)
+    {
+        double xVal = d->data.at(i).x();
+        double val = y0 + slope*xVal;
+
+        for(int j=0; j<d->numPairs; j++)
+        {
+            double a = amps.at(j);
+            double al = alphas.at(j);
+            double x0 = centers.at(j);
+
+            double redGauss = gauss(xVal,x0-split/2.0,width);
+            double blueGauss = gauss(xVal,x0+split/2.0,width);
+
+            val += 2.0*a*(al*redGauss + (1.0-al)*blueGauss);
+        }
+
+        for(int j=0; j<d->numSinglePeaks; j++)
+        {
+            double a = singleAmps.at(j);
+            double x0 = singleCenters.at(j);
+
+            val += a*lor(xVal,x0,width);
+        }
+
+        gsl_vector_set(f,i,val - d->data.at(i).y());
+    }
+
+    return GSL_SUCCESS;
+}
+
+int Analysis::gaussDopplerMixed_df(const gsl_vector *x, void *data, gsl_matrix *J)
+{
+    MixedDopplerData *d = static_cast<MixedDopplerData*>(data);
+
+//	double y0 = gsl_vector_get(x,0);
+//	double slope = gsl_vector_get(x,1);
+    double split = gsl_vector_get(x,2);
+    double width = gsl_vector_get(x,3);
+
+    QVector<double> amps, alphas, centers;
+    amps.reserve(d->numPairs);
+    alphas.reserve(d->numPairs);
+    centers.reserve(d->numPairs);
+    for(int i=0;i<d->numPairs;i++)
+    {
+        amps.append(gsl_vector_get(x,4+3*i));
+        alphas.append(gsl_vector_get(x,5+3*i));
+        centers.append(gsl_vector_get(x,6+3*i));
+    }
+
+    QVector<double> singleAmps, singleCenters;
+    singleAmps.reserve(d->numSinglePeaks);
+    singleCenters.reserve(d->numSinglePeaks);
+    for(int i=0; i<d->numSinglePeaks; i++)
+    {
+        singleAmps.append(gsl_vector_get(x,4+3*d->numPairs+2*i));
+        singleCenters.append(gsl_vector_get(x,5+3*d->numPairs+2*i));
+    }
+
+    for(int i=0; i<d->data.size(); i++)
+    {
+        double xVal = d->data.at(i).x();
+        double dy0 = 1;
+        double dSlope = xVal;
+
+        double dSplit = 0.0, dWidth = 0.0;
+
+        for(int j=0; j<d->numPairs; j++)
+        {
+            double A = amps.at(j);
+            double x0 = centers.at(j);
+            double al = alphas.at(j);
+
+            double redGauss = gauss(xVal,x0-split/2.0,width);
+            double blueGauss = gauss(xVal,x0+split/2.0,width);
+            double redExpArg = twoLogTwo*(xVal-x0+split/2.0)*(xVal-x0+split/2.0)/(width*width);
+            double blueExpArg = twoLogTwo*(xVal-x0-split/2.0)*(xVal-x0-split/2.0)/(width*width);
+
+            dSplit += -2.0*A*twoLogTwo/(width*width)*(al*(xVal-x0+split/2.0)*redGauss - (1.0-al)*(xVal-x0-split/2.0)*blueGauss);
+            dWidth += 4.0*A/width*(al*redGauss*redExpArg + (1.0-al)*blueGauss*blueExpArg);
+
+            double dAi = 2.0*(al*redGauss + (1.0-al)*blueGauss);
+            double dAlphai = 2.0*A*(redGauss - blueGauss);
+            double dX0i = 2.0*A*twoLogTwo/(width*width)*(al*(xVal-x0+split/2.0)*redGauss - (1.0-al)*(xVal-x0-split/2.0)*blueGauss);
+
+            gsl_matrix_set(J,i,4+3*j,dAi);
+            gsl_matrix_set(J,i,5+3*j,dAlphai);
+            gsl_matrix_set(J,i,6+3*j,dX0i);
+        }
+
+        for(int j=0; j<d->numSinglePeaks; j++)
+        {
+            double A = singleAmps.at(j);
+            double x0 = singleCenters.at(j);
+            double G = gauss(xVal,x0,width);
+            double expArg = twoLogTwo*(xVal-x0)*(xVal-x0)/(width*width);
+
+            double dX0i = 2.0*A*G*twoLogTwo*(xVal-x0)/(width*width);
+            double dAi = G;
+            dWidth += 2.0*A*G*expArg/width;
+
+            gsl_matrix_set(J,i,4+3*d->numPairs+2*j,dAi);
+            gsl_matrix_set(J,i,5+3*d->numPairs+2*j,dX0i);
+        }
+
+        gsl_matrix_set(J,i,0,dy0);
+        gsl_matrix_set(J,i,1,dSlope);
+        gsl_matrix_set(J,i,2,dSplit);
+        gsl_matrix_set(J,i,3,dWidth);
+    }
+
+    return GSL_SUCCESS;
+}
+
+int Analysis::gaussDopplerMixed_fdf(const gsl_vector *x, void *data, gsl_vector *f, gsl_matrix *J)
+{
+    gaussDopplerMixed_f(x,data,f);
+    gaussDopplerMixed_df(x,data,J);
+
+    return GSL_SUCCESS;
+}
+
+int Analysis::gaussSingle_f(const gsl_vector *x, void *data, gsl_vector *f)
+{
+    double y0 = gsl_vector_get(x,0);
+    double slope = gsl_vector_get(x,1);
+    double width = gsl_vector_get(x,2);
+
+    int numPeaks = (x->size-3)/2;
+
+    QVector<double> ampList,centerList;
+    ampList.reserve(numPeaks);
+    centerList.reserve(numPeaks);
+    for(int i=0; i<numPeaks; i++)
+    {
+        ampList.append(gsl_vector_get(x,3+2*i));
+        centerList.append(gsl_vector_get(x,4+2*i));
+    }
+
+    QVector<QPointF> *d = static_cast<QVector<QPointF> *>(data);
+
+    for(int i=0; i<d->size(); i++)
+    {
+        double xVal = d->at(i).x();
+        double val = y0 + slope*xVal;
+
+        for(int j=0; j<numPeaks; j++)
+        {
+            double A = ampList.at(j);
+            double x0 = centerList.at(j);
+
+            val += A*gauss(xVal,x0,width);
+        }
+
+        gsl_vector_set(f,i,val - d->at(i).y());
+    }
+
+    return GSL_SUCCESS;
+}
+
+int Analysis::gaussSingle_df(const gsl_vector *x, void *data, gsl_matrix *J)
+{
+    //	double y0 = gsl_vector_get(x,0);
+    //	double slope = gsl_vector_get(x,1);
+        double width = gsl_vector_get(x,2);
+
+        int numPeaks = (x->size-3)/2;
+
+        QVector<double> ampList,centerList;
+        ampList.reserve(numPeaks);
+        centerList.reserve(numPeaks);
+        for(int i=0; i<numPeaks; i++)
+        {
+            ampList.append(gsl_vector_get(x,3+2*i));
+            centerList.append(gsl_vector_get(x,4+2*i));
+        }
+
+        QVector<QPointF> *d = static_cast<QVector<QPointF> *>(data);
+
+        for(int i=0; i<d->size(); i++)
+        {
+            double xVal = d->at(i).x();
+            double dy0 = 1.0;
+            double dSlope = xVal;
+            double dWidth = 0.0;
+
+            for(int j=0; j<numPeaks; j++)
+            {
+                double A = ampList.at(j);
+                double x0 = centerList.at(j);
+                double G = gauss(xVal,x0,width);
+                double expArg = twoLogTwo*(xVal-x0)*(xVal-x0)/(width*width);
+
+                double dX0i = 2.0*A*G*twoLogTwo*(xVal-x0)/(width*width);
+                double dAi = G;
+                dWidth += 2.0*A*G*expArg/width;
+
+                gsl_matrix_set(J,i,3+2*j,dAi);
+                gsl_matrix_set(J,i,4+2*j,dX0i);
+            }
+
+            gsl_matrix_set(J,i,0,dy0);
+            gsl_matrix_set(J,i,1,dSlope);
+            gsl_matrix_set(J,i,2,dWidth);
+
+        }
+
+        return GSL_SUCCESS;
+}
+
+int Analysis::gaussSingle_fdf(const gsl_vector *x, void *data, gsl_vector *f, gsl_matrix *J)
+{
+    gaussSingle_f(x,data,f);
+    gaussSingle_df(x,data,J);
+
+    return GSL_SUCCESS;
 }

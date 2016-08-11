@@ -4,7 +4,7 @@
 #include <QWidget>
 #include <QList>
 #include "analysis.h"
-#include "lorentziandopplerlmsfitter.h"
+#include "dopplerpairfitter.h"
 #include "nofitter.h"
 
 namespace Ui {
@@ -29,6 +29,7 @@ public:
 	double exp() const;
 	bool removeDC() const;
 	bool zeroPad() const;
+    bool isUseWindow() const;
 
 	void setNoDisable();
 	void disableProcessingOptions(bool disable = true);

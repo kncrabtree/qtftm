@@ -120,6 +120,13 @@ FtPlot::FtPlot(QWidget *parent) :
     connect(p_padFidCheckBox,&QAbstractButton::toggled,ftWorker,&FtWorker::setAutoPad);
     connect(p_padFidCheckBox,&QAbstractButton::toggled,this,&FtPlot::updatePlot);
 
+    p_useWindowCheckBox = new QCheckBox(QString("Apply B-H Window"));
+    p_useWindowCheckBox->setToolTip(QString("Apply Blackman-Harris window function to FID."));
+    p_useWindowCheckBox->setChecked(ftWorker->isUseWindow());
+    p_useWindowCheckBox->setVisible(false);
+    connect(p_useWindowCheckBox,&QCheckBox::toggled,ftWorker,&FtWorker::setUseWindow);
+    connect(p_useWindowCheckBox,&QCheckBox::toggled,this,&FtPlot::updatePlot);
+
 	ftWorker->moveToThread(ftThread);
 	ftThread->start();
 }
@@ -279,11 +286,15 @@ void FtPlot::reclaimSpinBoxes()
     p_expBox->setParent(this);
     p_removeDcCheckBox->setParent(this);
     p_padFidCheckBox->setParent(this);
+    p_useWindowCheckBox->setParent(this);
+
     p_delayBox->setVisible(false);
     p_hpfBox->setVisible(false);
     p_expBox->setVisible(false);
     p_removeDcCheckBox->setVisible(false);
     p_padFidCheckBox->setVisible(false);
+    p_useWindowCheckBox->setVisible(false);
+
 	sender()->deleteLater();
 }
 
@@ -443,11 +454,15 @@ QMenu *FtPlot::buildContextMenu()
     processingLayout->addWidget(p_expBox,2,1);
     p_expBox->setVisible(true);
 
-    processingLayout->addWidget(p_removeDcCheckBox,3,0,1,2);
+    processingLayout->addWidget(p_useWindowCheckBox,3,0,1,2);
+    p_useWindowCheckBox->setVisible(true);
+
+    processingLayout->addWidget(p_removeDcCheckBox,4,0,1,2);
     p_removeDcCheckBox->setVisible(true);
 
-    processingLayout->addWidget(p_padFidCheckBox,4,0,1,2);
+    processingLayout->addWidget(p_padFidCheckBox,5,0,1,2);
     p_padFidCheckBox->setVisible(true);
+
 
 	processingWidget->setLayout(processingLayout);
 	processingAction->setDefaultWidget(processingWidget);
@@ -535,4 +550,9 @@ void FtPlot::setRemoveDc(const bool rdc)
 void FtPlot::setPadding(const bool pad)
 {
     p_padFidCheckBox->setChecked(pad);
+}
+
+void FtPlot::setUseWindow(const bool b)
+{
+    p_useWindowCheckBox->setChecked(b);
 }

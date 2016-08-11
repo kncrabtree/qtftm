@@ -414,7 +414,7 @@ void AmdorBatch::advanceBatch(const Scan s)
     double intensity = max;
 
     //Get relevant intensity information... will be used later for analysis
-    if(res.type() == FitResult::LorentzianDopplerPairLMS)
+    if(res.type() == FitResult::DopplerPair)
     {
         intensity = -1.0;
         QList<QPair<double,double>> faList = res.freqAmpPairList();

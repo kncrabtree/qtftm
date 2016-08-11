@@ -36,12 +36,15 @@ public:
     void setExp(const double e);
     void setRemoveDc(const bool rdc);
     void setPadding(const bool pad);
+    void setUseWindow(const bool b);
 
     QDoubleSpinBox* getDelayBox() const { return p_delayBox; }
     QDoubleSpinBox* getHpfBox() const { return p_hpfBox; }
     QDoubleSpinBox* getExpBox() const { return p_expBox; }
     QCheckBox* getRemoveDcBox() const { return p_removeDcCheckBox; }
     QCheckBox* getPadFidBox() const { return p_padFidCheckBox; }
+    QCheckBox *getUseWindowBox() const { return p_useWindowCheckBox; }
+
 
     QVector<QPointF> currentFtXY() const { return d_currentFtXY; }
 	
@@ -100,6 +103,7 @@ protected:
     QDoubleSpinBox *p_expBox;
     QCheckBox *p_removeDcCheckBox;
     QCheckBox *p_padFidCheckBox;
+    QCheckBox *p_useWindowCheckBox;
 
 	bool d_verticalAutoScale;
 	double d_verticalScaleMax;

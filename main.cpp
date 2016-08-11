@@ -6,6 +6,8 @@
 #include <QDesktopServices>
 #include <QProcessEnvironment>
 
+#include <gsl/gsl_errno.h>
+
 #ifdef Q_OS_UNIX
 #include <sys/stat.h>
 #include <signal.h>
@@ -137,6 +139,8 @@ int main(int argc, char *argv[])
     qRegisterMetaType<FlowConfig>("FlowConfig");
     qRegisterMetaType<FitResult>("FitResult");
     qRegisterMetaType<QtFTM::FlowSetting>("QtFTM::FlowSetting");
+
+    gsl_set_error_handler_off();
 
     qsrand(QTime::currentTime().msec()+QTime::currentTime().second() + QTime::currentTime().minute() + QTime::currentTime().hour());
 	MainWindow w;

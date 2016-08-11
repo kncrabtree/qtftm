@@ -98,7 +98,12 @@ bool AutoFitWidget::removeDC() const
 
 bool AutoFitWidget::zeroPad() const
 {
-	return ui->zeroPadFIDCheckBox->isChecked();
+    return ui->zeroPadFIDCheckBox->isChecked();
+}
+
+bool AutoFitWidget::isUseWindow() const
+{
+    return ui->applyBHWindowCheckBox->isChecked();
 }
 
 void AutoFitWidget::setNoDisable()
@@ -122,7 +127,7 @@ void AutoFitWidget::setFromFitter(AbstractFitter *af)
         else
             ui->autoFitEnabledCheckBox->setChecked(true);
 
-        if(af->type() == FitResult::LorentzianDopplerPairLMS)
+        if(af->type() == FitResult::DopplerPair)
         {
             //update indices if non-coaxial configurations are added
             ui->sourceConfigComboBox->setCurrentIndex(0);
@@ -134,6 +139,7 @@ void AutoFitWidget::setFromFitter(AbstractFitter *af)
         ui->expFilterDoubleSpinBox->setValue(af->exp());
         ui->removeDCCheckBox->setChecked(af->removeDC());
         ui->zeroPadFIDCheckBox->setChecked(af->autoPad());
+        ui->applyBHWindowCheckBox->setChecked(af->isUseWindow());
     }
 }
 
@@ -146,7 +152,7 @@ AbstractFitter *AutoFitWidget::toFitter()
 	}
 	else
 	{
-		af = new LorentzianDopplerLMSFitter();
+        af = new DopplerPairFitter();
 		af->setBufferGas(bufferGas());
 		af->setTemperature(temperature());
 	}
@@ -156,6 +162,7 @@ AbstractFitter *AutoFitWidget::toFitter()
 	af->setExp(exp());
 	af->setRemoveDC(removeDC());
 	af->setAutoPad(zeroPad());
+    af->setUseWindow(isUseWindow());
 
     return af;
 }

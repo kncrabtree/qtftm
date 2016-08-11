@@ -1,23 +1,25 @@
-#include "lorentziandopplerlmsfitter.h"
+#include "dopplerpairfitter.h"
 #include <gsl/gsl_fit.h>
 
-LorentzianDopplerLMSFitter::LorentzianDopplerLMSFitter(QObject *parent) :
-	AbstractFitter(FitResult::LorentzianDopplerPairLMS, parent)
+DopplerPairFitter::DopplerPairFitter(QObject *parent) :
+    AbstractFitter(FitResult::DopplerPair, parent)
 {
 }
 
-FitResult LorentzianDopplerLMSFitter::doFit(const Scan s)
+FitResult DopplerPairFitter::doFit(const Scan s)
 {
 	QString log;
 
     Fid fid = ftw.filterFid(s.fid());
-	FitResult out(FitResult::LorentzianDopplerPairLMS,FitResult::Invalid);
+    FitResult out(FitResult::DopplerPair,FitResult::Invalid);
 	out.setProbeFreq(fid.probeFreq());
 	out.setDelay(ftw.delay());
 	out.setHpf(ftw.hpf());
 	out.setExp(ftw.exp());
 	out.setTemperature(d_temperature);
 	out.setBufferGas(d_bufferGas);
+
+
 
 	log.append(QString("Beginning autofit of scan %1.\n").arg(s.number()));
 
@@ -43,8 +45,8 @@ FitResult LorentzianDopplerLMSFitter::doFit(const Scan s)
 
 	//remove DC from fid and FT it
 	log.append(QString("Computing FTs with and without zero padding.\n"));
-	Fid f = Analysis::removeDC(fid);
-	QVector<QPointF> ftBl = ftw.doFT_pad(f,true);
+    Fid f = Analysis::removeDC(s.fid());
+    QVector<QPointF> ftBl = ftw.doFT_pad(f,true);
 	QVector<QPointF> ftPad = ftw.doFT_pad(f,true);
 
 	if(ftBl.size() < 10 || ftPad.size() < 10)
@@ -99,7 +101,7 @@ FitResult LorentzianDopplerLMSFitter::doFit(const Scan s)
 	for(int i=0; i<peakList.size(); i++)
 	{
 			log.append(QString("%1\t%2\t%3\t%4\n").arg(i).arg(QString::number(peakList.at(i).first.x(),'f',3))
-					 .arg(QString::number(peakList.at(i).second,'f',2)).arg(QString::number(peakList.at(i).second,'f',2)));
+                     .arg(QString::number(peakList.at(i).first.y(),'f',2)).arg(QString::number(peakList.at(i).second,'f',2)));
 	}
 
 
@@ -183,6 +185,15 @@ FitResult LorentzianDopplerLMSFitter::doFit(const Scan s)
 	//during fitting, we may transition from mixed->pairs only, or from mixed->singles only
 	bool done = false;
 	int iterations = 50;
+    FitResult::LineShape lsf = FitResult::Lorentzian;
+    if(ftw.isUseWindow())
+        lsf = FitResult::Gaussian;
+
+    if(lsf == FitResult::Lorentzian)
+        log.append(QString("Using Lorentzian lineshape.\n"));
+    else if(lsf == FitResult::Gaussian)
+        log.append(QString("Using Gaussian lineshape.\n"));
+
 	while(!done)
 	{
 		if(singlePeaks.size() == 0 && dpParams.size() == 0)
@@ -195,18 +206,18 @@ FitResult LorentzianDopplerLMSFitter::doFit(const Scan s)
 		if(singlePeaks.size() == 0)
 		{
 			log.append(QString("Fitting to %1 Doppler pairs (%2 max iterations)...\n").arg(dpParams.size()).arg(iterations));
-			out = Analysis::dopplerPairFit(gsl_multifit_fdfsolver_lmsder,ftPad,fid.probeFreq(),blData.at(0),blData.at(1),splitting,width,dpParams,iterations);
+            out = Analysis::dopplerPairFit(gsl_multifit_fdfsolver_lmsder,lsf,ftPad,fid.probeFreq(),blData.at(0),blData.at(1),splitting,width,dpParams,iterations);
 		}
 		else if(dpParams.size() == 0)
 		{
 			log.append(QString("Fitting to %1 single peaks (%2 max iterations)...\n").arg(singlePeaks.size()).arg(iterations));
-			out = Analysis::lorSingleFit(gsl_multifit_fdfsolver_lmsder,ftPad,fid.probeFreq(),blData.at(0),blData.at(1),width,singlePeaks,iterations);
+            out = Analysis::singleFit(gsl_multifit_fdfsolver_lmsder,lsf,ftPad,fid.probeFreq(),blData.at(0),blData.at(1),width,singlePeaks,iterations);
 		}
 		else
 		{
 			log.append(QString("Fitting to %1 Doppler pairs and %2 single peaks (%3 max iterations)...\n").arg(dpParams.size())
 					 .arg(singlePeaks.size()).arg(iterations));
-			out = Analysis::dopplerMixedFit(gsl_multifit_fdfsolver_lmsder,ftPad,fid.probeFreq(),blData.at(0),blData.at(1),splitting,width,dpParams,singlePeaks,iterations);
+            out = Analysis::dopplerMixedFit(gsl_multifit_fdfsolver_lmsder,lsf,ftPad,fid.probeFreq(),blData.at(0),blData.at(1),splitting,width,dpParams,singlePeaks,iterations);
 		}
 
 		bool spurious = false;
@@ -440,6 +451,7 @@ FitResult LorentzianDopplerLMSFitter::doFit(const Scan s)
 	out.setTemperature(d_temperature);
 	out.setBufferGas(d_bufferGas);
 	out.appendToLog(log);
+    out.setLineShape(lsf);
 	out.save(s.number());
 	emit fitComplete(out);
 	return out;

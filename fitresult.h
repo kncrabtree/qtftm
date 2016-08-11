@@ -28,13 +28,21 @@ public:
 	enum FitterType {
 		NoFitting,
 		RobustLinear,
-		LorentzianDopplerPairLMS,
-		LorentzianDopplerPairLM,
-		LorentzianMixedLMS,
-		LorentzianMixedLM,
-		LorentzianSingleLMS,
-		LorentzianSingleLM
+        DopplerPair,
+        Mixed,
+        Single,
 	};
+
+    enum DeprecatedFitterType {
+        Dep_NoFitting,
+        Dep_RobustLinear,
+        Dep_LorentzianDopplerPairLMS,
+        Dep_LorentzianDopplerPairLM,
+        Dep_LorentzianMixedLMS,
+        Dep_LorentzianMixedLM,
+        Dep_LorentzianSingleLMS,
+        Dep_LorentzianSingleLM
+    };
 
 	enum FitCategory {
 	    Invalid,
@@ -42,6 +50,11 @@ public:
 	    Saturated,
 	    Success
 	};
+
+    enum LineShape {
+        Lorentzian,
+        Gaussian
+    };
 
     static void deleteFitResult(const int num);
 
@@ -54,6 +67,7 @@ public:
 
 	FitterType type() const;
 	FitCategory category() const;
+    LineShape lineShape() const;
 	int status() const;
 	QString statusMessage() const;
 	int iterations() const;
@@ -74,11 +88,13 @@ public:
 	BufferGas bufferGas() const;
 	double temperature() const;
 	QString log() const;
+    double lsf(double x, double x0, double w) const;
 
 	QStringList parameterList() const;
 
 	void setType(FitterType t);
 	void setCategory(FitCategory c);
+    void setLineShape(LineShape s);
 	void setStatus(int s);
 	void setIterations(int i);
 	void setChisq(double c);

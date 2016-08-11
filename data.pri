@@ -6,14 +6,14 @@ SOURCES += fid.cpp \
     linelistmodel.cpp \
     abstractfitter.cpp \
     analysis.cpp \
-    lorentziandopplerlmsfitter.cpp \
     nofitter.cpp \
     fitresult.cpp \
     $$PWD/flowconfig.cpp \
     $$PWD/pulsegenconfig.cpp \
     $$PWD/amdordata.cpp \
     $$PWD/amdordatamodel.cpp \
-    $$PWD/amdornode.cpp
+    $$PWD/amdornode.cpp \
+    $$PWD/dopplerpairfitter.cpp
 
 HEADERS += fid.h \
     ftworker.h \
@@ -23,7 +23,6 @@ HEADERS += fid.h \
     linelistmodel.h \
     abstractfitter.h \
     analysis.h \
-    lorentziandopplerlmsfitter.h \
     nofitter.h \
     fitresult.h \
     $$PWD/datastructs.h \
@@ -31,4 +30,5 @@ HEADERS += fid.h \
     $$PWD/pulsegenconfig.h \
     $$PWD/amdordata.h \
     $$PWD/amdordatamodel.h \
-    $$PWD/amdornode.h
+    $$PWD/amdornode.h \
+    $$PWD/dopplerpairfitter.h

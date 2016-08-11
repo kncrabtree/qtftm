@@ -23,12 +23,14 @@ public:
     void setExp(double d) { ftw.setExp(d); }
     void setAutoPad(bool b) { ftw.setAutoPad(b); }
     void setRemoveDC(bool b) { ftw.setRemoveDC(b); }
+    void setUseWindow(bool b) { ftw.setUseWindow(b); }
 
     double delay() const { return ftw.delay(); }
     double hpf() const { return ftw.hpf(); }
     double exp() const { return ftw.exp(); }
     bool autoPad() const { return ftw.autoPad(); }
     bool removeDC() const { return ftw.removeDC(); }
+    bool isUseWindow() const { return ftw.isUseWindow(); }
 
     void setBufferGas(const FitResult::BufferGas &bg) { d_bufferGas = bg; }
     void setTemperature(const double t) { d_temperature = t; }

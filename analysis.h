@@ -24,6 +24,8 @@ const int baselineMedianBinSize = 10;
 const double splittingTolerance = 0.35;
 const double alphaTolerance = 0.10;
 const double edgeSkepticalWRTSplitting = 0.75;
+const double twoLogTwo = 2.0*log(2.0);
+const double rootTwoLogTwo = sqrt(twoLogTwo);
 
 const FitResult::BufferGas bufferH2(QString("H2"),2.0*1.00794,7.0/5.0);
 const FitResult::BufferGas bufferHe(QString("He"),4.002602,5.0/3.0);
@@ -94,19 +96,29 @@ struct MixedDopplerData {
 };
 
 double lor(double x, double center, double fwhm);
-int dopplerPair_f(const gsl_vector * x, void *data, gsl_vector * f);
-int dopplerPair_df(const gsl_vector * x, void *data, gsl_matrix * J);
-int dopplerPair_fdf(const gsl_vector * x, void *data, gsl_vector * f, gsl_matrix * J);
-int dopplerMixed_f(const gsl_vector * x, void *data, gsl_vector * f);
-int dopplerMixed_df(const gsl_vector * x, void *data, gsl_matrix * J);
-int dopplerMixed_fdf(const gsl_vector * x, void *data, gsl_vector * f, gsl_matrix * J);
+double gauss(double x, double center, double fwhm);
+int lorDopplerPair_f(const gsl_vector * x, void *data, gsl_vector * f);
+int lorDopplerPair_df(const gsl_vector * x, void *data, gsl_matrix * J);
+int lorDopplerPair_fdf(const gsl_vector * x, void *data, gsl_vector * f, gsl_matrix * J);
+int gaussDopplerPair_f(const gsl_vector * x, void *data, gsl_vector * f);
+int gaussDopplerPair_df(const gsl_vector * x, void *data, gsl_matrix * J);
+int gaussDopplerPair_fdf(const gsl_vector * x, void *data, gsl_vector * f, gsl_matrix * J);
+int lorDopplerMixed_f(const gsl_vector * x, void *data, gsl_vector * f);
+int lorDopplerMixed_df(const gsl_vector * x, void *data, gsl_matrix * J);
+int lorDopplerMixed_fdf(const gsl_vector * x, void *data, gsl_vector * f, gsl_matrix * J);
+int gaussDopplerMixed_f(const gsl_vector * x, void *data, gsl_vector * f);
+int gaussDopplerMixed_df(const gsl_vector * x, void *data, gsl_matrix * J);
+int gaussDopplerMixed_fdf(const gsl_vector * x, void *data, gsl_vector * f, gsl_matrix * J);
 int lorSingle_f(const gsl_vector * x, void *data, gsl_vector * f);
 int lorSingle_df(const gsl_vector * x, void *data, gsl_matrix * J);
 int lorSingle_fdf(const gsl_vector * x, void *data, gsl_vector * f, gsl_matrix * J);
+int gaussSingle_f(const gsl_vector * x, void *data, gsl_vector * f);
+int gaussSingle_df(const gsl_vector * x, void *data, gsl_matrix * J);
+int gaussSingle_fdf(const gsl_vector * x, void *data, gsl_vector * f, gsl_matrix * J);
 
-FitResult dopplerPairFit(const gsl_multifit_fdfsolver_type *solverType, const QVector<QPointF> data, const double probeFreq, const double y0, const double slope, const double split, const double width, const QList<DopplerPairParameters> dpParams, const int maxIterations = 50);
-FitResult dopplerMixedFit(const gsl_multifit_fdfsolver_type *solverType, const QVector<QPointF> data, const double probeFreq, const double y0, const double slope, const double split, const double width, const QList<DopplerPairParameters> dpParams, const QList<QPointF> singleParams, const int maxIterations = 50);
-FitResult lorSingleFit(const gsl_multifit_fdfsolver_type *solverType, const QVector<QPointF> data, const double probeFreq, const double y0, const double slope, const double width, const QList<QPointF> singleParams, const int maxIterations = 50);
+FitResult dopplerPairFit(const gsl_multifit_fdfsolver_type *solverType, FitResult::LineShape lsf, const QVector<QPointF> data, const double probeFreq, const double y0, const double slope, const double split, const double width, const QList<DopplerPairParameters> dpParams, const int maxIterations = 50);
+FitResult dopplerMixedFit(const gsl_multifit_fdfsolver_type *solverType, FitResult::LineShape lsf, const QVector<QPointF> data, const double probeFreq, const double y0, const double slope, const double split, const double width, const QList<DopplerPairParameters> dpParams, const QList<QPointF> singleParams, const int maxIterations = 50);
+FitResult singleFit(const gsl_multifit_fdfsolver_type *solverType, FitResult::LineShape lsf, const QVector<QPointF> data, const double probeFreq, const double y0, const double slope, const double width, const QList<QPointF> singleParams, const int maxIterations = 50);
 FitResult fitLine(QVector<QPointF> data, double probeFreq);
 
 /*******************************

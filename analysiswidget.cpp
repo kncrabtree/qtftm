@@ -401,7 +401,7 @@ void AnalysisWidget::loadScanMetaData()
 
 	if(res.category() == FitResult::Success)
 	{
-		if(res.type() == FitResult::LorentzianSingleLMS || res.type() == FitResult::LorentzianSingleLM)
+        if(res.type() == FitResult::Single)
 		{
 			for(int i=0;i<res.freqAmpSingleList().size();i++)
                 llm->addUniqueLine(res.freqAmpSingleList().at(i).first,0.0,res.freqAmpSingleList().at(i).second);

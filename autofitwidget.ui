@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>258</width>
-    <height>360</height>
+    <height>420</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -274,6 +274,20 @@
           </widget>
          </item>
          <item row="3" column="0">
+          <widget class="QCheckBox" name="applyBHWindowCheckBox">
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QLabel" name="applyBHWindowLabel">
+           <property name="text">
+            <string>Apply B-H Window</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
           <widget class="QCheckBox" name="removeDCCheckBox">
            <property name="toolTip">
             <string>Removes any DC offset from FID. This will only affect the display of the data, not the fitting.</string>
@@ -283,21 +297,21 @@
            </property>
           </widget>
          </item>
-         <item row="3" column="1">
+         <item row="4" column="1">
           <widget class="QLabel" name="removeDCLabel">
            <property name="text">
             <string>Remove DC</string>
            </property>
           </widget>
          </item>
-         <item row="4" column="0">
+         <item row="5" column="0">
           <widget class="QCheckBox" name="zeroPadFIDCheckBox">
            <property name="toolTip">
             <string>Extends length of FID by at least a factor of 2, filling with zeroes. This only affects the display of data, not the fitting.</string>
            </property>
           </widget>
          </item>
-         <item row="4" column="1">
+         <item row="5" column="1">
           <widget class="QLabel" name="zeroPadFIDLabel">
            <property name="text">
             <string>Zero-pad FID</string>

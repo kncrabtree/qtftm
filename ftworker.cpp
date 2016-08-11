@@ -6,7 +6,7 @@
 FtWorker::FtWorker(QObject *parent) :
 	QObject(parent), real(nullptr), work(nullptr), d_numPnts(0),
 	realPadded(nullptr), workPadded(nullptr), d_numPntsPadded(0),
-	d_delay(0.0), d_hpf(0.0), d_exp(0.0), d_autoPadFids(false), d_removeDC(true), d_lastMax(0.0)
+    d_delay(0.0), d_hpf(0.0), d_exp(0.0), d_autoPadFids(false), d_removeDC(true), d_lastMax(0.0), d_useWindow(true)
 {
 }
 
@@ -113,10 +113,10 @@ QVector<QPointF> FtWorker::doFT_noPad(const Fid fid, bool offsetOnly)
 		work = gsl_fft_real_workspace_alloc(d_numPnts);
 	}
 
-	bool wasPadded = d_autoPadFids;
-	d_autoPadFids = false;
+//	bool wasPadded = d_autoPadFids;
+//	d_autoPadFids = false;
 	Fid f = filterFid(fid);
-	d_autoPadFids = wasPadded;
+//	d_autoPadFids = wasPadded;
 
 	return calculateFT(f,fid.size(),real,work,offsetOnly);
 }
@@ -126,10 +126,10 @@ QVector<QPointF> FtWorker::doFT_pad(const Fid fid, bool offsetOnly)
 	if(fid.size() < 2)
 		return QVector<QPointF>();
 
-	QVector<double> data = fid.toVector();
-	data.resize(Analysis::power2Nplus1(data.size()));
-	Fid f(fid);
-	f.setData(data);
+//	QVector<double> data = fid.toVector();
+//	data.resize(Analysis::power2Nplus1(data.size()));
+    Fid f = filterFid(fid);
+    f = padFid(f);
 
 	if(f.size() != d_numPntsPadded)
 	{
@@ -145,12 +145,12 @@ QVector<QPointF> FtWorker::doFT_pad(const Fid fid, bool offsetOnly)
 		workPadded = gsl_fft_real_workspace_alloc(d_numPntsPadded);
 	}
 
-	bool wasPadded = d_autoPadFids;
-	d_autoPadFids = false;
-	Fid f2 = filterFid(f);
-	d_autoPadFids = wasPadded;
+//	bool wasPadded = d_autoPadFids;
+//	d_autoPadFids = false;
+//	Fid f2 = filterFid(f);
+//	d_autoPadFids = wasPadded;
 
-	return calculateFT(f2,fid.size(),realPadded,workPadded, offsetOnly);
+    return calculateFT(f,fid.size(),realPadded,workPadded, offsetOnly);
 }
 
 QVector<QPointF> FtWorker::calculateFT(const Fid fid, int realPoints, gsl_fft_real_wavetable *wt, gsl_fft_real_workspace *ws, bool offsetOnly)
@@ -247,6 +247,13 @@ Fid FtWorker::filterFid(const Fid f)
 			data[i]*=gsl_sf_exp(-(double)i*fid.spacing()/d_exp*1.0e6);
 	}
 
+    if(d_useWindow)
+    {
+        makeWinf(data.size());
+        for(int i=0; i<data.size(); i++)
+            data[i]*=d_winf[i];
+    }
+
 	//for synchronous use (eg the doFT function), return an FID object
     return Fid(fid.spacing(),fid.probeFreq(),data);
 }
@@ -260,4 +267,22 @@ Fid FtWorker::padFid(const Fid f)
     data.resize(padSize); //the resize function populates new entries with default-constructed value (0.0 for double)
 
     return Fid(f.spacing(),f.probeFreq(),data);
+}
+
+void FtWorker::makeWinf(int n)
+{
+    if(d_winf.size() == n)
+        return;
+
+    d_winf.resize(n);
+
+    double N = static_cast<double>(n);
+    double p2n = 2.0*M_PI/N;
+    double p4n = 4.0*M_PI/N;
+    double p6n = 6.0*M_PI/N;
+    for(int i=0; i<n; i++)
+    {
+        double I = static_cast<double>(i);
+        d_winf[i] = 0.35875 - 0.48829*cos(p2n*I) + 0.14128*cos(p4n*I) - 0.01168*cos(p6n*I);
+    }
 }

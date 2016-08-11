@@ -27,7 +27,7 @@
 #include "loadbatchdialog.h"
 #include "batchviewwidget.h"
 #include "batchattenuation.h"
-#include "lorentziandopplerlmsfitter.h"
+#include "dopplerpairfitter.h"
 #include "amdorwidget.h"
 
 MainWindow::MainWindow(QWidget *parent) :

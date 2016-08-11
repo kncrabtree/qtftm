@@ -14,8 +14,8 @@ class FitData : public QSharedData
 {
 public:
 
-	FitData(FitResult::FitterType t = FitResult::NoFitting, FitResult::FitCategory c = FitResult::Invalid) :
-		type(t), category(c), gslStatusCode(0), iterations(0), chisq(0.0),
+    FitData(FitResult::FitterType t = FitResult::NoFitting, FitResult::FitCategory c = FitResult::Invalid, FitResult::LineShape s = FitResult::Lorentzian) :
+        type(t), category(c), lineShape(s), gslStatusCode(0), iterations(0), chisq(0.0),
 		offsetFreq(0.0), numParams(0), delay(0.0), hpf(0.0), exp(0.0), baselineY0Slope(qMakePair(0.0,0.0)), scanNum(-1),
 		bufferGas(Analysis::bufferNe), temperature(293.15), log(QString()) {}
 	FitData(const FitData &other) : QSharedData(other), type(other.type), category(other.category),
@@ -31,6 +31,7 @@ public:
 
 	FitResult::FitterType type;
 	FitResult::FitCategory category;
+    FitResult::LineShape lineShape;
 	int gslStatusCode;
 	QString gslStatusMessage;
 	int iterations;
@@ -109,7 +110,12 @@ FitResult::FitterType FitResult::type() const
 
 FitResult::FitCategory FitResult::category() const
 {
-	return data->category;
+    return data->category;
+}
+
+FitResult::LineShape FitResult::lineShape() const
+{
+    return data->lineShape;
 }
 
 int FitResult::status() const
@@ -201,7 +207,7 @@ QVector<QPointF> FitResult::toXY() const
 	int offsetIndex = 0;
 	if(numParams() > 3)
 	{
-		if(type() == LorentzianSingleLM || type() == LorentzianSingleLMS)
+        if(type() == Single)
 		{
 			width = fabs(allFitParams().at(2));
 			offsetIndex = 3;
@@ -225,7 +231,7 @@ QVector<QPointF> FitResult::toXY() const
 			double al = allFitParams().at(offsetIndex+3*j+1);
 			double x0 = allFitParams().at(offsetIndex+3*j+2);
 
-			y += 2.0*A*(al*Analysis::lor(x,x0-split/2.0,width) + (1.0-al)*Analysis::lor(x,x0+split/2.0,width));
+            y += 2.0*A*(al*lsf(x,x0-split/2.0,width) + (1.0-al)*lsf(x,x0+split/2.0,width));
 		}
 
 		for(int j=0; j<freqAmpSingleList().size(); j++)
@@ -233,7 +239,7 @@ QVector<QPointF> FitResult::toXY() const
 			double A = allFitParams().at(offsetIndex+3*freqAmpPairList().size()+2*j);
 			double x0 = allFitParams().at(offsetIndex+3*freqAmpPairList().size()+2*j+1);
 
-			y += A*Analysis::lor(x,x0,width);
+            y += A*lsf(x,x0,width);
 		}
 
 		out.append(QPointF(probeFreq()+x,y));
@@ -254,7 +260,17 @@ double FitResult::temperature() const
 
 QString FitResult::log() const
 {
-	return data->log;
+    return data->log;
+}
+
+double FitResult::lsf(double x, double x0, double w) const
+{
+    if(lineShape() == Lorentzian)
+        return Analysis::lor(x,x0,w);
+    else if(lineShape() == Gaussian)
+        return Analysis::gauss(x,x0,w);
+
+    return 0.0;
 }
 
 QStringList FitResult::parameterList() const
@@ -340,7 +356,12 @@ void FitResult::setType(FitResult::FitterType t)
 
 void FitResult::setCategory(FitResult::FitCategory c)
 {
-	data->category = c;
+    data->category = c;
+}
+
+void FitResult::setLineShape(FitResult::LineShape s)
+{
+    data->lineShape = s;
 }
 
 void FitResult::setStatus(int s)
@@ -402,7 +423,7 @@ void FitResult::setFitParameters(gsl_vector *c, gsl_matrix *covar, int numSingle
 	data->freqAmpUncPairList.clear();
 	data->freqAmpUncSingleList.clear();
 
-	if(type() == LorentzianDopplerPairLM || type() == LorentzianDopplerPairLMS)
+    if(type() == DopplerPair)
 	{
 		data->allFitParameters[3] = fabs(data->allFitParameters.at(3));
 		for(int i=4; i<data->numParams; i+=3)
@@ -414,7 +435,7 @@ void FitResult::setFitParameters(gsl_vector *c, gsl_matrix *covar, int numSingle
 		}
 	}
 
-	if(type() == LorentzianMixedLM || type() == LorentzianMixedLMS)
+    if(type() == Mixed)
 	{
 		data->allFitParameters[3] = fabs(data->allFitParameters.at(3));
 		for(int i=4; i<data->numParams - 2*numSingle; i+=3)
@@ -434,7 +455,7 @@ void FitResult::setFitParameters(gsl_vector *c, gsl_matrix *covar, int numSingle
 		}
 	}
 
-	if(type() == LorentzianSingleLM || type() == LorentzianSingleLMS)
+    if(type() == Single)
 	{
 		data->allFitParameters[2] = fabs(data->allFitParameters.at(2));
 		for(int i=3; i<data->numParams; i+=2)
@@ -464,7 +485,7 @@ void FitResult::setFitParameters(QList<double> params, QList<double> uncs, int n
         data->baselineY0Slope.first = data->allFitParameters.at(0);
         data->baselineY0Slope.second = data->allFitParameters.at(1);
 
-        if(type() == LorentzianDopplerPairLM || type() == LorentzianDopplerPairLMS)
+        if(type() == DopplerPair)
         {
             for(int i=4; i<data->numParams && i+2 < params.size() && i+2 < uncs.size(); i+=3)
             {
@@ -475,7 +496,7 @@ void FitResult::setFitParameters(QList<double> params, QList<double> uncs, int n
             }
         }
 
-        if(type() == LorentzianMixedLM || type() == LorentzianMixedLMS)
+        if(type() == Mixed)
         {
             for(int i=4; i<data->numParams - 2*numSingle && i+2 < params.size() && i+2 < uncs.size(); i+=3)
             {
@@ -494,7 +515,7 @@ void FitResult::setFitParameters(QList<double> params, QList<double> uncs, int n
             }
         }
 
-        if(type() == LorentzianSingleLM || type() == LorentzianSingleLMS)
+        if(type() == Single)
         {
             for(int i=3; i<data->numParams; i+=2)
             {
@@ -583,8 +604,9 @@ void FitResult::save(int num)
 	QString tab("\t");
 	QString nl("\n");
 
-	t << QString("#Type") << tab << (int)type() << nl;
+    t << QString("#FitType") << tab << (int)type() << nl;
 	t << QString("#Category") << tab << (int)category() << nl;
+    t << QString("#Lineshape") << tab << (int)lineShape() << nl;
 	t << QString("#Status") << tab << status() << nl;
 	t << QString("#Iterations") << tab << iterations() << nl;
 	t << QString("#Chisq") << tab << chisq() << nl;
@@ -628,6 +650,9 @@ void FitResult::loadFromFile(int num)
 	data->scanNum = num;
 	int numSingle = 0;
 
+    //for backwards compatibility, set lineshape to Lorentzian
+    setLineShape(Lorentzian);
+
 	while(!f.atEnd())
 	{
 		QString line = QString(f.readLine());
@@ -643,9 +668,25 @@ void FitResult::loadFromFile(int num)
 		QString value = l.at(1).trimmed();
 
 		if(key.startsWith(QString("#Type")))
-			setType((FitterType)value.toInt());
+        {
+            DeprecatedFitterType t = (DeprecatedFitterType)value.toInt();
+            if(t == Dep_LorentzianDopplerPairLM || t == Dep_LorentzianDopplerPairLMS)
+                setType(DopplerPair);
+            else if(t == Dep_NoFitting)
+                setType(NoFitting);
+            else if(t == Dep_RobustLinear)
+                setType(RobustLinear);
+            else if(t == Dep_LorentzianMixedLM || t == Dep_LorentzianMixedLMS)
+                setType(Mixed);
+            else if(t == Dep_LorentzianSingleLM || t == Dep_LorentzianSingleLMS)
+                setType(Single);
+        }
+        else if(key.startsWith(QString("#FitType")))
+            setType((FitterType)value.toInt());
 		else if(key.startsWith(QString("#Category")))
 			setCategory((FitCategory)value.toInt());
+        else if(key.startsWith(QString("#Lineshape")))
+            setLineShape((LineShape)value.toInt());
 		else if(key.startsWith(QString("#Status")))
 			setStatus(value.toInt());
 		else if(key.startsWith(QString("#Iterations")))
