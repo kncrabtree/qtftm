@@ -19,6 +19,9 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout_4">
+    <property name="spacing">
+     <number>3</number>
+    </property>
     <item>
      <widget class="QSplitter" name="splitter">
       <property name="orientation">
@@ -35,6 +38,9 @@
         <string>Instrument Status</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_3">
+        <property name="spacing">
+         <number>3</number>
+        </property>
         <item>
          <layout class="QFormLayout" name="formLayout">
           <property name="fieldGrowthPolicy">
@@ -42,6 +48,9 @@
           </property>
           <property name="rowWrapPolicy">
            <enum>QFormLayout::WrapLongRows</enum>
+          </property>
+          <property name="verticalSpacing">
+           <number>3</number>
           </property>
           <item row="0" column="0">
            <widget class="QLabel" name="label_3">
@@ -564,6 +573,9 @@
         </item>
         <item>
          <layout class="QGridLayout" name="gridLayout_3" columnstretch="1,0,1,0">
+          <property name="verticalSpacing">
+           <number>3</number>
+          </property>
           <item row="3" column="3">
            <widget class="Led" name="aux2Led" native="true"/>
           </item>
@@ -745,6 +757,9 @@
         </item>
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_2">
+          <property name="spacing">
+           <number>3</number>
+          </property>
           <item>
            <widget class="QLabel" name="label">
             <property name="text">
@@ -806,6 +821,9 @@
                  <layout class="QFormLayout" name="formLayout_2">
                   <property name="fieldGrowthPolicy">
                    <enum>QFormLayout::ExpandingFieldsGrow</enum>
+                  </property>
+                  <property name="verticalSpacing">
+                   <number>3</number>
                   </property>
                   <item row="0" column="0">
                    <widget class="QLabel" name="fTMLabel">
@@ -1000,6 +1018,9 @@
                 <string>Gas Control</string>
                </property>
                <layout class="QGridLayout" name="gridLayout">
+                <property name="verticalSpacing">
+                 <number>3</number>
+                </property>
                 <item row="3" column="1">
                  <widget class="QDoubleSpinBox" name="g2setPointBox">
                   <property name="keyboardTracking">
@@ -1446,7 +1467,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>18</height>
+     <height>27</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuAcquisition">
