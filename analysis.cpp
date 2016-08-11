@@ -540,7 +540,7 @@ QVector<QPointF> Analysis::boxcarSmooth(const QVector<QPointF> data, int numPoin
 }
 
 
-QList<QPair<QPointF, double> > Analysis::findPeaks(const QVector<QPointF> data, double noiseY0, double noiseSlope)
+QList<QPair<QPointF, double> > Analysis::findPeaks(const QVector<QPointF> data, double noiseY0, double noiseSlope, double snr)
 {
     //calculate number of points to smooth.
     //boxcar smooth data
@@ -556,7 +556,7 @@ QList<QPair<QPointF, double> > Analysis::findPeaks(const QVector<QPointF> data, 
     for(int i=1;i<smth.size()-1;i++)
     {
 	   double noise = noiseY0 + noiseSlope*smth.at(i).x();
-	   if(smth.at(i).y()>peakFindingSNR*noise && smth.at(i).y() > smth.at(i-1).y() && smth.at(i).y() > smth.at(i+1).y())
+       if(smth.at(i).y()>snr*noise && smth.at(i).y() > smth.at(i-1).y() && smth.at(i).y() > smth.at(i+1).y())
 		  out.append(qMakePair(data.at(i),data.at(i).y()/noise)); //note, point from original data array used here
     }
 

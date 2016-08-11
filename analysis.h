@@ -72,7 +72,7 @@ double stDev(const QVector<double> data);
 double stDev(const QVector<QPointF> data, Coordinate c);
 QPointF stDev(const QVector<QPointF> data);
 QVector<QPointF> boxcarSmooth(const QVector<QPointF> data, int numPoints);
-QList<QPair<QPointF, double> > findPeaks(const QVector<QPointF> data, double noiseY0, double noiseSlope);
+QList<QPair<QPointF, double> > findPeaks(const QVector<QPointF> data, double noiseY0, double noiseSlope, double snr);
 bool isFidSaturated(const Fid f);
 Fid removeDC(const Fid f);
 unsigned int power2Nplus1(unsigned int n);
