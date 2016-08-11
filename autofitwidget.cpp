@@ -14,7 +14,7 @@ AutoFitWidget::AutoFitWidget(QWidget *parent) :
            << Analysis::bufferNe << Analysis::bufferAr << Analysis::bufferKr << Analysis::bufferXe;
 }
 
-AutoFitWidget::AutoFitWidget(QString bgName, double d, double h, double e, bool zp, double t, QWidget *parent) :
+AutoFitWidget::AutoFitWidget(QString bgName, double d, double h, double e, bool zp, bool winf, double t, QWidget *parent) :
      QWidget(parent),
      ui(new Ui::AutoFitWidget)
 {
@@ -27,6 +27,7 @@ AutoFitWidget::AutoFitWidget(QString bgName, double d, double h, double e, bool 
 	ui->highPassDoubleSpinBox->setValue(h);
 	ui->expFilterDoubleSpinBox->setValue(e);
 	ui->zeroPadFIDCheckBox->setChecked(zp);
+    ui->applyBHWindowCheckBox->setChecked(winf);
 	ui->temperatureDoubleSpinBox->setValue(t);
 
 	d_gases << Analysis::bufferH2 << Analysis::bufferHe << Analysis::bufferN2 << Analysis::bufferO2

@@ -4,7 +4,7 @@
 #include "batchwizard.h"
 
 CalSetupPage::CalSetupPage(SingleScanWidget *ssw, BatchWizard::Page np, QWidget *parent) :
-     QWizardPage(parent), d_nextPage(np)
+     QWizardPage(parent), d_page(np)
 {
 	setTitle("Calibration Scan Setup");
 	setSubTitle(QString("These settings will be used for the calibration scan."));
@@ -26,7 +26,10 @@ CalSetupPage::CalSetupPage(SingleScanWidget *ssw, BatchWizard::Page np, QWidget 
 
 int CalSetupPage::nextId() const
 {
-    return d_nextPage;
+    if(d_page == BatchWizard::Page_SurveyCalSetup)
+        return BatchWizard::Page_SurveyScanSetup;
+    else
+        return BatchWizard::Page_AmdorSetup;
 }
 
 bool CalSetupPage::validatePage()

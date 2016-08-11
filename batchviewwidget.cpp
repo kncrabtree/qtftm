@@ -247,6 +247,8 @@ void BatchViewWidget::processingComplete(bool failure)
         ui->analysisWidget->setPlotExp(ui->afw->exp());
         ui->analysisWidget->setPlotRdc(ui->afw->removeDC());
         ui->analysisWidget->setPlotPad(ui->afw->zeroPad());
+        ui->analysisWidget->setPlotUseWindow(ui->afw->isUseWindow());
+
 
         if(p_amdorWidget != nullptr)
         {

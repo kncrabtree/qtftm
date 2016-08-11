@@ -21,7 +21,7 @@ public slots:
 
 private:
     SingleScanWidget *p_ssw;
-    BatchWizard::Page d_nextPage;
+    BatchWizard::Page d_page;
 	
 };
 

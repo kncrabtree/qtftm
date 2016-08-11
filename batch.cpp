@@ -150,7 +150,7 @@ void Batch::processScan(Scan s)
 				t << 0;
 		}
 	}
-    bool sat = Analysis::isFidSaturated(s.fid());
+    bool sat = d_fitter->isFidSaturated(s);
     if(sat)
         t << QString("\nSAT");
 	t.flush();

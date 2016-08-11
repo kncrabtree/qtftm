@@ -77,6 +77,9 @@ public:
 	double delay() const;
 	double hpf() const;
 	double exp() const;
+    bool rdc() const;
+    bool zpf() const;
+    bool isUseWindow() const;
 	QList<double> allFitParams() const;
 	QList<double> allFitUncertainties() const;
 	QList<QPair<double,double> > freqAmpPairList() const;
@@ -102,6 +105,9 @@ public:
 	void setDelay(double d);
 	void setHpf(double h);
 	void setExp(double e);
+    void setRdc(bool b);
+    void setZpf(bool b);
+    void setUseWindow(bool b);
 	void setFitParameters(gsl_vector *c, gsl_matrix *covar, int numSingle = 0);
 	void setFitParameters(QList<double> params, QList<double> uncs, int numSingle = 0);
 	void setBaselineY0Slope(double y0, double slope);

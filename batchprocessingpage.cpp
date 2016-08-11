@@ -13,7 +13,7 @@ BatchProcessingPage::BatchProcessingPage(AutoFitWidget *afw, QWidget *parent) :
 
 	QVBoxLayout *vl = new QVBoxLayout(this);
 
-    batchAfw = new AutoFitWidget(afw->bufferGas().name,afw->delay(),afw->hpf(),afw->exp(),afw->zeroPad(),afw->temperature(),this);
+    batchAfw = new AutoFitWidget(afw->bufferGas().name,afw->delay(),afw->hpf(),afw->exp(),afw->zeroPad(),afw->isUseWindow(),afw->temperature(),this);
     vl->addWidget(batchAfw);
 
 	setLayout(vl);

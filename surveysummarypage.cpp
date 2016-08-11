@@ -47,6 +47,7 @@ void SurveySummaryPage::initializePage()
     double exp = wiz->fitter()->exp();
     bool rDC = wiz->fitter()->removeDC();
     bool padFid = wiz->fitter()->autoPad();
+    bool winf = wiz->fitter()->isUseWindow();
 
 	QString text;
 	text.append(QString("<table>"));
@@ -74,6 +75,10 @@ void SurveySummaryPage::initializePage()
 		text.append(QString("<tr><td>Zero-pad FID? </td><td align='right'> Yes </td><td></td></tr>"));
 	else
 		text.append(QString("<tr><td>Zero-pad FID? </td><td align='right'> No </td><td></td></tr>"));
+    if(winf)
+        text.append(QString("<tr><td>B-H Window? </td><td align='right'> Yes </td><td></td></tr>"));
+    else
+        text.append(QString("<tr><td>B-H Window? </td><td align='right'> No </td><td></td></tr>"));
 	text.append(QString("</table>"));
 
 	label->setText(text);

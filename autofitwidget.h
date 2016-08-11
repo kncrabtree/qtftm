@@ -17,7 +17,7 @@ class AutoFitWidget : public QWidget
 
 public:
     explicit AutoFitWidget(QWidget *parent = nullptr);
-	explicit AutoFitWidget(QString bgName = QString(), double d = 0.0, double h = 0.0, double e = 0.0, bool zp = false, double t = 293.15, QWidget *parent = nullptr);
+    explicit AutoFitWidget(QString bgName = QString(), double d = 0.0, double h = 0.0, double e = 0.0, bool zp = false, bool winf = true, double t = 293.15, QWidget *parent = nullptr);
 	~AutoFitWidget();
 
 	bool autoFitEnabled() const;

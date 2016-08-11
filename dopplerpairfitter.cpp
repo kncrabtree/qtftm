@@ -16,6 +16,9 @@ FitResult DopplerPairFitter::doFit(const Scan s)
 	out.setDelay(ftw.delay());
 	out.setHpf(ftw.hpf());
 	out.setExp(ftw.exp());
+    out.setRdc(ftw.removeDC());
+    out.setZpf(ftw.autoPad());
+    out.setUseWindow(ftw.isUseWindow());
 	out.setTemperature(d_temperature);
 	out.setBufferGas(d_bufferGas);
 
@@ -88,6 +91,9 @@ FitResult DopplerPairFitter::doFit(const Scan s)
 		out.setDelay(ftw.delay());
 		out.setHpf(ftw.hpf());
 		out.setExp(ftw.exp());
+        out.setRdc(ftw.removeDC());
+        out.setZpf(ftw.autoPad());
+        out.setUseWindow(ftw.isUseWindow());
 		out.setTemperature(d_temperature);
 		out.setBufferGas(d_bufferGas);
 		out.appendToLog(log);
@@ -159,6 +165,9 @@ FitResult DopplerPairFitter::doFit(const Scan s)
 		out.setDelay(ftw.delay());
 		out.setHpf(ftw.hpf());
 		out.setExp(ftw.exp());
+        out.setRdc(ftw.removeDC());
+        out.setZpf(ftw.autoPad());
+        out.setUseWindow(ftw.isUseWindow());
 		out.setTemperature(d_temperature);
 		out.setBufferGas(d_bufferGas);
 		out.appendToLog(log);
@@ -448,6 +457,9 @@ FitResult DopplerPairFitter::doFit(const Scan s)
 	out.setDelay(ftw.delay());
 	out.setHpf(ftw.hpf());
 	out.setExp(ftw.exp());
+    out.setRdc(ftw.removeDC());
+    out.setZpf(ftw.autoPad());
+    out.setUseWindow(ftw.isUseWindow());
 	out.setTemperature(d_temperature);
 	out.setBufferGas(d_bufferGas);
 	out.appendToLog(log);

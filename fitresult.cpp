@@ -16,12 +16,12 @@ public:
 
     FitData(FitResult::FitterType t = FitResult::NoFitting, FitResult::FitCategory c = FitResult::Invalid, FitResult::LineShape s = FitResult::Lorentzian) :
         type(t), category(c), lineShape(s), gslStatusCode(0), iterations(0), chisq(0.0),
-		offsetFreq(0.0), numParams(0), delay(0.0), hpf(0.0), exp(0.0), baselineY0Slope(qMakePair(0.0,0.0)), scanNum(-1),
+        offsetFreq(0.0), numParams(0), delay(0.0), hpf(0.0), exp(0.0), rdc(true), zpf(false), window(false), baselineY0Slope(qMakePair(0.0,0.0)), scanNum(-1),
 		bufferGas(Analysis::bufferNe), temperature(293.15), log(QString()) {}
 	FitData(const FitData &other) : QSharedData(other), type(other.type), category(other.category),
 		gslStatusCode(other.gslStatusCode), gslStatusMessage(other.gslStatusMessage), iterations(other.iterations),
 		chisq(other.chisq),	offsetFreq(other.offsetFreq), numParams(other.numParams),
-		delay(other.delay), hpf(other.hpf), exp(other.exp),
+        delay(other.delay), hpf(other.hpf), exp(other.exp), rdc(other.rdc), zpf(other.zpf), window(other.window),
 		allFitParameters(other.allFitParameters), allFitUncertainties(other.allFitUncertainties),
 		freqAmpPairList(other.freqAmpPairList),	freqAmpUncPairList(other.freqAmpUncPairList),
 		freqAmpSingleList(other.freqAmpSingleList), freqAmpUncSingleList(other.freqAmpUncSingleList),
@@ -41,6 +41,9 @@ public:
 	double delay;
 	double hpf;
 	double exp;
+    bool rdc;
+    bool zpf;
+    bool window;
 	QList<double> allFitParameters;
 	QList<double> allFitUncertainties;
 	QList<QPair<double,double> > freqAmpPairList;
@@ -160,7 +163,22 @@ double FitResult::hpf() const
 
 double FitResult::exp() const
 {
-	return data->exp;
+    return data->exp;
+}
+
+bool FitResult::rdc() const
+{
+    return data->rdc;
+}
+
+bool FitResult::zpf() const
+{
+    return data->zpf;
+}
+
+bool FitResult::isUseWindow() const
+{
+    return data->window;
 }
 
 QList<double> FitResult::allFitParams() const
@@ -397,7 +415,22 @@ void FitResult::setHpf(double h)
 
 void FitResult::setExp(double e)
 {
-	data->exp = e;
+    data->exp = e;
+}
+
+void FitResult::setRdc(bool b)
+{
+    data->rdc = b;
+}
+
+void FitResult::setZpf(bool b)
+{
+    data->zpf = b;
+}
+
+void FitResult::setUseWindow(bool b)
+{
+    data->window = b;
 }
 
 void FitResult::setFitParameters(gsl_vector *c, gsl_matrix *covar, int numSingle)
@@ -615,6 +648,9 @@ void FitResult::save(int num)
 	t << QString("#Delay") << tab << delay() << nl;
 	t << QString("#HighPass") << tab << hpf() << nl;
 	t << QString("#Exp") << tab << exp() << nl;
+    t << QString("#RemoveDC") << tab << rdc() << nl;
+    t << QString("#ZeroPad") << tab << zpf() << nl;
+    t << QString("#UseWindow") << tab << isUseWindow() << nl;
 	t << QString("#SinglePeaks") << tab << freqAmpSingleList().size() << nl;
 	t << QString("#BufferGas") << tab << bufferGas().name << nl;
 	t << QString("#Temperature") << tab << temperature() << nl;
@@ -686,7 +722,15 @@ void FitResult::loadFromFile(int num)
 		else if(key.startsWith(QString("#Category")))
 			setCategory((FitCategory)value.toInt());
         else if(key.startsWith(QString("#Lineshape")))
-            setLineShape((LineShape)value.toInt());
+        {
+            LineShape lsf = (LineShape)value.toInt();
+            setLineShape(lsf);
+            //for backwards compatibility
+            if(lsf == Lorentzian)
+                setUseWindow(false);
+            else if(lsf == Gaussian)
+                setUseWindow(true);
+        }
 		else if(key.startsWith(QString("#Status")))
 			setStatus(value.toInt());
 		else if(key.startsWith(QString("#Iterations")))
@@ -703,6 +747,12 @@ void FitResult::loadFromFile(int num)
 			setHpf(value.toDouble());
 		else if(key.startsWith(QString("#Exp")))
 			setExp(value.toDouble());
+        else if(key.startsWith(QString("#RemoveDC")))
+            setRdc((bool)value.toInt());
+        else if(key.startsWith(QString("#ZeroPad")))
+            setZpf((bool)value.toInt());
+        else if(key.startsWith(QString("#UseWindow")))
+            setUseWindow((bool)value.toInt());
 		else if(key.startsWith(QString("#BufferGas")))
 			setBufferGas(value);
 		else if(key.startsWith(QString("#Temperature")))

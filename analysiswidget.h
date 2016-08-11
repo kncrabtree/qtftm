@@ -37,6 +37,7 @@ public:
     void setPlotExp(const double e);
     void setPlotRdc(const bool b);
     void setPlotPad(const bool b);
+    void setPlotUseWindow(const bool b);
 
 signals:
     void canPrint(bool);

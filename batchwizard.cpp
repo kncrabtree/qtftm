@@ -30,7 +30,7 @@ BatchWizard::BatchWizard(SingleScanWidget *w, AutoFitWidget *a, QWidget *parent)
     SurveySetupPage *sSetP = new SurveySetupPage(p_afw,this);
     connect(sSetP,&SurveySetupPage::fitter,this,&BatchWizard::setFitter);
 
-    CalSetupPage *scp = new CalSetupPage(p_ssw,Page_SurveyScanSetup, this);
+    CalSetupPage *scp = new CalSetupPage(p_ssw,Page_SurveyCalSetup, this);
     connect(scp,&CalSetupPage::calScan,this,&BatchWizard::setCalTemplate);
 
     SurveyScanSetupPage *ssp = new SurveyScanSetupPage(p_ssw,this);

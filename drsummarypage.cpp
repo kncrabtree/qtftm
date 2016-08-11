@@ -48,6 +48,7 @@ void DrSummaryPage::initializePage()
     bool rDC = field(QString("drRemoveDc")).toBool();
 	bool padFid = field(QString("drPadFid")).toBool();
 	bool autoFit = field(QString("drAutoFit")).toBool();
+    bool winf = field(QString("drWinf")).toBool();
 
 	//need to get the integration ranges from the batch wizard
 	BatchWizard *bw = qobject_cast<BatchWizard*>(wizard());
@@ -76,6 +77,10 @@ void DrSummaryPage::initializePage()
 		text.append(QString("<tr><td>Zero-pad FID? </td><td align='right'> Yes </td><td></td></tr>"));
 	else
 		text.append(QString("<tr><td>Zero-pad FID? </td><td align='right'> No </td><td></td></tr>"));
+    if(winf)
+        text.append(QString("<tr><td>B-H Window? </td><td align='right'> Yes </td><td></td></tr>"));
+    else
+        text.append(QString("<tr><td>B-H Window? </td><td align='right'> No </td><td></td></tr>"));
 	if(autoFit)
 		text.append(QString("<tr><td>AutoFit Enabled? </td><td align='right'> Yes </td><td></td></tr>"));
 	else

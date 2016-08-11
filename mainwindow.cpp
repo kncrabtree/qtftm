@@ -660,7 +660,7 @@ void MainWindow::singleScanCallback()
 	SingleScanDialog d(this);
 	d.setWindowTitle(QString("Single Scan"));
 
-    AutoFitWidget *aw = new AutoFitWidget(guessBufferString(),ui->peakUpPlot->getDelay(),ui->peakUpPlot->getHpf(),ui->peakUpPlot->getExp(),ui->peakUpPlot->getPadFidBox()->isChecked(),293.15,&d);
+    AutoFitWidget *aw = new AutoFitWidget(guessBufferString(),ui->peakUpPlot->getDelay(),ui->peakUpPlot->getHpf(),ui->peakUpPlot->getExp(),ui->peakUpPlot->getPadFidBox()->isChecked(),ui->peakUpPlot->isUseWindow(),293.15,&d);
 	d.insertAutoFitWidget(aw);
 
 	SingleScanWidget *ssw = d.ssWidget();

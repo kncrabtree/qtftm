@@ -17,7 +17,7 @@ DrScanSetupPage::DrScanSetupPage(SingleScanWidget *ssw, AutoFitWidget *aw, QWidg
     drSsw->setShotsBoxEnabled(false);
     drSsw->enableSkipTune(true);
 
-    drAfw = new AutoFitWidget(aw->bufferGas().name,aw->delay(),aw->hpf(),aw->exp(),aw->zeroPad(),aw->temperature(),this);
+    drAfw = new AutoFitWidget(aw->bufferGas().name,aw->delay(),aw->hpf(),aw->exp(),aw->zeroPad(),aw->isUseWindow(),aw->temperature(),this);
     drAfw->disableProcessingOptions();
 
 	QHBoxLayout *vl = new QHBoxLayout(this);

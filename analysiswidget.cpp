@@ -104,6 +104,11 @@ void AnalysisWidget::setPlotPad(const bool b)
     ui->analysisPlot->setPadding(b);
 }
 
+void AnalysisWidget::setPlotUseWindow(const bool b)
+{
+    ui->analysisPlot->setUseWindow(b);
+}
+
 void AnalysisWidget::peakMarkRequested()
 {
 	llm->newEntry((ui->analysisPlot->xMax()+ui->analysisPlot->xMin())/2.0,ui->analysisPlot->xMin()/4e5);
@@ -395,12 +400,15 @@ void AnalysisWidget::loadScanMetaData()
 		return;
 	}
 
-    setPlotDelay(res.delay());
-    setPlotHpf(res.hpf());
-    setPlotExp(res.exp());
-
 	if(res.category() == FitResult::Success)
 	{
+        setPlotDelay(res.delay());
+        setPlotHpf(res.hpf());
+        setPlotExp(res.exp());
+        setPlotPad(res.zpf());
+        setPlotRdc(res.rdc());
+        setPlotUseWindow(res.isUseWindow());
+
         if(res.type() == FitResult::Single)
 		{
 			for(int i=0;i<res.freqAmpSingleList().size();i++)
@@ -524,10 +532,11 @@ void AnalysisWidget::autoFit()
 	double hpf = ui->analysisPlot->getHpf();
 	double exp = ui->analysisPlot->getExp();
 	bool pad = ui->analysisPlot->getPadFidBox()->isChecked();
+    bool win = ui->analysisPlot->isUseWindow();
 
 	QDialog d;
 	d.setWindowTitle(QString("AutoFit Settings"));
-	AutoFitWidget *aw = new AutoFitWidget(bg.name,delay,hpf,exp,pad,t,&d);
+    AutoFitWidget *aw = new AutoFitWidget(bg.name,delay,hpf,exp,pad,win,t,&d);
 	aw->setNoDisable();
 	QDialogButtonBox *bb = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
 	QVBoxLayout *vl = new QVBoxLayout(&d);
