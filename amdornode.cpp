@@ -80,3 +80,16 @@ AmdorNode *AmdorNode::rootNode()
         return parent->rootNode();
 }
 
+int AmdorNode::totalTreeSize()
+{
+    return rootNode()->treeSize();
+}
+
+int AmdorNode::treeSize()
+{
+    int out = 1;
+    for(int i=0; i<children.size(); i++)
+        out += children.at(i)->treeSize();
+
+    return out;
+}

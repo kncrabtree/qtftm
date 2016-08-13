@@ -1,9 +1,9 @@
 #include "amdorbatch.h"
 
-AmdorBatch::AmdorBatch(QList<QPair<Scan, bool> > templateList, QList<QPair<double,double>> drOnlyList, double threshold, double fw, double exc, int maxChildren, AbstractFitter *ftr) : BatchManager(QtFTM::Amdor,false,ftr),
+AmdorBatch::AmdorBatch(QList<QPair<Scan, bool> > templateList, QList<QPair<double,double>> drOnlyList, double threshold, double fw, double exc, int maxChildren, int maxTreeSize, AbstractFitter *ftr) : BatchManager(QtFTM::Amdor,false,ftr),
     d_currentFtIndex(0), d_currentDrIndex(0), d_currentRefInt(0.0), d_threshold(threshold), d_frequencyWindow(fw),
     d_excludeRange(exc), d_maxChildren(maxChildren), d_calIsNext(false), d_currentScanIsRef(false),
-    d_currentScanIsVerification(false)
+    d_currentScanIsVerification(false), d_startTime(QDateTime::currentDateTime()), d_maxTreeSize(maxTreeSize)
 {
     //build completed and scan matrices
     //in the scan matrix, diagonal elements are reference scans.
@@ -150,6 +150,7 @@ AmdorBatch::AmdorBatch(int num, AbstractFitter *ftr) :
     d_scansSinceCal = 0;
     d_excludeRange = 100.0;
     d_maxChildren = 3;
+    d_maxTreeSize = 15;
 
     if(in.open(QIODevice::ReadOnly))
     {
@@ -203,9 +204,21 @@ AmdorBatch::AmdorBatch(int num, AbstractFitter *ftr) :
                 if(l.size() < 2)
                     continue;
 
-                double w = l.at(1).trimmed().toInt(&ok);
+                int w = l.at(1).trimmed().toInt(&ok);
                 if(ok && w > 0)
                     d_maxChildren = w;
+
+                continue;
+            }
+
+            if(line.startsWith("#Max tree size"))
+            {
+                if(l.size() < 2)
+                    continue;
+
+                int w = l.at(1).trimmed().toInt(&ok);
+                if(ok && w > 0)
+                    d_maxTreeSize = w;
 
                 continue;
             }
@@ -357,6 +370,7 @@ void AmdorBatch::writeReport()
     t << QString("#Frequency window") << tab << QString::number(d_frequencyWindow,'f',3) << tab << QString("MHz") << nl;
     t << QString("#Exclude range") << tab << QString::number(d_excludeRange,'f',3) << tab << QString("MHz") << nl;
     t << QString("#Max children") << tab << QString::number(d_maxChildren) << tab << nl;
+    t << QString("#Max tree size") << tab << QString::number(d_maxTreeSize) << tab << nl;
 
     t << nl <<QString("amdorfrequencies") << batchNum << tab << QString("amdordronly") << batchNum;
     t.setRealNumberNotation(QTextStream::FixedNotation);
@@ -369,6 +383,7 @@ void AmdorBatch::writeReport()
     t << tab << QString("amdorisref") << batchNum << tab << QString("amdorisval") << batchNum << tab;
     t << QString("amdorftid") << batchNum;
     t << tab << QString("amdordrid") << batchNum << tab << QString("amdorintensity") << batchNum;
+    t << tab << QString("amdorelapsedsecs") << batchNum;
 
     for(int i=0; i<d_saveData.size(); i++)
     {
@@ -380,6 +395,7 @@ void AmdorBatch::writeReport()
         t << tab << sd.ftId;
         t << tab << sd.drId;
         t << tab << sd.intensity;
+        t << tab << sd.elapsedS;
     }
 
     s.setValue(d_numKey,batchNum+1);
@@ -389,6 +405,9 @@ void AmdorBatch::writeReport()
 
 void AmdorBatch::advanceBatch(const Scan s)
 {
+    if(s.number() < 1 && !s.isDummy())
+        return;
+
     //if loading, get information from lists
     if(d_loading)
     {
@@ -412,29 +431,36 @@ void AmdorBatch::advanceBatch(const Scan s)
     QVector<QPointF> ft = p.first;
     double max = p.second;
     double intensity = max;
+    bool detection = true;
 
     //Get relevant intensity information... will be used later for analysis
-    if(res.type() == FitResult::DopplerPair)
+    if(res.type() != FitResult::NoFitting)
     {
-        intensity = -1.0;
+        detection = false;
+//        intensity = -1.0;
         QList<QPair<double,double>> faList = res.freqAmpPairList();
         double closestFreq = 100.0;
         for(int i=0; i<faList.size(); i++)
         {
             double diff = qAbs(faList.at(i).first - s.ftFreq());
             if(diff < d_frequencyWindow && diff < closestFreq)
-                intensity = faList.at(i).second;
+            {
+//                intensity = faList.at(i).second;
+                detection = true;
+            }
         }
     }
-    else
+//    else
+//    {
+    //note: for now, don't use autofitter intensity in case it
+    //fits incorrectly
+    intensity = 0.0;
+    for(int i=0; i<ft.size(); i++)
     {
-        intensity = 0.0;
-        for(int i=0; i<ft.size(); i++)
-        {
-            if(fabs(ft.at(i).x()-s.ftFreq()) < d_frequencyWindow)
-                intensity = qMax(intensity,ft.at(i).y());
-        }
+        if(fabs(ft.at(i).x()-s.ftFreq()) < d_frequencyWindow)
+            intensity = qMax(intensity,ft.at(i).y());
     }
+//    }
 
     AmdorSaveData sd;
     sd.scanNum = s.number();
@@ -444,6 +470,7 @@ void AmdorBatch::advanceBatch(const Scan s)
     sd.isCal = d_thisScanIsCal;
     sd.isRef = d_currentScanIsRef;
     sd.isValidation = d_currentScanIsVerification;
+    sd.elapsedS = (QDateTime::currentDateTime().toMSecsSinceEpoch() - d_startTime.toMSecsSinceEpoch())/1000;
 
     d_saveData.append(sd);
 
@@ -552,19 +579,12 @@ void AmdorBatch::advanceBatch(const Scan s)
         //find next undone DR scan for this FT frequency
         //if we are doing a ref scan, there must be at least one remaining DR test to perform.
         //find the next one
-        for(int i=d_currentFtIndex+1; i<d_completedMatrix.at(d_currentFtIndex).size(); i++)
+        //however, if this line was not detected, skip it to avoid false
+        //positives
+        if(!detection)
         {
-            if(!d_completedMatrix.at(d_currentFtIndex).at(i))
-            {
-                d_currentDrIndex = i;
-                break;
-            }
-        }
-
-        if(intensity < 0.0)
-        {
-            //no detection; ignore this test and move on
-            for(int i=d_currentFtIndex; i<d_completedMatrix.at(d_currentFtIndex).size(); i++)
+            emit logMessage(QString("Did not detect reference line at %1 MHz. Skipping this frequency.").arg(s.ftFreq(),0,'f',3),QtFTM::LogWarning);
+            for(int i=0; i<d_completedMatrix.at(d_currentFtIndex).size(); i++)
                 d_completedMatrix[d_currentFtIndex][i] = true;
 
             if(nextTreeBranch())
@@ -575,9 +595,20 @@ void AmdorBatch::advanceBatch(const Scan s)
             }
             else
                 resumeFromBranch();
+
         }
         else
+        {
+            for(int i=d_currentFtIndex+1; i<d_completedMatrix.at(d_currentFtIndex).size(); i++)
+            {
+                if(!d_completedMatrix.at(d_currentFtIndex).at(i))
+                {
+                    d_currentDrIndex = i;
+                    break;
+                }
+            }
             d_currentRefInt = intensity;
+        }
     }
     else
     {
@@ -670,8 +701,15 @@ void AmdorBatch::advanceBatch(const Scan s)
                     if(!isSibling)
                         p_currentNode->addChild(drId);
 
+                    //check that total tree size is not too large
+                    if(p_currentNode->totalTreeSize() > d_maxTreeSize)
+                    {
+                        d_trees.append(p_currentNode);
+                        p_currentNode = nullptr;
+                        resumeFromBranch();
+                    }
                     //if the children list is now at limit, OR we've done the last DR scan we can, go to next branch if possible
-                    if(p_currentNode->children.size() >= d_maxChildren || adv)
+                    else if(p_currentNode->children.size() >= d_maxChildren || adv)
                     {
                         if(nextTreeBranch())
                             useNodeIndices = true;

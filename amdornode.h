@@ -23,6 +23,8 @@ public:
 
     bool isRootNode();
     AmdorNode *rootNode();
+    int totalTreeSize();
+    int treeSize();
 };
 
 #endif // AMDORNODE_H

@@ -52,6 +52,13 @@ AmdorConfigPage::AmdorConfigPage(AutoFitWidget *afw, QWidget *parent) :
 
     fl->addRow(QString("Max Linkages"),childrenBox);
 
+    QSpinBox *treeSizeBox = new QSpinBox(this);
+    treeSizeBox->setRange(1,1000);
+    treeSizeBox->setSingleStep(1);
+    treeSizeBox->setToolTip(QString("Maximum number of DR linkages in a whole set. After reaching this value,\nthe program will stop exploring this network and will search for a new one.\nIf set to 1, no networks will be explored."));
+
+    fl->addRow(QString("Max Set Size"),treeSizeBox);
+
     QCheckBox *calBox = new QCheckBox(this);
     calBox->setToolTip(QString("If checked, calibration scans will be performed periodically throughout acquisition."));
 
@@ -70,6 +77,7 @@ AmdorConfigPage::AmdorConfigPage(AutoFitWidget *afw, QWidget *parent) :
     registerField(QString("amdorWindow"),winBox);
     registerField(QString("amdorExclude"),excludeBox);
     registerField(QString("amdorChildren"),childrenBox);
+    registerField(QString("amdorTreeSize"),treeSizeBox);
     registerField(QString("amdorCal"),calBox);
 
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
@@ -77,14 +85,17 @@ AmdorConfigPage::AmdorConfigPage(AutoFitWidget *afw, QWidget *parent) :
     double mt = s.value(QString("amdorThreshold"),0.5).toDouble();
     double win = s.value(QString("amdorWindow"),0.1).toDouble();
     double exc = s.value(QString("amdorExclude"),100.0).toDouble();
-    double ch = s.value(QString("amdorChildren"),3).toDouble();
+    int ch = s.value(QString("amdorChildren"),3).toInt();
+    int ts = s.value(QString("amdorTreeSize"),15).toInt();
     bool cal = s.value(QString("amdorCal"),true).toBool();
+
     s.endGroup();
 
     threshBox->setValue(mt);
     winBox->setValue(win);
     excludeBox->setValue(exc);
     childrenBox->setValue(ch);
+    treeSizeBox->setValue(ts);
     calBox->setChecked(cal);
 
 }
@@ -98,6 +109,7 @@ bool AmdorConfigPage::validatePage()
     s.setValue(QString("amdorWindow"),field(QString("amdorWindow")).toDouble());
     s.setValue(QString("amdorExclude"),field(QString("amdorExclude")).toDouble());
     s.setValue(QString("amdorChildren"),field(QString("amdorChildren")).toInt());
+    s.setValue(QString("amdorTreeSize"),field(QString("amdorTreeSize")).toInt());
     s.setValue(QString("amdorCal"),field(QString("amdorCal")).toBool());
     s.endGroup();
 

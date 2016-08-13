@@ -92,8 +92,9 @@ bool AmdorSetupPage::validatePage()
     double win = field(QString("amdorWindow")).toDouble();
     double exc = field(QString("amdorExclude")).toDouble();
     int ch = field(QString("amdorChildren")).toInt();
+    int ts = field(QString("amdorTreeSize")).toInt();
 
-    AmdorBatch *b = new AmdorBatch(scanList,drOnlyList,t,win,exc,ch,wiz->fitter());
+    AmdorBatch *b = new AmdorBatch(scanList,drOnlyList,t,win,exc,ch,ts,wiz->fitter());
     b->setSleepWhenComplete(p_bw->sleep());
 
     emit batchManager(b);

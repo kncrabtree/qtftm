@@ -9,7 +9,7 @@ class AmdorBatch : public BatchManager
 {
     Q_OBJECT
 public:
-    AmdorBatch(QList<QPair<Scan,bool>> templateList, QList<QPair<double,double>> drOnlyList, double threshold, double fw, double exc, int maxChildren, AbstractFitter *ftr);
+    AmdorBatch(QList<QPair<Scan,bool>> templateList, QList<QPair<double,double>> drOnlyList, double threshold, double fw, double exc, int maxChildren, int maxTreeSize, AbstractFitter *ftr);
     AmdorBatch(int num, AbstractFitter *ftr);
     ~AmdorBatch();
 
@@ -21,6 +21,7 @@ public:
         int ftId;
         int drId;
         double intensity;
+        qint64 elapsedS;
     };
 
     QList<double> allFrequencies();
@@ -65,6 +66,8 @@ private:
     QList<bool> d_loadCalList, d_loadRefList, d_loadVerificationList;
     QList<QPair<int,int>> d_loadIndices;
     int d_loadIndex;
+    QDateTime d_startTime;
+    int d_maxTreeSize;
 
     bool incrementIndices();
     bool nextTreeBranch();

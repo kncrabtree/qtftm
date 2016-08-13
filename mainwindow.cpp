@@ -159,7 +159,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	lh = new LogHandler(this);
 	connect(lh,&LogHandler::sendLogMessage,ui->log,&QTextEdit::append);
 	connect(lh,&LogHandler::sendLogMessage,[=](){
-		if(ui->tabWidget->currentIndex() != ui->tabWidget->count()-1)
+        if(ui->tabWidget->currentIndex() != ui->tabWidget->indexOf(ui->logTab))
 		{
 			d_logCount++;
             ui->tabWidget->setTabText(ui->tabWidget->indexOf(ui->logTab),QString("Log (%1)").arg(d_logCount));

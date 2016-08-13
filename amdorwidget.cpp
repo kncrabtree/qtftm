@@ -85,6 +85,8 @@ void AmdorWidget::enableEditing(bool en)
 void AmdorWidget::newRefScan(int num, int id, double i)
 {
     p_amdorModel->addRefScan(num,id,i);
+    if(d_livePlot)
+        ui->amdorPlot->updateData(p_amdorModel->graphData());
 }
 
 void AmdorWidget::newDrScan(int num, int id, double i)
