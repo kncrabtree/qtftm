@@ -16,6 +16,7 @@ public:
     QList<double> allFrequencies;
     QList<AmdorData::AmdorScanResult> resultList;
     QList<QSet<int>> sets;
+    QPointF lastPoint;
 
     double matchThreshold;
     int currentRefScan;
@@ -88,6 +89,7 @@ void AmdorData::newRefScan(int num, int id, double i)
     res.set = -1;
 
     data->resultList.append(res);
+    data->lastPoint = QPointF(data->allFrequencies.at(id),data->allFrequencies.at(id));
 }
 
 bool AmdorData::newDrScan(int num, int id, double i)
@@ -112,6 +114,8 @@ bool AmdorData::newDrScan(int num, int id, double i)
         data->sets[0].insert(res.index);
     }
 
+    data->lastPoint = QPointF(data->allFrequencies.at(data->currentRefId),
+                                data->allFrequencies.at(id));
     return res.linked;
 
 }
@@ -296,7 +300,7 @@ void AmdorData::removeLinkage(int scanIndex)
 
 }
 
-QList<QVector<QPointF> > AmdorData::graphData() const
+QPair<QList<QVector<QPointF>>,QPointF> AmdorData::graphData() const
 {
     QList<QVector<QPointF>> out;
 
@@ -315,7 +319,7 @@ QList<QVector<QPointF> > AmdorData::graphData() const
     }
 
 
-    return out;
+    return qMakePair(out,data->lastPoint);
 
 }
 

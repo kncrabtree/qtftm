@@ -36,6 +36,7 @@ AmdorPlot::AmdorPlot(QWidget *parent) : ZoomPanPlot(QString("amdorPlot"),parent)
     insertLegend(l);
 
     p_diagCurve = nullptr;
+    p_lastPointCurve = nullptr;
 
 }
 
@@ -61,12 +62,12 @@ void AmdorPlot::setPlotRange(double min, double max)
     replot();
 }
 
-void AmdorPlot::updateData(QList<QVector<QPointF>> l)
+void AmdorPlot::updateData(QPair<QList<QVector<QPointF>>,QPointF> l)
 {
     QSettings s;
     s.beginGroup(QString("amdorPlot"));
     s.beginReadArray(QString("set"));
-    for(int i=0; i<l.size(); i++)
+    for(int i=0; i<l.first.size(); i++)
     {
         s.setArrayIndex(i);
         while(d_curves.size() < i+1)
@@ -94,17 +95,43 @@ void AmdorPlot::updateData(QList<QVector<QPointF>> l)
 
         }
 
-        d_curves[i]->setSamples(l.at(i));
+        d_curves[i]->setSamples(l.first.at(i));
     }
     s.endArray();
-    s.endGroup();
 
-    for(int i=d_curves.size()-1; i>=l.size(); i--)
+    for(int i=d_curves.size()-1; i>=l.first.size(); i--)
     {
         QwtPlotCurve *c = d_curves.takeAt(i);
         c->detach();
         delete c;
     }
+
+    //handle last point
+    QPointF p = l.second;
+    if(p_lastPointCurve == nullptr)
+    {
+        p_lastPointCurve = new QwtPlotCurve("Last Point");
+
+        p_lastPointCurve->setStyle(QwtPlotCurve::NoCurve);
+        p_lastPointCurve->setRenderHint(QwtPlotCurve::RenderAntialiased);
+
+        QwtSymbol::Style style = static_cast<QwtSymbol::Style>(s.value(QString("lpsymbol"),static_cast<int>(QwtSymbol::Ellipse)).toInt());
+        QColor color = s.value(QString("lpcolor"),QPalette().color(QPalette::Text)).value<QColor>();
+        int size = s.value(QString("lpsize"),10).toInt();
+
+        QwtSymbol *sym = new QwtSymbol(style);
+        sym->setColor(QColor(0,0,0,0));
+        sym->setPen(QPen(color));
+        sym->setSize(size);
+        p_lastPointCurve->setSymbol(sym);
+
+        p_lastPointCurve->setLegendAttribute(QwtPlotCurve::LegendShowSymbol);
+        p_lastPointCurve->attach(this);
+
+    }
+    s.endGroup();
+
+    p_lastPointCurve->setSamples(QVector<QPointF>{ p });
 
     replot();
 }
@@ -125,24 +152,38 @@ void AmdorPlot::changeCurveColor(QwtPlotCurve *c, QColor currentColor)
         return;
 
     int index = d_curves.indexOf(c);
+    bool lp = false;
     if(index < 0)
-        return;
+    {
+        if(c == p_lastPointCurve)
+            lp = true;
+        else
+            return;
+    }
 
     QColor color = QColorDialog::getColor(currentColor);
     if(color.isValid())
     {
         QSettings s;
         s.beginGroup(QString("amdorPlot"));
-        s.beginWriteArray(QString("set"));
-        s.setArrayIndex(index);
         QwtSymbol *sym = new QwtSymbol(c->symbol()->style());
         sym->setColor(color);
         sym->setPen(QPen(color));
         sym->setSize(c->symbol()->size());
         c->setSymbol(sym);
-        s.setValue(QString("color"),color);
+        if(!lp)
+        {
+            s.beginWriteArray(QString("set"));
+            s.setArrayIndex(index);
+            s.setValue(QString("color"),color);
+            s.endArray();
+        }
+        else
+        {
+            sym->setColor(QColor(0,0,0,0));
+            s.setValue(QString("lpcolor"),color);
+        }
         replot();
-        s.endArray();
         s.endGroup();
         s.sync();
     }
@@ -154,23 +195,40 @@ void AmdorPlot::changeCurveSymbol(QwtPlotCurve *c, QwtSymbol::Style sty)
         return;
 
     int index = d_curves.indexOf(c);
+    bool lp = false;
     if(index < 0)
-        return;
+    {
+        if(c == p_lastPointCurve)
+            lp = true;
+        else
+            return;
+    }
 
 
     QSettings s;
     s.beginGroup(QString("amdorPlot"));
-    s.beginWriteArray(QString("set"));
-    s.setArrayIndex(index);
-    QColor currentColor = s.value(QString("color"),QPalette().color(QPalette::Text)).value<QColor>();
+    QColor currentColor;
+    if(!lp)
+    {
+        s.beginWriteArray(QString("set"));
+        s.setArrayIndex(index);
+        currentColor = s.value(QString("color"),QPalette().color(QPalette::Text)).value<QColor>();
+        s.setValue(QString("symbol"),static_cast<int>(sty));
+        s.endArray();
+    }
+    else
+    {
+        currentColor = s.value(QString("lpcolor"),QPalette().color(QPalette::Text)).value<QColor>();
+        s.setValue(QString("lpsymbol"),static_cast<int>(sty));
+    }
     QwtSymbol *sym = new QwtSymbol(sty);
     sym->setColor(currentColor);
+    if(lp)
+        sym->setColor(QColor(0,0,0,0));
     sym->setPen(QPen(currentColor));
     sym->setSize(c->symbol()->size());
     c->setSymbol(sym);
-    s.setValue(QString("symbol"),static_cast<int>(sty));
     replot();
-    s.endArray();
     s.endGroup();
     s.sync();
 }
@@ -181,23 +239,40 @@ void AmdorPlot::changeCurveSize(QwtPlotCurve *c, int size)
         return;
 
     int index = d_curves.indexOf(c);
+    bool lp = false;
     if(index < 0)
-        return;
+    {
+        if(c == p_lastPointCurve)
+            lp = true;
+        else
+            return;
+    }
 
 
     QSettings s;
     s.beginGroup(QString("amdorPlot"));
-    s.beginWriteArray(QString("set"));
-    s.setArrayIndex(index);
-    QColor currentColor = s.value(QString("color"),QPalette().color(QPalette::Text)).value<QColor>();
+    QColor currentColor;
+    if(!lp)
+    {
+        s.beginWriteArray(QString("set"));
+        s.setArrayIndex(index);
+        currentColor = s.value(QString("color"),QPalette().color(QPalette::Text)).value<QColor>();
+        s.setValue(QString("size"),size);
+        s.endArray();
+    }
+    else
+    {
+        currentColor = s.value(QString("lpcolor"),QPalette().color(QPalette::Text)).value<QColor>();
+        s.setValue(QString("lpsize"),size);
+    }
     QwtSymbol *sym = new QwtSymbol(c->symbol()->style());
     sym->setColor(currentColor);
+    if(lp)
+        sym->setColor(QColor(0,0,0,0));
     sym->setPen(QPen(currentColor));
     sym->setSize(size);
     c->setSymbol(sym);
-    s.setValue(QString("size"),size);
     replot();
-    s.endArray();
     s.endGroup();
     s.sync();
 }
@@ -215,17 +290,36 @@ QMenu* AmdorPlot::curveContextMenu(QwtPlotCurve *c)
         return nullptr;
 
     int index = d_curves.indexOf(c);
+    bool lp = false;
     if(index < 0)
-        return nullptr;
+    {
+        if(c == p_lastPointCurve)
+            lp = true;
+        else
+            return nullptr;
+    }
+
+    QColor currentColor;
+    int currentSymbol;
+    int currentSize;
 
     QSettings s;
     s.beginGroup(QString("amdorPlot"));
-    s.beginWriteArray(QString("set"));
-    s.setArrayIndex(index);
-    QColor currentColor = s.value(QString("color"),QPalette().color(QPalette::Text)).value<QColor>();
-    int currentSymbol = static_cast<int>(c->symbol()->style());
-    int currentSize = c->symbol()->size().width();
-    s.endArray();
+    if(!lp)
+    {
+        s.beginReadArray(QString("set"));
+        s.setArrayIndex(index);
+        currentColor = s.value(QString("color"),QPalette().color(QPalette::Text)).value<QColor>();
+        currentSymbol = static_cast<int>(c->symbol()->style());
+        currentSize = c->symbol()->size().width();
+        s.endArray();
+    }
+    else
+    {
+        currentColor = s.value(QString("lpcolor"),QPalette().color(QPalette::Text)).value<QColor>();
+        currentSymbol = static_cast<int>(c->symbol()->style());
+        currentSize = c->symbol()->size().width();
+    }
     s.endGroup();
 
     QMenu *out = new QMenu;
@@ -255,7 +349,7 @@ QMenu* AmdorPlot::curveContextMenu(QwtPlotCurve *c)
     connect(symBox,static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),[=](int i){ changeCurveSymbol(c,static_cast<QwtSymbol::Style>(symBox->itemData(i).toInt())); });
 
     QSpinBox *sizeBox = new QSpinBox(out);
-    sizeBox->setRange(1,10);
+    sizeBox->setRange(1,15);
     sizeBox->setValue(currentSize);
     connect(sizeBox,static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),[=](int s) { changeCurveSize(c,s);});
 

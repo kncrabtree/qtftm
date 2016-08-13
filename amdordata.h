@@ -46,7 +46,7 @@ public:
     void addLinkage(int scanIndex, bool checkUnlinked = false);
     void removeLinkage(int scanIndex);
 
-    QList<QVector<QPointF>> graphData() const;
+    QPair<QList<QVector<QPointF>>,QPointF> graphData() const;
     QPair<double,double> frequencyRange() const;
     bool exportAscii(const QList<int> sets, const QString savePath) const;
 

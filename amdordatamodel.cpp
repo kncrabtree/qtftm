@@ -31,7 +31,7 @@ void AmdorDataModel::removeLinkage(int scanIndex)
     emit dataChanged(index(0,0),index(rowCount(QModelIndex())-1,columnCount(QModelIndex())-1));
 }
 
-QList<QVector<QPointF>> AmdorDataModel::graphData()
+QPair<QList<QVector<QPointF>>,QPointF> AmdorDataModel::graphData()
 {
     return d_amdorData.graphData();
 }

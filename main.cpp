@@ -139,6 +139,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<FlowConfig>("FlowConfig");
     qRegisterMetaType<FitResult>("FitResult");
     qRegisterMetaType<QtFTM::FlowSetting>("QtFTM::FlowSetting");
+    qRegisterMetaType<QPair<QList<QVector<QPointF>>,QPointF>>("QPair<QList<QVector<QPointF>>,QPointF>");
 
     gsl_set_error_handler_off();
 

@@ -19,7 +19,7 @@ public:
     bool eventFilter(QObject *obj, QEvent *ev);
 
 public slots:
-    void updateData(QList<QVector<QPointF> > l);
+    void updateData(QPair<QList<QVector<QPointF>>,QPointF> l);
     void toggleCurveVisibility(QVariant item, bool hide, int index);
     void changeCurveColor(QwtPlotCurve *c, QColor currentColor);
     void changeCurveSymbol(QwtPlotCurve *c, QwtSymbol::Style sty);
@@ -32,6 +32,7 @@ protected:
 private:
     QList<QwtPlotCurve*> d_curves;
     QwtPlotCurve *p_diagCurve;
+    QwtPlotCurve *p_lastPointCurve;
 
     QMenu *curveContextMenu(QwtPlotCurve *c);
 

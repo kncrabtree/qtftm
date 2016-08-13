@@ -15,7 +15,7 @@ public:
     void addDrScan(int num, int id, double i);
     void addLinkage(int scanIndex);
     void removeLinkage(int scanIndex);
-    QList<QVector<QPointF> > graphData();
+    QPair<QList<QVector<QPointF> >, QPointF> graphData();
     int column(AmdorData::AmdorColumn c) const;
     bool exportAscii(const QList<int> sets, const QString savePath);
 

@@ -864,6 +864,9 @@ bool AmdorBatch::nextTreeBranch()
         //no tests are possible on DR only scans
         if(id >= d_completedMatrix.size())
             continue;
+        if(id+1 >= d_completedMatrix.at(i).size())
+            continue;
+
 
         if(!d_completedMatrix.at(id).at(id+1))
         {

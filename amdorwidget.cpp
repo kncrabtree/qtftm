@@ -136,7 +136,7 @@ void AmdorWidget::exportAscii()
     QDialog d(this);
     d.setWindowTitle(QString("AMDOR Export"));
 
-    QList<QVector<QPointF>> sets = p_amdorModel->graphData();
+    QList<QVector<QPointF>> sets = p_amdorModel->graphData().first;
     QList<QCheckBox*> cbList;
     QVBoxLayout *vbl = new QVBoxLayout(&d);
 
