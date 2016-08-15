@@ -462,24 +462,28 @@ void AmdorBatch::advanceBatch(const Scan s)
     }
 //    }
 
-    AmdorSaveData sd;
-    sd.scanNum = s.number();
-    sd.ftId = d_currentFtIndex;
-    sd.drId = d_currentDrIndex;
-    sd.intensity = intensity;
-    sd.isCal = d_thisScanIsCal;
-    sd.isRef = d_currentScanIsRef;
-    sd.isValidation = d_currentScanIsVerification;
-    sd.elapsedS = (QDateTime::currentDateTime().toMSecsSinceEpoch() - d_startTime.toMSecsSinceEpoch())/1000;
+    if(!d_loading)
+    {
+        AmdorSaveData sd;
+        sd.scanNum = s.number();
+        sd.ftId = d_currentFtIndex;
+        sd.drId = d_currentDrIndex;
+        sd.intensity = intensity;
+        sd.isCal = d_thisScanIsCal;
+        sd.isRef = d_currentScanIsRef;
+        sd.isValidation = d_currentScanIsVerification;
+        sd.elapsedS = (QDateTime::currentDateTime().toMSecsSinceEpoch() - d_startTime.toMSecsSinceEpoch())/1000;
 
-    d_saveData.append(sd);
+        d_saveData.append(sd);
+    }
 
     /****************************************
      * INFORMATION FOR BATCH PLOT
      * **************************************/
 
-    QString markerText;
-    QTextStream t(&markerText);
+    //don't use markers... not needed
+//    QString markerText;
+//    QTextStream t(&markerText);
 
     //the data will start and end with a 0 to make the plot look a little nicer
     if(!d_thisScanIsCal)
@@ -491,12 +495,12 @@ void AmdorBatch::advanceBatch(const Scan s)
     }
     else
     {
-        t << QString("CAL\n");
+//        t << QString("CAL\n");
         d_calData.append(QPointF(num,intensity));
     }
 
     //show ftm frequency and attenuation
-    t << QString("ftm:") << QString::number(s.ftFreq(),'f',1) << QString("/") << s.attenuation();
+//    t << QString("ftm:") << QString::number(s.ftFreq(),'f',1) << QString("/") << s.attenuation();
 
     double mdmin = static_cast<double>(s.number());
     double mdmax = static_cast<double>(s.number());
@@ -505,29 +509,29 @@ void AmdorBatch::advanceBatch(const Scan s)
     if(!d_thisScanIsCal)
     {
         //if DR is on, show DR freq and power
-        if(s.pulseConfiguration().isDrEnabled())
-            t  << QString("\n") << QString("dr:") << QString::number(s.drFreq(),'f',1)
-               << QString("/") << QString::number(s.drPower(),'f',1);
-        t << QString("\n");
-        //show pulse configuration
-        for(int i=0;i<s.pulseConfiguration().size();i++)
-        {
-            if(s.pulseConfiguration().at(i).enabled)
-                t << 1;
-            else
-                t << 0;
-        }
+//        if(s.pulseConfiguration().isDrEnabled())
+//            t  << QString("\n") << QString("dr:") << QString::number(s.drFreq(),'f',1)
+//               << QString("/") << QString::number(s.drPower(),'f',1);
+//        t << QString("\n");
+//        //show pulse configuration
+//        for(int i=0;i<s.pulseConfiguration().size();i++)
+//        {
+//            if(s.pulseConfiguration().at(i).enabled)
+//                t << 1;
+//            else
+//                t << 0;
+//        }
 
         mdmin = num - ((double)ft.size()/2.0 + 1.0)/(double)ft.size()*0.9;
         mdmax = num - ((double)ft.size()/2.0 - (double)ft.size())/(double)ft.size()*0.9;
     }
 
-    if(d_currentScanIsRef)
-        t << QString("\n") << QString("REF");
+//    if(d_currentScanIsRef)
+//        t << QString("\n") << QString("REF");
 
-    t.flush();
+//    t.flush();
 
-    QtFTM::BatchPlotMetaData md(QtFTM::Amdor,s.number(),mdmin,mdmax,d_thisScanIsCal,badTune,markerText);
+    QtFTM::BatchPlotMetaData md(QtFTM::Amdor,s.number(),mdmin,mdmax,d_thisScanIsCal,badTune);
     md.isRef = d_currentScanIsRef;
 
     bool link = false;
