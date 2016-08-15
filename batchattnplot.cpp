@@ -79,15 +79,23 @@ void BatchAttnPlot::receiveData(QtFTM::BatchPlotMetaData md, QList<QVector<QPoin
                 d_plotCurveMetaData[i].yMax = qMax(d_plotCurveMetaData.at(i).yMax,d.at(i).at(j).y());
             }
         }
+        expandAutoScaleRange(QwtPlot::yLeft,d_plotCurveMetaData.at(i).yMin,d_plotCurveMetaData.at(i).yMax);
         d_plotCurves[i]->setSamples(d.at(i));
     }
     //set curve data
     d_plotCurveData = d;
 
+    expandAutoScaleRange(QwtPlot::xBottom,md.minXVal,md.maxXVal);
     if(d_metaDataList.isEmpty() || md.maxXVal > d_metaDataList.last().maxXVal)
+    {
         d_metaDataList.append(md);
+        setAxisAutoScaleMax(QwtPlot::xBottom,md.maxXVal);
+    }
     else
+    {
         d_metaDataList.prepend(md);
+        setAxisAutoScaleMin(QwtPlot::xBottom,md.minXVal);
+    }
 
     replot();
 }
