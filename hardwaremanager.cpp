@@ -623,21 +623,25 @@ void HardwareManager::prepareForScan(Scan s)
     if(d_currentScan.skipTune())
 	    finishPreparation(true);
     else
+    {
+        //for batch attenuation scans, need to set attenuation before tuning
+        //TODO: write wrapper function for setAttn to handle threading
+        if(s.isDummy())
+            attn->setAttn(s.attenuation());
 	    tuneCavity(d_currentScan.ftFreq(),-1);
+    }
 
 }
 
 void HardwareManager::finishPreparation(bool tuneSuccess)
 {
     d_waitingForScanTune = false;
-    bool success = tuneSuccess;
+    bool success = true;
 
-    if(success)
+    if(tuneSuccess)
     {
 	    int v = readCavityTuningVoltage();
-	    if(v<0)
-		    success = false;
-	    else
+        if(v>=0)
 	    {
 		    d_currentScan.setTuningVoltage(v);
 
@@ -670,7 +674,8 @@ void HardwareManager::finishPreparation(bool tuneSuccess)
 			    }
 		    }
 	    }
-    }
+    } //if tuning was not successful, leave attenuation at tuning attn
+
 
     if(success)
     {
