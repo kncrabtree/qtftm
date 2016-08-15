@@ -11,6 +11,7 @@
 #include <QWidgetAction>
 #include <QFormLayout>
 #include <QSpinBox>
+#include <QApplication>
 
 #include <qwt6/qwt_plot_curve.h>
 #include <qwt6/qwt_symbol.h>
@@ -95,6 +96,8 @@ void AmdorPlot::updateData(QPair<QList<QVector<QPointF>>,QPointF> l)
 
         }
 
+        if(i>0)
+            d_curves[i]->setTitle(QString("Set %1 (%2)").arg(i).arg(l.first.at(i).size()/2));
         d_curves[i]->setSamples(l.first.at(i));
     }
     s.endArray();
@@ -133,6 +136,7 @@ void AmdorPlot::updateData(QPair<QList<QVector<QPointF>>,QPointF> l)
 
     p_lastPointCurve->setSamples(QVector<QPointF>{ p });
 
+    updateLayout();
     replot();
 }
 

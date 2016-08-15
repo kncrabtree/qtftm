@@ -370,6 +370,11 @@ bool AmdorData::exportAscii(const QList<int> sets, const QString savePath) const
     return true;
 }
 
+bool AmdorData::matchThreshold() const
+{
+    return data->matchThreshold;
+}
+
 QVariant AmdorData::modelData(int row, int column, int role) const
 {
     if(row < 0 || row >= numRows())

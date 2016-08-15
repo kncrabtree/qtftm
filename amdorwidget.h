@@ -26,6 +26,7 @@ public slots:
     void newRefScan(int num, int id, double i);
     void newDrScan(int num, int id, double i);
     void updateFtPlots();
+    void goToLastScan();
 
     void addLinkage();
     void removeLinkage();

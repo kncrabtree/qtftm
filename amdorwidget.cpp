@@ -32,10 +32,12 @@ AmdorWidget::AmdorWidget(AmdorData ad, int num, QWidget *parent) :
     connect(ui->addLinkButton,&QToolButton::clicked,this,&AmdorWidget::addLinkage);
     connect(ui->removeLinkButton,&QToolButton::clicked,this,&AmdorWidget::removeLinkage);
     connect(ui->exportButton,&QToolButton::clicked,this,&AmdorWidget::exportAscii);
+    connect(ui->currentButton,&QToolButton::clicked,this,&AmdorWidget::goToLastScan);
 
 
     QPair<double,double> r = ad.frequencyRange();
     ui->amdorPlot->setPlotRange(r.first,r.second);
+    ui->thresholdBox->setValue(ad.matchThreshold());
 
     configureButtons();
 }
@@ -86,14 +88,46 @@ void AmdorWidget::newRefScan(int num, int id, double i)
 {
     p_amdorModel->addRefScan(num,id,i);
     if(d_livePlot)
+    {
         ui->amdorPlot->updateData(p_amdorModel->graphData());
+        int rows = p_amdorModel->rowCount(QModelIndex());
+        int newRow = rows-1;
+        QModelIndex newIndex = p_proxyModel->mapFromSource(p_amdorModel->index(newRow,0));
+        if(ui->amdorDataTable->selectionModel()->hasSelection())
+        {
+            QModelIndex row = p_proxyModel->mapToSource(ui->amdorDataTable->selectionModel()->selectedRows(AmdorData::Index).first());
+            if(p_amdorModel->data(row,Qt::EditRole).toInt() == newRow-1)
+                ui->amdorDataTable->selectRow(newIndex.row());
+
+        }
+        else if(p_amdorModel->rowCount(QModelIndex()) == 1)
+        {
+            ui->amdorDataTable->selectRow(newIndex.row());
+        }
+    }
 }
 
 void AmdorWidget::newDrScan(int num, int id, double i)
 {
     p_amdorModel->addDrScan(num, id, i);
     if(d_livePlot)
+    {
         ui->amdorPlot->updateData(p_amdorModel->graphData());
+        int rows = p_amdorModel->rowCount(QModelIndex());
+        int newRow = rows-1;
+        QModelIndex newIndex = p_proxyModel->mapFromSource(p_amdorModel->index(newRow,0));
+        if(ui->amdorDataTable->selectionModel()->hasSelection())
+        {
+            QModelIndex row = p_proxyModel->mapToSource(ui->amdorDataTable->selectionModel()->selectedRows(AmdorData::Index).first());
+            if(p_amdorModel->data(row,Qt::EditRole).toInt() == newRow-1)
+                ui->amdorDataTable->selectRow(newIndex.row());
+
+        }
+        else if(p_amdorModel->rowCount(QModelIndex()) == 1)
+        {
+            ui->amdorDataTable->selectRow(newIndex.row());
+        }
+    }
 }
 
 void AmdorWidget::updateFtPlots()
@@ -109,6 +143,16 @@ void AmdorWidget::updateFtPlots()
 
     ui->refPlot->loadScan(refScan);
     ui->drPlot->loadScan(drScan);
+}
+
+void AmdorWidget::goToLastScan()
+{
+    int lastRow = p_amdorModel->rowCount(QModelIndex())-1;
+    if(lastRow >= 0)
+    {
+        int proxyNewRow = p_proxyModel->mapFromSource(p_amdorModel->index(lastRow,0)).row();
+        ui->amdorDataTable->selectRow(proxyNewRow);
+    }
 }
 
 void AmdorWidget::addLinkage()
