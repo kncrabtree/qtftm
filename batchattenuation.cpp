@@ -133,7 +133,10 @@ Scan BatchAttenuation::prepareNextScan()
         if(d_scanDownIndex > 0)
             out.setFtFreq(qMax(d_minFreq,10030.0 - (double)d_scanDownIndex*d_stepSize));
         else
+        {
             out.setFtFreq(10030.0);
+            out.setAttenuation(d_atten10GHz);
+        }
     }
 
     return out;
