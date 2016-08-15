@@ -39,6 +39,9 @@ AmdorWidget::AmdorWidget(AmdorData ad, int num, QWidget *parent) :
     ui->amdorPlot->setPlotRange(r.first,r.second);
     ui->thresholdBox->setValue(ad.matchThreshold());
 
+    ui->amdorDataTable->horizontalHeader()->setVisible(true);
+    ui->amdorDataTable->verticalHeader()->setVisible(false);
+
     configureButtons();
 }
 
@@ -62,18 +65,17 @@ void AmdorWidget::configureButtons()
         ui->removeLinkButton->setEnabled(false);
         ui->thresholdBox->setEnabled(false);
         ui->applyThresholdButton->setEnabled(false);
-        ui->exportButton->setEnabled(false);
     }
     else
     {
         ui->thresholdBox->setEnabled(true);
         ui->applyThresholdButton->setEnabled(true);
-        ui->exportButton->setEnabled(p_amdorModel->rowCount(QModelIndex()) > 0);
 
         QModelIndexList l = ui->amdorDataTable->selectionModel()->selectedRows();
         ui->addLinkButton->setEnabled(!l.isEmpty());
         ui->removeLinkButton->setEnabled(!l.isEmpty());
     }
+    ui->exportButton->setEnabled(p_amdorModel->rowCount(QModelIndex()) > 0);
 
 
 }
@@ -181,8 +183,9 @@ void AmdorWidget::exportAscii()
 {
     QDialog d(this);
     d.setWindowTitle(QString("AMDOR Export"));
+    AmdorData ad = p_amdorModel->amdorData();
 
-    QList<QVector<QPointF>> sets = p_amdorModel->graphData().first;
+    QList<QVector<QPointF>> sets = ad.graphData().first;
     QList<QCheckBox*> cbList;
     QVBoxLayout *vbl = new QVBoxLayout(&d);
 
@@ -220,7 +223,7 @@ void AmdorWidget::exportAscii()
                 exportList.append(i);
         }
 
-        if(!p_amdorModel->exportAscii(exportList,saveFile))
+        if(!ad.exportAscii(exportList,saveFile))
             QMessageBox::critical(this,QString("AMDOR Export Error"),QString("Could not open %1 for writing.\nPlease choose another location."));
 
         QString newPath = QFileInfo(saveFile).dir().absolutePath();

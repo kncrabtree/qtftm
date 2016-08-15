@@ -17,7 +17,7 @@ public:
     void removeLinkage(int scanIndex);
     QPair<QList<QVector<QPointF> >, QPointF> graphData();
     int column(AmdorData::AmdorColumn c) const;
-    bool exportAscii(const QList<int> sets, const QString savePath);
+    AmdorData amdorData() const;
 
 public slots:
     void applyThreshold(double thresh);

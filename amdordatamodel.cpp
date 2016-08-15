@@ -41,9 +41,9 @@ int AmdorDataModel::column(AmdorData::AmdorColumn c) const
     return d_amdorData.column(c);
 }
 
-bool AmdorDataModel::exportAscii(const QList<int> sets, const QString savePath)
+AmdorData AmdorDataModel::amdorData() const
 {
-    return d_amdorData.exportAscii(sets,savePath);
+    return d_amdorData;
 }
 
 void AmdorDataModel::applyThreshold(double thresh)
