@@ -15,7 +15,13 @@ PeakListWidget::PeakListWidget(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    connect(ui->peakListTable,&QTableWidget::itemClicked,this,&PeakListWidget::itemClicked);
+    p_plModel = new PeakListModel(this);
+    p_proxy = new QSortFilterProxyModel(this);
+    p_proxy->setSourceModel(p_plModel);
+    p_proxy->setSortRole(Qt::EditRole);
+    ui->peakListTable->setModel(p_proxy);
+
+    connect(ui->peakListTable,&QTableView::clicked,this,&PeakListWidget::itemClicked);
     connect(ui->peakListTable,&QWidget::customContextMenuRequested,this,&PeakListWidget::contextMenu);
 }
 
@@ -49,19 +55,16 @@ void PeakListWidget::removeScan(int num)
         return;
 
     QList<int> rowsToRemove;
-    for(int i=0; i<ui->peakListTable->rowCount();i++)
+    for(int i=0; i<p_plModel->rowCount(QModelIndex());i++)
     {
-        if(ui->peakListTable->item(i,0)->data(Qt::DisplayRole).toInt() == num)
+        if(p_plModel->data(p_plModel->index(i,0),Qt::EditRole).toInt() == num)
             rowsToRemove.append(i);
     }
 
     if(rowsToRemove.isEmpty())
         return;
 
-    ui->peakListTable->setSortingEnabled(false);
-    for(int i=rowsToRemove.size()-1;i>=0;i--)
-        ui->peakListTable->removeRow(i);
-    ui->peakListTable->setSortingEnabled(true);
+    p_plModel->removeLines(rowsToRemove);
 }
 
 void PeakListWidget::replaceScan(int num)
@@ -77,55 +80,32 @@ void PeakListWidget::addLine(int scanNum, double freq, double amp, QString comme
 {
     if(scanNum < 0)
         return;
-    int colNum = 0;
 
-    ui->peakListTable->setSortingEnabled(false);
-
-    int row = ui->peakListTable->rowCount();
-    ui->peakListTable->setRowCount(row+1);
-
-    QTableWidgetItem *sn = new QTableWidgetItem();
-    sn->setData(Qt::DisplayRole,scanNum);
-    sn->setTextAlignment(Qt::AlignRight);
-    sn->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-    ui->peakListTable->setItem(row,colNum,sn);
-    colNum++;
-
-    QTableWidgetItem *f = new DoubleTableWidgetItem(freq,6);
-    f->setTextAlignment(Qt::AlignRight);
-    f->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-    ui->peakListTable->setItem(row,colNum,f);
-    colNum++;
-
-    QTableWidgetItem *a = new DoubleTableWidgetItem(amp,3);
-    a->setTextAlignment(Qt::AlignRight);
-    a->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-    ui->peakListTable->setItem(row,colNum,a);
-    colNum++;
-
-    QTableWidgetItem *c = new QTableWidgetItem(comment);
-    c->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEditable|Qt::ItemIsEnabled);
-    ui->peakListTable->setItem(row,colNum,c);
+    QModelIndex index = p_plModel->addLine(scanNum,freq,amp,comment);
 
     if(selectAdded)
-        ui->peakListTable->selectRow(row);
-
-    ui->peakListTable->setSortingEnabled(true);
-    if(row == 0)
     {
-        for(int i=0; i<colNum; i++)
+        ui->peakListTable->selectRow(p_proxy->mapFromSource(index).row());
+    }
+
+    if(index.row() == 0)
+    {
+        for(int i=0; i<p_plModel->columnCount(QModelIndex()); i++)
             ui->peakListTable->resizeColumnToContents(i);
     }
 }
 
-void PeakListWidget::removeSelectedLine()
+void PeakListWidget::removeSelectedLines()
 {
-    QList<QTableWidgetItem*> selList = ui->peakListTable->selectedItems();
-    if(!selList.isEmpty())
-    {
-        int row = selList.at(0)->row();
-        ui->peakListTable->removeRow(row);
-    }
+    QModelIndexList l = ui->peakListTable->selectionModel()->selectedRows();
+    if(l.isEmpty())
+        return;
+
+    QList<int> rows;
+    for(int i=0; i<l.size(); i++)
+        rows.append(p_proxy->mapToSource(l.at(i)).row());
+
+    p_plModel->removeLines(rows);
 }
 
 void PeakListWidget::removeAllLines()
@@ -135,8 +115,7 @@ void PeakListWidget::removeAllLines()
                              QMessageBox::Yes|QMessageBox::Cancel,QMessageBox::Cancel) == QMessageBox::Cancel)
         return;
 
-    while(ui->peakListTable->rowCount()>0)
-        ui->peakListTable->removeRow(0);
+    p_plModel->removeAll();
 
 }
 
@@ -148,10 +127,10 @@ void PeakListWidget::setTitle(QString t)
         ui->peakListTitle->setText(QString("Peak List: %1").arg(t));
 }
 
-void PeakListWidget::itemClicked(QTableWidgetItem *item)
+void PeakListWidget::itemClicked(QModelIndex index)
 {
-    int row = item->row();
-    int scanNum = ui->peakListTable->item(row,0)->data(Qt::DisplayRole).toInt();
+    int row = p_proxy->mapToSource(index).row();
+    int scanNum = p_plModel->data(p_plModel->index(row,0),Qt::EditRole).toInt();
 
     if(scanNum > 0)
         emit scanSelected(scanNum);
@@ -159,29 +138,7 @@ void PeakListWidget::itemClicked(QTableWidgetItem *item)
 
 void PeakListWidget::clearAll()
 {
-    ui->peakListTable->clear();
-    ui->peakListTable->setRowCount(0);
-
-    int colNum = 0;
-
-    ui->peakListTable->setHorizontalHeaderItem(colNum,new QTableWidgetItem(QString("Scan")));
-    colNum++;
-
-    ui->peakListTable->setHorizontalHeaderItem(colNum,new QTableWidgetItem(QString("Frequency")));
-    colNum++;
-
-    ui->peakListTable->setHorizontalHeaderItem(colNum,new QTableWidgetItem(QString("Intensity")));
-    colNum++;
-
-    ui->peakListTable->setHorizontalHeaderItem(colNum,new QTableWidgetItem(QString("Comment")));
-    colNum++;
-
-    QHeaderView *hv = ui->peakListTable->verticalHeader();
-    hv->setSectionResizeMode(QHeaderView::Fixed);
-    ui->peakListTable->setVerticalHeader(hv);
-
-    ui->peakListTable->horizontalHeader()->setStretchLastSection(true);
-    ui->peakListTable->sortByColumn(0,Qt::AscendingOrder);
+    p_plModel->removeAll();
 }
 
 void PeakListWidget::selectScan(int num)
@@ -189,23 +146,22 @@ void PeakListWidget::selectScan(int num)
     if(num < 1)
         return;
 
-    QList<QTableWidgetItem*> selList = ui->peakListTable->selectedItems();
-    if(!selList.isEmpty())
+    QModelIndexList l = ui->peakListTable->selectionModel()->selectedRows();
+    if(!l.isEmpty())
     {
-        int row = selList.at(0)->row();
         //if the currently selected item is from the same scan, don't change selection
-        if(ui->peakListTable->item(row,0)->data(Qt::DisplayRole).toInt() == num)
+        if(p_proxy->data(l.first(),Qt::EditRole).toInt() == num)
             return;
     }
 
     ui->peakListTable->clearSelection();
 
-    if(num < 1 || ui->peakListTable->rowCount() == 0)
+    if(num < 1 || p_proxy->rowCount(QModelIndex()) == 0)
         return;
 
-    for(int i=0; i<ui->peakListTable->rowCount();i++)
+    for(int i=0; i<p_proxy->rowCount(QModelIndex());i++)
     {
-        if(ui->peakListTable->item(i,0)->data(Qt::DisplayRole).toInt() == num)
+        if(p_proxy->data(p_proxy->index(i,0), Qt::EditRole).toInt() == num)
         {
             ui->peakListTable->selectRow(i);
             break;
@@ -215,37 +171,16 @@ void PeakListWidget::selectScan(int num)
 
 void PeakListWidget::addUniqueLine(int scanNum, double freq, double amp, QString comment)
 {
-    //first, search through list and see if this line is already there
-    bool matchFound = false;
-    for(int i=0;i<ui->peakListTable->rowCount();i++)
-    {
-        int rowScanNum = ui->peakListTable->item(i,0)->data(Qt::DisplayRole).toInt();
-        double rowFreq = ui->peakListTable->item(i,1)->data(Qt::DisplayRole).toDouble();
-
-        if(rowScanNum == scanNum)
-        {
-            if(fabs(rowFreq - freq) < 0.0005) //same line; update amplitude and comment
-            {
-                matchFound = true;
-                DoubleTableWidgetItem *it = new DoubleTableWidgetItem(amp,3);
-                it->setTextAlignment(Qt::AlignRight);
-                it->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-                ui->peakListTable->setItem(i,2,it);
-                if(!comment.isEmpty())
-                    ui->peakListTable->item(i,3)->setText(comment);
-                ui->peakListTable->selectRow(i);
-                break;
-            }
-        }
-    }
-
-    if(!matchFound)
-        addLine(scanNum,freq,amp,comment,true);
+   int row = p_plModel->addUniqueLine(scanNum,freq,amp,comment);
+   if(row >= 0)
+   {
+       ui->peakListTable->selectRow(p_proxy->mapFromSource(p_plModel->index(row,0)).row());
+   }
 }
 
 void PeakListWidget::exportLinesToFile()
 {
-    if(ui->peakListTable->rowCount() == 0)
+    if(p_proxy->rowCount(QModelIndex()) == 0)
         return;
 
     QString s = ui->peakListTitle->text().toLower();
@@ -269,16 +204,16 @@ void PeakListWidget::exportLinesToFile()
     QString tab("\t");
     QString nl("\n");
 
-    for(int i=0;i<ui->peakListTable->rowCount();i++)
+    for(int i=0;i<p_proxy->rowCount(QModelIndex());i++)
     {
         if(i>0)
             t << nl;
 
-        for(int j=0; j<ui->peakListTable->columnCount(); j++)
+        for(int j=0; j<p_proxy->columnCount(QModelIndex()); j++)
         {
             if(j>0)
                 t << tab;
-            t << ui->peakListTable->item(i,j)->text();
+            t << p_proxy->data(p_proxy->index(i,j)).toString();
         }
     }
 
@@ -290,27 +225,239 @@ void PeakListWidget::exportLinesToFile()
 
 void PeakListWidget::contextMenu(QPoint pos)
 {
-    QTableWidgetItem *item = ui->peakListTable->itemAt(pos);
+    QModelIndexList l = ui->peakListTable->selectionModel()->selectedRows();
 
     QMenu *menu = new QMenu();
     menu->setAttribute(Qt::WA_DeleteOnClose);
 
     QAction *exportAct = menu->addAction(QString("Export list..."));
-    if(ui->peakListTable->rowCount() == 0)
+    if(p_proxy->rowCount(QModelIndex()) == 0)
 	   exportAct->setEnabled(false);
     connect(exportAct,&QAction::triggered,this,&PeakListWidget::exportLinesToFile);
 
     menu->addSeparator();
 
-    QAction *rsAct = menu->addAction(QString("Remove selected line"));
-    if(!item)
+    QAction *rsAct = menu->addAction(QString("Remove selected"));
+    if(l.isEmpty())
         rsAct->setEnabled(false);
-    connect(rsAct,&QAction::triggered,this,&PeakListWidget::removeSelectedLine);
+    connect(rsAct,&QAction::triggered,this,&PeakListWidget::removeSelectedLines);
 
-    QAction *raAct = menu->addAction(QString("Clear all lines"));
-    if(ui->peakListTable->rowCount() == 0)
+    QAction *raAct = menu->addAction(QString("Remove all"));
+    if(p_proxy->rowCount(QModelIndex()) == 0)
         raAct->setEnabled(false);
     connect(raAct,&QAction::triggered,this,&PeakListWidget::removeAllLines);
 
     menu->popup(ui->peakListTable->mapToGlobal(pos));
+}
+
+
+PeakListModel::PeakListModel(QObject *parent) : QAbstractTableModel(parent)
+{
+
+}
+
+
+int PeakListModel::rowCount(const QModelIndex &parent) const
+{
+    //assuming we will never let the lists become dirrerent sizes...
+    Q_UNUSED(parent)
+    return d_scanList.size();
+}
+
+int PeakListModel::columnCount(const QModelIndex &parent) const
+{
+    Q_UNUSED(parent)
+    return 4;
+}
+
+QVariant PeakListModel::data(const QModelIndex &index, int role) const
+{
+    if(role == Qt::DisplayRole)
+        return internalData(index.row(),index.column(),true);
+
+    if(role == Qt::EditRole)
+        return internalData(index.row(),index.column(),false);
+
+    return QVariant();
+}
+
+bool PeakListModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    if(role == Qt::EditRole)
+    {
+        if(index.column() == 3)
+        {
+            if(index.row() >= 0 && index.row() < d_commentList.size())
+            {
+                d_commentList[index.row()] = value.toString();
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+QVariant PeakListModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if(role == Qt::DisplayRole)
+    {
+        if(orientation == Qt::Horizontal)
+        {
+            switch(section)
+            {
+            case 0:
+                return QString("Scan");
+                break;
+            case 1:
+                return QString("Frequency");
+                break;
+            case 2:
+                return QString("Amplitude");
+                break;
+            case 3:
+                return QString("Comment");
+                break;
+            }
+        }
+        else
+            return QString::number(section+1);
+    }
+
+    return QVariant();
+}
+
+Qt::ItemFlags PeakListModel::flags(const QModelIndex &index) const
+{
+    if(index.column() == 3)
+        return Qt::ItemIsEditable | Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+    else
+        return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+}
+
+QModelIndex PeakListModel::addLine(int scanNum, double freq, double amp, QString comment)
+{
+    int row = d_scanList.size();
+    beginInsertRows(QModelIndex(),row,row);
+    d_scanList.append(scanNum);
+    d_freqList.append(freq);
+    d_ampList.append(amp);
+    d_commentList.append(comment);
+    endInsertRows();
+
+    return index(row,0);
+}
+
+int PeakListModel::addUniqueLine(int scanNum, double freq, double amp, QString comment)
+{
+    //first, search through list and see if this line is already there
+    bool matchFound = false;
+    int out = -1;
+    for(int i=0;i<rowCount(QModelIndex());i++)
+    {
+        int rowScanNum = d_scanList.at(i);
+        double rowFreq = d_freqList.at(i);
+
+        if(rowScanNum == scanNum)
+        {
+            if(fabs(rowFreq - freq) < 0.0005) //same line; update amplitude and comment
+            {
+                matchFound = true;
+                d_ampList[i] = amp;
+                if(!comment.isEmpty())
+                    d_commentList[i] = comment;
+                out = i;
+                break;
+            }
+        }
+    }
+
+    if(!matchFound)
+        addLine(scanNum,freq,amp,comment);
+
+    return out;
+}
+
+void PeakListModel::removeLines(QList<int> rows)
+{
+    std::sort(rows.begin(),rows.end());
+    for(int i=rows.size(); i>=0; i--)
+    {
+        int row = rows.at(i);
+        if(row < 0 || row > d_scanList.size())
+            continue;
+
+        beginRemoveRows(QModelIndex(),row,row);
+        d_scanList.removeAt(row);
+        d_freqList.removeAt(row);
+        d_ampList.removeAt(row);
+        d_commentList.removeAt(row);
+        endRemoveRows();
+    }
+}
+
+void PeakListModel::removeAll()
+{
+    beginRemoveRows(QModelIndex(),0,d_scanList.size()-1);
+    d_scanList.clear();
+    d_freqList.clear();
+    d_ampList.clear();
+    d_commentList.clear();
+    endRemoveRows();
+}
+
+QVariant PeakListModel::internalData(int row, int column, bool str) const
+{
+
+    if(row < 0)
+        return QVariant();
+
+    if(str)
+    {
+        switch(column)
+        {
+        case 0:
+            if(row < d_scanList.size())
+                return QString::number(d_scanList.at(row));
+            break;
+        case 1:
+            if(row < d_freqList.size())
+                return QString::number(d_freqList.at(row),'f',3);
+            break;
+        case 2:
+            if(row < d_ampList.size())
+                return QString::number(d_ampList.at(row),'f',3);
+            break;
+        case 3:
+            if(row < d_commentList.size())
+                return d_commentList.at(row);
+            break;
+        }
+    }
+    else
+    {
+        switch(column)
+        {
+        case 0:
+            if(row < d_scanList.size())
+                return d_scanList.at(row);
+            break;
+        case 1:
+            if(row < d_freqList.size())
+                return d_freqList.at(row);
+            break;
+        case 2:
+            if(row < d_ampList.size())
+                return d_ampList.at(row);
+            break;
+        case 3:
+            if(row < d_commentList.size())
+                return d_commentList.at(row);
+            break;
+        }
+    }
+
+    return QVariant();
+
+
 }
