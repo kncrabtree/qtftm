@@ -28,6 +28,7 @@ public slots:
     // ZoomPanPlot interface
 protected:
     void filterData();
+    void launchContextMenu(QPoint pos);
 
 private:
     QList<QwtPlotCurve*> d_curves;
