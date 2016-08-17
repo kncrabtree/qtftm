@@ -49,7 +49,7 @@ public:
     QPair<QList<QVector<QPointF>>,QPointF> graphData() const;
     QPair<double,double> frequencyRange() const;
     bool exportAscii(const QList<int> sets, const QString savePath) const;
-    bool matchThreshold() const;
+    double matchThreshold() const;
 
     //convenience interface for use with a QTableModel
     QVariant modelData(int row, int column, int role) const;
