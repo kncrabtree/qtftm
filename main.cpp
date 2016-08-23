@@ -78,10 +78,9 @@ int main(int argc, char *argv[])
 	//list containing lockfile names and application names
 	QList<QPair<QString,QString> > incompatibleApps;
 	//add other apps here
-    //if the app is from a different organization (e.g. CrabtreeLab instead of CfA Spectroscopy Lab), enter full path to lockfile and prepend with !
+    //if the app is from a different organization (e.g. CfA Spectroscopy Lab instead of CrabtreeLab), enter full path to lockfile and prepend with !
 	incompatibleApps.append(qMakePair(lockFileName,appName));
-	incompatibleApps.append(qMakePair(QString("bbacq.lock"),QString("BBAcq")));
-    incompatibleApps.append(qMakePair(QString("!/home/data/CrabtreeLab/blackchirp.lock"),QString("BlackChirp")));
+    incompatibleApps.append(qMakePair(QString("lock_blackchirp.lock"),QString("BlackChirp")));
 
 
 	QFile lockFile;
