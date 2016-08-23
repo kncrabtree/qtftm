@@ -183,6 +183,8 @@ void SynthSettingsWidget::loadBandInfo()
 
 	s.setArrayIndex(band);
 
+    ui->bandNameLineEdit->setText(s.value(QString("name"),QString("")).toString());
+
     double m = s.value(QString("min"),50.0).toDouble();
 	ui->minDoubleSpinBox->setValue(m);
 	ui->maxDoubleSpinBox->setMinimum(m+1.0);
@@ -212,6 +214,7 @@ void SynthSettingsWidget::saveBandSettings(int band)
 //	for(int i=0;i<ui->numBandsSpinBox->value();i++)
 //	{
 		s.setArrayIndex(band);
+        s.setValue(QString("name"),ui->bandNameLineEdit->text());
 		s.setValue(QString("min"),ui->minDoubleSpinBox->value());
 		s.setValue(QString("max"),ui->maxDoubleSpinBox->value());
 		s.setValue(QString("mult"),ui->multSpinBox->value());
