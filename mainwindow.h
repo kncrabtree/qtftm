@@ -74,6 +74,7 @@ public slots:
 	void singleScanCallback();
 	void batchScanCallback();
 	void sleep(bool b);
+    void delayedSleep();
 	void hardwareStatusChanged(bool success);
 	void launchCommunicationDialog();
 	void launchFtSettings();
@@ -130,6 +131,7 @@ private:
 	bool d_hardwareConnected;
     int d_logCount;
     QtFTM::LogMessageCode d_logIcon;
+    QTimer *p_sleepTimer;
 
     void startBatchManager(BatchManager *bm);
 	void launchSettingsDialog(SettingsWidget *w);

@@ -1467,7 +1467,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>27</height>
+     <height>18</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuAcquisition">
@@ -1518,8 +1518,16 @@
     <addaction name="menuMotor_Driver"/>
     <addaction name="menuAttenuator"/>
    </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="actionSleep_Mode"/>
+    <addaction name="actionDelayed_Sleep"/>
+   </widget>
    <addaction name="menuAcquisition"/>
    <addaction name="menuSettings"/>
+   <addaction name="menuTools"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <property name="contextMenuPolicy">
@@ -1793,6 +1801,11 @@
    </property>
    <property name="toolTip">
     <string>Configure IO Board Settings</string>
+   </property>
+  </action>
+  <action name="actionDelayed_Sleep">
+   <property name="text">
+    <string>Delayed Sleep...</string>
    </property>
   </action>
  </widget>
