@@ -27,15 +27,6 @@ const double edgeSkepticalWRTSplitting = 0.75;
 const double twoLogTwo = 2.0*log(2.0);
 const double rootTwoLogTwo = sqrt(twoLogTwo);
 
-const FitResult::BufferGas bufferH2(QString("H2"),2.0*1.00794,7.0/5.0);
-const FitResult::BufferGas bufferHe(QString("He"),4.002602,5.0/3.0);
-const FitResult::BufferGas bufferN2(QString("N2"),2.0*14.0067,7.0/5.0);
-const FitResult::BufferGas bufferO2(QString("O2"),2.0*15.9994,7.0/5.0);
-const FitResult::BufferGas bufferNe(QString("Ne"),20.1797,5.0/3.0);
-const FitResult::BufferGas bufferAr(QString("Ar"),39.948,5.0/3.0);
-const FitResult::BufferGas bufferKr(QString("Kr"),83.798,5.0/3.0);
-const FitResult::BufferGas bufferXe(QString("Xe"),131.293,5.0/3.0);
-
 /******************************
  * ENUM/STRUCTURE DEFINITIONS *
  ******************************/
@@ -43,15 +34,6 @@ const FitResult::BufferGas bufferXe(QString("Xe"),131.293,5.0/3.0);
 enum Coordinate {
     Xcoord,
     Ycoord
-};
-
-struct DopplerPairParameters {
-	double amplitude;
-	double alpha;
-	double centerFreq;
-
-	DopplerPairParameters(double a, double al, double c) :
-		amplitude(a), alpha(al), centerFreq(c) {}
 };
 
 /***********************************
@@ -79,10 +61,11 @@ unsigned int power2Nplus1(unsigned int n);
 QList<double> estimateBaseline(const QVector<QPointF> ftData);
 QVector<QPointF> removeBaseline(const QVector<QPointF> data, double y0, double slope, double probeFreq = 0.0);
 double estimateSplitting(const FitResult::BufferGas &bg, double stagT, double frequency);
-QList<Analysis::DopplerPairParameters> estimateDopplerCenters(QList<QPair<QPointF, double> > peakList, double splitting, double ftSpacing);
-bool dpAmplitudeLess(const DopplerPairParameters &left, const DopplerPairParameters &right);
+QList<FitResult::DopplerPairParameters> estimateDopplerCenters(QList<QPair<QPointF, double> > peakList, double splitting, double ftSpacing);
+bool dpAmplitudeLess(const FitResult::DopplerPairParameters &left, const FitResult::DopplerPairParameters &right);
 double estimateDopplerLinewidth(const FitResult::BufferGas &bg, double probeFreq, double stagT = 293.15);
 void estimateDopplerPairAmplitude(const QVector<QPointF> ft, DopplerPair *dp, QPair<double,double> baseline);
+double kahanSum(const QVector<double> dat);
 
 
 /***********************************
@@ -116,10 +99,10 @@ int gaussSingle_f(const gsl_vector * x, void *data, gsl_vector * f);
 int gaussSingle_df(const gsl_vector * x, void *data, gsl_matrix * J);
 int gaussSingle_fdf(const gsl_vector * x, void *data, gsl_vector * f, gsl_matrix * J);
 
-FitResult dopplerPairFit(const gsl_multifit_fdfsolver_type *solverType, FitResult::LineShape lsf, const QVector<QPointF> data, const double probeFreq, const double y0, const double slope, const double split, const double width, const QList<DopplerPairParameters> dpParams, const int maxIterations = 50);
-FitResult dopplerMixedFit(const gsl_multifit_fdfsolver_type *solverType, FitResult::LineShape lsf, const QVector<QPointF> data, const double probeFreq, const double y0, const double slope, const double split, const double width, const QList<DopplerPairParameters> dpParams, const QList<QPointF> singleParams, const int maxIterations = 50);
+FitResult dopplerPairFit(const gsl_multifit_fdfsolver_type *solverType, FitResult::LineShape lsf, const QVector<QPointF> data, const double probeFreq, const double y0, const double slope, const double split, const double width, const QList<FitResult::DopplerPairParameters> dpParams, const int maxIterations = 50);
+FitResult dopplerMixedFit(const gsl_multifit_fdfsolver_type *solverType, FitResult::LineShape lsf, const QVector<QPointF> data, const double probeFreq, const double y0, const double slope, const double split, const double width, const QList<FitResult::DopplerPairParameters> dpParams, const QList<QPointF> singleParams, const int maxIterations = 50);
 FitResult singleFit(const gsl_multifit_fdfsolver_type *solverType, FitResult::LineShape lsf, const QVector<QPointF> data, const double probeFreq, const double y0, const double slope, const double width, const QList<QPointF> singleParams, const int maxIterations = 50);
-FitResult fitLine(QVector<QPointF> data, double probeFreq);
+FitResult fitLine(const FitResult &in, QVector<QPointF> data, double probeFreq);
 
 /*******************************
  *   OSCILLOSCOPE PARSING      *

@@ -10,8 +10,8 @@ AutoFitWidget::AutoFitWidget(QWidget *parent) :
     connect(ui->autoFitEnabledCheckBox,&QAbstractButton::toggled,ui->autoFitSettingsBox,&QWidget::setEnabled);
     connect(ui->autoFitEnabledCheckBox,&QAbstractButton::toggled,this,&AutoFitWidget::autoFitEnabledChanged);
 
-    d_gases << Analysis::bufferH2 << Analysis::bufferHe << Analysis::bufferN2 << Analysis::bufferO2
-           << Analysis::bufferNe << Analysis::bufferAr << Analysis::bufferKr << Analysis::bufferXe;
+    d_gases << FitResultBG::bufferH2 << FitResultBG::bufferHe << FitResultBG::bufferN2 << FitResultBG::bufferO2
+           << FitResultBG::bufferNe << FitResultBG::bufferAr << FitResultBG::bufferKr << FitResultBG::bufferXe;
 }
 
 AutoFitWidget::AutoFitWidget(QString bgName, double d, double h, double e, bool zp, bool winf, double t, QWidget *parent) :
@@ -30,8 +30,8 @@ AutoFitWidget::AutoFitWidget(QString bgName, double d, double h, double e, bool 
     ui->applyBHWindowCheckBox->setChecked(winf);
 	ui->temperatureDoubleSpinBox->setValue(t);
 
-	d_gases << Analysis::bufferH2 << Analysis::bufferHe << Analysis::bufferN2 << Analysis::bufferO2
-		   << Analysis::bufferNe << Analysis::bufferAr << Analysis::bufferKr << Analysis::bufferXe;
+    d_gases << FitResultBG::bufferH2 << FitResultBG::bufferHe << FitResultBG::bufferN2 << FitResultBG::bufferO2
+           << FitResultBG::bufferNe << FitResultBG::bufferAr << FitResultBG::bufferKr << FitResultBG::bufferXe;
 
 	//default buffer gas is Ne. Check to see if the bgname contains something different
 	if(bgName.contains(QString("H2"),Qt::CaseSensitive))

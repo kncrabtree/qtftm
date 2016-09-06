@@ -17,8 +17,8 @@ public:
     FitData(FitResult::FitterType t = FitResult::NoFitting, FitResult::FitCategory c = FitResult::Invalid, FitResult::LineShape s = FitResult::Lorentzian) :
         type(t), category(c), lineShape(s), gslStatusCode(0), iterations(0), chisq(0.0),
         offsetFreq(0.0), numParams(0), delay(0.0), hpf(0.0), exp(0.0), rdc(true), zpf(false), window(false), baselineY0Slope(qMakePair(0.0,0.0)), scanNum(-1),
-		bufferGas(Analysis::bufferNe), temperature(293.15), log(QString()) {}
-	FitData(const FitData &other) : QSharedData(other), type(other.type), category(other.category),
+        bufferGas(FitResultBG::bufferNe), temperature(293.15), log(QString()) {}
+    FitData(const FitData &other) : QSharedData(other), type(other.type), category(other.category), lineShape(other.lineShape),
 		gslStatusCode(other.gslStatusCode), gslStatusMessage(other.gslStatusMessage), iterations(other.iterations),
 		chisq(other.chisq),	offsetFreq(other.offsetFreq), numParams(other.numParams),
         delay(other.delay), hpf(other.hpf), exp(other.exp), rdc(other.rdc), zpf(other.zpf), window(other.window),
@@ -502,10 +502,13 @@ void FitResult::setFitParameters(gsl_vector *c, gsl_matrix *covar, int numSingle
 
 }
 
-void FitResult::setFitParameters(QList<double> params, QList<double> uncs, int numSingle)
+void FitResult::setFitParameters(QList<double> params, QList<double> uncs, int numPairs, int numSingle)
 {
 	data->allFitParameters = params;
 	data->allFitUncertainties = uncs;
+    data->numParams = params.size();
+    if(data->numParams < 2 || uncs.size() != data->numParams)
+        return;
 
 
 	data->freqAmpPairList.clear();
@@ -513,51 +516,28 @@ void FitResult::setFitParameters(QList<double> params, QList<double> uncs, int n
 	data->freqAmpUncPairList.clear();
 	data->freqAmpUncSingleList.clear();
 
-    if((params.size() >=2) && (uncs.size() >=2))
+    int offsetIndex = 4;
+    if(type() == Single)
+        offsetIndex = 3;
+
+    data->baselineY0Slope.first = data->allFitParameters.at(0);
+    data->baselineY0Slope.second = data->allFitParameters.at(1);
+
+
+
+    for(int i=0; i<numPairs; i++)
     {
-        data->baselineY0Slope.first = data->allFitParameters.at(0);
-        data->baselineY0Slope.second = data->allFitParameters.at(1);
-
-        if(type() == DopplerPair)
-        {
-            for(int i=4; i<data->numParams && i+2 < params.size() && i+2 < uncs.size(); i+=3)
-            {
-                data->freqAmpPairList.append(qMakePair(params.at(i+2)+data->offsetFreq,
-                                                       params.at(i)));
-                data->freqAmpUncPairList.append(qMakePair(uncs.at(i+2),
-                                                          uncs.at(i)));
-            }
-        }
-
-        if(type() == Mixed)
-        {
-            for(int i=4; i<data->numParams - 2*numSingle && i+2 < params.size() && i+2 < uncs.size(); i+=3)
-            {
-                data->freqAmpPairList.append(qMakePair(params.at(i+2)+data->offsetFreq,
-                                                       params.at(i)));
-                data->freqAmpUncPairList.append(qMakePair(uncs.at(i+2),
-                                                          uncs.at(i)));
-            }
-
-            for(int i=data->numParams-2*numSingle; i < data->numParams && i+1 < params.size() && i+1 < uncs.size(); i+=2)
-            {
-                data->freqAmpSingleList.append(qMakePair(params.at(i+1)+data->offsetFreq,
-                                                         params.at(i)));
-                data->freqAmpUncSingleList.append(qMakePair(uncs.at(i+1),
-                                                            uncs.at(i)));
-            }
-        }
-
-        if(type() == Single)
-        {
-            for(int i=3; i<data->numParams; i+=2)
-            {
-                data->freqAmpSingleList.append(qMakePair(data->allFitParameters.at(i+1)+data->offsetFreq,
-                                                         data->allFitParameters.at(i)));
-                data->freqAmpUncSingleList.append(qMakePair(data->allFitUncertainties.at(i+1),
-                                                            data->allFitUncertainties.at(i)));
-            }
-        }
+        data->freqAmpPairList.append(qMakePair(params.at(offsetIndex+3*i+2)+data->offsetFreq,
+                                               params.at(offsetIndex+3*i)));
+        data->freqAmpUncPairList.append(qMakePair(uncs.at(offsetIndex+3*i+2),
+                                                  uncs.at(offsetIndex+3*i)));
+    }
+    for(int i=0; i<numSingle; i++)
+    {
+        data->freqAmpSingleList.append(qMakePair(params.at(offsetIndex+3*numPairs+2*i+1)+data->offsetFreq,
+                                                 params.at(offsetIndex+3*numPairs+2*i)));
+        data->freqAmpUncPairList.append(qMakePair(uncs.at(offsetIndex+3*numPairs+2*i+1)+data->offsetFreq,
+                                                  uncs.at(offsetIndex+3*numPairs+2*i)));
     }
 }
 
@@ -575,23 +555,23 @@ void FitResult::setBufferGas(QString bgName)
 {
 	//default buffer gas is Ne. Check to see if the bgname contains something different
 	if(bgName.contains(QString("H2"),Qt::CaseSensitive))
-		data->bufferGas = Analysis::bufferH2;
+        data->bufferGas = FitResultBG::bufferH2;
 	else if(bgName.contains(QString("He"),Qt::CaseSensitive))
-		data->bufferGas = Analysis::bufferHe;
+        data->bufferGas = FitResultBG::bufferHe;
 	else if(bgName.contains(QString("N2"),Qt::CaseSensitive))
-		data->bufferGas = Analysis::bufferN2;
+        data->bufferGas = FitResultBG::bufferN2;
 	else if(bgName.contains(QString("O2"),Qt::CaseSensitive))
-		data->bufferGas = Analysis::bufferO2;
+        data->bufferGas = FitResultBG::bufferO2;
 	else if(bgName.contains(QString("Ne"),Qt::CaseSensitive))
-		data->bufferGas = Analysis::bufferNe;
+        data->bufferGas = FitResultBG::bufferNe;
 	else if(bgName.contains(QString("Ar"),Qt::CaseSensitive))
-		data->bufferGas = Analysis::bufferAr;
+        data->bufferGas = FitResultBG::bufferAr;
 	else if(bgName.contains(QString("Kr"),Qt::CaseSensitive))
-		data->bufferGas = Analysis::bufferKr;
+        data->bufferGas = FitResultBG::bufferKr;
 	else if(bgName.contains(QString("Xe"),Qt::CaseSensitive))
-		data->bufferGas = Analysis::bufferXe;
+        data->bufferGas = FitResultBG::bufferXe;
 	else
-		data->bufferGas = Analysis::bufferNe;
+        data->bufferGas = FitResultBG::bufferNe;
 }
 
 void FitResult::setTemperature(double t)
@@ -779,7 +759,12 @@ void FitResult::loadFromFile(int num)
 		u.append(l.at(1).trimmed().toDouble());
 	}
 
-    setFitParameters(p,u,numSingle);
+    int numPairs;
+    if(type() == Single)
+        numPairs = 0;
+    else
+        numPairs = (p.size()-4-2*numSingle)/3;
+    setFitParameters(p,u,numPairs,numSingle);
 
 	appendToLog(f.readAll());
 

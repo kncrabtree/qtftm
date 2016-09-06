@@ -21,9 +21,19 @@ public:
 		double gamma;
 
 		BufferGas() : mass(1.0), gamma(1.6) {}
-		BufferGas(QString n, double m, double g) :
+        BufferGas(const QString n, const double m, const double g) :
 			name(n), mass(m*GSL_CONST_CGS_MASS_PROTON), gamma(g) {}
+
 	};
+
+    struct DopplerPairParameters {
+        double amplitude;
+        double alpha;
+        double centerFreq;
+
+        DopplerPairParameters(double a, double al, double c) :
+            amplitude(a), alpha(al), centerFreq(c) {}
+    };
 
 	enum FitterType {
 		NoFitting,
@@ -48,7 +58,8 @@ public:
 	    Invalid,
 	    NoPeaksFound,
 	    Saturated,
-	    Success
+        Success,
+        Fail
 	};
 
     enum LineShape {
@@ -109,7 +120,7 @@ public:
     void setZpf(bool b);
     void setUseWindow(bool b);
 	void setFitParameters(gsl_vector *c, gsl_matrix *covar, int numSingle = 0);
-	void setFitParameters(QList<double> params, QList<double> uncs, int numSingle = 0);
+    void setFitParameters(QList<double> params, QList<double> uncs, int numPairs, int numSingle);
 	void setBaselineY0Slope(double y0, double slope);
 	void setBufferGas(BufferGas bg);
 	void setBufferGas(QString bgName);
@@ -123,5 +134,16 @@ private:
 	QSharedDataPointer<FitData> data;
 
 };
+
+namespace FitResultBG {
+const FitResult::BufferGas bufferH2 = FitResult::BufferGas(QString("H2"),2.0*1.00794,7.0/5.0);
+const FitResult::BufferGas bufferHe = FitResult::BufferGas(QString("He"),4.002602,5.0/3.0);
+const FitResult::BufferGas bufferN2 = FitResult::BufferGas(QString("N2"),2.0*14.0067,7.0/5.0);
+const FitResult::BufferGas bufferO2 = FitResult::BufferGas(QString("O2"),2.0*15.9994,7.0/5.0);
+const FitResult::BufferGas bufferNe = FitResult::BufferGas(QString("Ne"),20.1797,5.0/3.0);
+const FitResult::BufferGas bufferAr = FitResult::BufferGas(QString("Ar"),39.948,5.0/3.0);
+const FitResult::BufferGas bufferKr = FitResult::BufferGas(QString("Kr"),83.798,5.0/3.0);
+const FitResult::BufferGas bufferXe = FitResult::BufferGas(QString("Xe"),131.293,5.0/3.0);
+}
 
 #endif // FITRESULT_H

@@ -707,9 +707,9 @@ double Analysis::estimateSplitting(const FitResult::BufferGas &bg, double stagT,
 }
 
 
-QList<Analysis::DopplerPairParameters> Analysis::estimateDopplerCenters(QList<QPair<QPointF,double> > peakList, double splitting, double ftSpacing)
+QList<FitResult::DopplerPairParameters> Analysis::estimateDopplerCenters(QList<QPair<QPointF,double> > peakList, double splitting, double ftSpacing)
 {
-	QList<Analysis::DopplerPairParameters> out;
+    QList<FitResult::DopplerPairParameters> out;
 	out.reserve(peakList.size());
 	for(int i=0;i<peakList.size();i++)
 	{
@@ -754,7 +754,7 @@ QList<Analysis::DopplerPairParameters> Analysis::estimateDopplerCenters(QList<QP
 					if( (x0 <= lSkeptical && snr > 5.0)
 							|| (x0 > lSkeptical	&& x0 < uSkeptical)
 							|| (x0 > uSkeptical && snr > 5.0) )
-						out.append(DopplerPairParameters(amp,alpha,x0));
+                        out.append(FitResult::DopplerPairParameters(amp,alpha,x0));
 				}
 			}
 		}
@@ -765,7 +765,7 @@ QList<Analysis::DopplerPairParameters> Analysis::estimateDopplerCenters(QList<QP
 
 	//need to sort by descending amplitude. qSort is ascending...
 	qSort(out.begin(),out.end(),&dpAmplitudeLess);
-	QList<Analysis::DopplerPairParameters> outSorted;
+    QList<FitResult::DopplerPairParameters> outSorted;
 	outSorted.reserve(out.size());
 	for(int i=out.size()-1;i>=0;i--)
 		outSorted.append(out.at(i));
@@ -773,7 +773,7 @@ QList<Analysis::DopplerPairParameters> Analysis::estimateDopplerCenters(QList<QP
 }
 
 
-bool Analysis::dpAmplitudeLess(const Analysis::DopplerPairParameters &left, const Analysis::DopplerPairParameters &right)
+bool Analysis::dpAmplitudeLess(const FitResult::DopplerPairParameters &left, const FitResult::DopplerPairParameters &right)
 {
 	return left.amplitude < right.amplitude;
 }
@@ -812,7 +812,7 @@ unsigned int Analysis::power2Nplus1(unsigned int n)
 
 
 
-FitResult Analysis::dopplerPairFit(const gsl_multifit_fdfsolver_type *solverType, FitResult::LineShape lsf, const QVector<QPointF> data, const double probeFreq, const double y0, const double slope, const double split, const double width, const QList<DopplerPairParameters> dpParams, const int maxIterations)
+FitResult Analysis::dopplerPairFit(const gsl_multifit_fdfsolver_type *solverType, FitResult::LineShape lsf, const QVector<QPointF> data, const double probeFreq, const double y0, const double slope, const double split, const double width, const QList<FitResult::DopplerPairParameters> dpParams, const int maxIterations)
 {
 	const size_t numPnts = data.size();
 	const size_t numParams = 4+dpParams.size()*3;
@@ -891,7 +891,7 @@ FitResult Analysis::dopplerPairFit(const gsl_multifit_fdfsolver_type *solverType
 }
 
 
-FitResult Analysis::dopplerMixedFit(const gsl_multifit_fdfsolver_type *solverType, FitResult::LineShape lsf, const QVector<QPointF> data, const double probeFreq, const double y0, const double slope, const double split, const double width, const QList<DopplerPairParameters> dpParams, const QList<QPointF> singleParams, const int maxIterations)
+FitResult Analysis::dopplerMixedFit(const gsl_multifit_fdfsolver_type *solverType, FitResult::LineShape lsf, const QVector<QPointF> data, const double probeFreq, const double y0, const double slope, const double split, const double width, const QList<FitResult::DopplerPairParameters> dpParams, const QList<QPointF> singleParams, const int maxIterations)
 {
 	const size_t numPnts = data.size();
 	const size_t numParams = 4+dpParams.size()*3+2*singleParams.size();
@@ -1051,7 +1051,7 @@ FitResult Analysis::singleFit(const gsl_multifit_fdfsolver_type *solverType, Fit
 }
 
 
-FitResult Analysis::fitLine(QVector<QPointF> data, double probeFreq)
+FitResult Analysis::fitLine(const FitResult &in, QVector<QPointF> data, double probeFreq)
 {
 	//fit to a line and exit
 	gsl_vector *yData;
@@ -1076,7 +1076,9 @@ FitResult Analysis::fitLine(QVector<QPointF> data, double probeFreq)
 
 	int success = gsl_multifit_robust(X,yData,c,covar,ws);
 
-    FitResult out(FitResult::RobustLinear,FitResult::NoPeaksFound);
+    FitResult out(in);
+    out.setCategory(FitResult::NoPeaksFound);
+    out.setType(FitResult::RobustLinear);
     if(success == GSL_SUCCESS) {
         gsl_multifit_robust_stats stats = gsl_multifit_robust_statistics(ws);
         out.setStatus(success);
@@ -1099,28 +1101,28 @@ FitResult Analysis::fitLine(QVector<QPointF> data, double probeFreq)
 
 FitResult::BufferGas Analysis::bgFromString(const QString bgName)
 {
-	FitResult::BufferGas out = Analysis::bufferNe;
+    FitResult::BufferGas out = FitResultBG::bufferNe;
 
 	if(bgName.isEmpty())
 		return out;
 
 	//default buffer gas is Ne. Check to see if the bgname contains something different
 	if(bgName.contains(QString("H2"),Qt::CaseSensitive))
-		out = Analysis::bufferH2;
+        out = FitResultBG::bufferH2;
 	if(bgName.contains(QString("He"),Qt::CaseSensitive))
-		out = Analysis::bufferHe;
+        out = FitResultBG::bufferHe;
 	if(bgName.contains(QString("N2"),Qt::CaseSensitive))
-		out = Analysis::bufferN2;
+        out = FitResultBG::bufferN2;
 	if(bgName.contains(QString("O2"),Qt::CaseSensitive))
-		out = Analysis::bufferO2;
+        out = FitResultBG::bufferO2;
 	if(bgName.contains(QString("Ne"),Qt::CaseSensitive))
-		out = Analysis::bufferNe;
+        out = FitResultBG::bufferNe;
 	if(bgName.contains(QString("Ar"),Qt::CaseSensitive))
-		out = Analysis::bufferAr;
+        out = FitResultBG::bufferAr;
 	if(bgName.contains(QString("Kr"),Qt::CaseSensitive))
-		out = Analysis::bufferKr;
+        out = FitResultBG::bufferKr;
 	if(bgName.contains(QString("Xe"),Qt::CaseSensitive))
-		out = Analysis::bufferXe;
+        out = FitResultBG::bufferXe;
 
 	return out;
 }
@@ -1620,4 +1622,19 @@ int Analysis::gaussSingle_fdf(const gsl_vector *x, void *data, gsl_vector *f, gs
     gaussSingle_df(x,data,J);
 
     return GSL_SUCCESS;
+}
+
+double Analysis::kahanSum(const QVector<double> dat)
+{
+    double sum = 0.0;
+    double c = 0.0;
+    for(int i=0; i<dat.size(); i++)
+    {
+        double y = dat.at(i) - c;
+        double t = sum + y;
+        c = (t - sum) - y;
+        sum = t;
+    }
+
+    return sum;
 }

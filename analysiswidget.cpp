@@ -502,7 +502,7 @@ void AnalysisWidget::autoFit()
 		return;
 
 	FitResult res(d_currentScan.number());
-	FitResult::BufferGas bg = Analysis::bufferNe;
+    FitResult::BufferGas bg = FitResultBG::bufferNe;
 
 	//guess buffer gas from scan?
 	QStringList gasList = d_currentScan.gasNames();

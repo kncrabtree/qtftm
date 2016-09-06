@@ -2,6 +2,8 @@
 #include <QSettings>
 #include <QApplication>
 
+#include "analysis.h"
+
 BatchDR::BatchDR(Scan ftScan, double start, double stop, double step, int numScansBetween, QList<QPair<double, double> > ranges, bool doCal, AbstractFitter *f) :
     BatchManager(QtFTM::DrScan,false,f), d_template(ftScan), d_start(start), d_stop(stop), d_numScansBetween (0), d_integrationRanges(ranges),
     d_completedScans(0), d_hasCalibration(doCal), d_processScanIsCal(false), d_processingIndex(0)

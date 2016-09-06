@@ -2,7 +2,7 @@
 
 NoFitter::NoFitter(QObject *parent) : AbstractFitter(FitResult::NoFitting, parent)
 {
-	d_bufferGas = Analysis::bufferNe;
+    d_bufferGas = FitResultBG::bufferNe;
 	d_temperature = 293.15;
 }
 
