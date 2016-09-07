@@ -29,6 +29,7 @@ public:
     void setRemoveDC(bool b) { ftw.setRemoveDC(b); }
     void setUseWindow(bool b);
     void setFidSaturationLimit(double d) { d_fidSaturationLimit = d; }
+    void setSnrLimit(double d) { d_snrLimit = d; }
 
     double delay() const { return ftw.delay(); }
     double hpf() const { return ftw.hpf(); }
@@ -37,6 +38,7 @@ public:
     bool removeDC() const { return ftw.removeDC(); }
     bool isUseWindow() const { return ftw.isUseWindow(); }
     double fidSaturationLimit() const { return d_fidSaturationLimit; }
+    double snrLimit() const { return d_snrLimit; }
 
     void setBufferGas(const FitResult::BufferGas &bg) { d_bufferGas = bg; }
     void setTemperature(const double t) { d_temperature = t; }
@@ -59,7 +61,7 @@ protected:
     };
 
     virtual void calcCoefs(int winSize, int polyOrder);
-    virtual QList<QPair<QPointF, double> > findPeaks(QVector<QPointF> ft, double noisey0, double noisem, double minSNR);
+    virtual QList<QPair<QPointF, double> > findPeaks(QVector<QPointF> ft, double noisey0, double noisem);
     virtual FitResult dopplerFit(const QVector<QPointF> ft, const FitResult &in, const QList<double> commonParams, const QList<FitResult::DopplerPairParameters> dpParams, const QList<QPointF> singleParams, const int maxIterations);
     static double lor(double x, double center, double fwhm);
     static double gauss(double x, double center, double fwhm);
@@ -73,6 +75,7 @@ protected:
     int d_window;
     int d_polyOrder;
     double d_fidSaturationLimit;
+    double d_snrLimit;
 
 public slots:
     virtual FitResult doFit(const Scan s) =0;

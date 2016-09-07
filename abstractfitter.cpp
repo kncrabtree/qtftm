@@ -9,7 +9,7 @@
 
 AbstractFitter::AbstractFitter(const FitResult::FitterType t, QObject *parent) :
     QObject(parent), d_type(t), d_window(11), d_polyOrder(6),
-    d_fidSaturationLimit(0.6)
+    d_fidSaturationLimit(0.6), d_snrLimit(5.0)
 {
     calcCoefs(d_window,d_polyOrder);
 }
@@ -71,7 +71,7 @@ void AbstractFitter::calcCoefs(int winSize, int polyOrder)
 
 }
 
-QList<QPair<QPointF,double>> AbstractFitter::findPeaks(QVector<QPointF> ft, double noisey0, double noisem, double minSNR)
+QList<QPair<QPointF,double>> AbstractFitter::findPeaks(QVector<QPointF> ft, double noisey0, double noisem)
 {
     if(ft.size() < d_window)
     {
@@ -102,7 +102,7 @@ QList<QPair<QPointF,double>> AbstractFitter::findPeaks(QVector<QPointF> ft, doub
     {
         double noise = noisey0 + noisem*ft.at(i).x();
         double thisSNR = ft.at(i).y()/noise;
-        if(thisSNR >= minSNR)
+        if(thisSNR >= d_snrLimit)
         {
             //intensity is high enough; ID a peak by a minimum in 2nd derivative
             if(((smth.at(i-2) > smth.at(i-1)) && (smth.at(i-1) > smth.at(i)) && (smth.at(i) < smth.at(i+1))) ||
@@ -147,7 +147,7 @@ FitResult AbstractFitter::dopplerFit(const QVector<QPointF> ft, const FitResult 
     QVector<double> params, lb, ub;
     params << commonParams.at(0) << commonParams.at(1);
     lb << 0.0 << -HUGE_VAL;
-    ub << commonParams.at(0)*10.0 << HUGE_VAL;
+    ub << HUGE_VAL << HUGE_VAL;
     if(!dpParams.isEmpty())
     {
         params << commonParams.at(2);

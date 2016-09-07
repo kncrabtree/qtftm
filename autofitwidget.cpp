@@ -1,6 +1,8 @@
 #include "autofitwidget.h"
 #include "ui_autofitwidget.h"
 
+#include <QSettings>
+
 AutoFitWidget::AutoFitWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::AutoFitWidget)
@@ -29,6 +31,10 @@ AutoFitWidget::AutoFitWidget(QString bgName, double d, double h, double e, bool 
 	ui->zeroPadFIDCheckBox->setChecked(zp);
     ui->applyBHWindowCheckBox->setChecked(winf);
 	ui->temperatureDoubleSpinBox->setValue(t);
+
+    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+    double snr = s.value(QString("autoFit/lastSNR"),5.0).toDouble();
+    ui->minSNRDoubleSpinBox->setValue(snr);
 
     d_gases << FitResultBG::bufferH2 << FitResultBG::bufferHe << FitResultBG::bufferN2 << FitResultBG::bufferO2
            << FitResultBG::bufferNe << FitResultBG::bufferAr << FitResultBG::bufferKr << FitResultBG::bufferXe;
@@ -107,6 +113,11 @@ bool AutoFitWidget::isUseWindow() const
     return ui->applyBHWindowCheckBox->isChecked();
 }
 
+double AutoFitWidget::minSnr() const
+{
+    return ui->minSNRDoubleSpinBox->value();
+}
+
 void AutoFitWidget::setNoDisable()
 {
 	ui->autoFitEnabledCheckBox->setChecked(true);
@@ -141,6 +152,7 @@ void AutoFitWidget::setFromFitter(AbstractFitter *af)
         ui->removeDCCheckBox->setChecked(af->removeDC());
         ui->zeroPadFIDCheckBox->setChecked(af->autoPad());
         ui->applyBHWindowCheckBox->setChecked(af->isUseWindow());
+        ui->minSNRDoubleSpinBox->setValue(af->snrLimit());
     }
 }
 
@@ -156,6 +168,9 @@ AbstractFitter *AutoFitWidget::toFitter()
         af = new DopplerPairFitter();
 		af->setBufferGas(bufferGas());
 		af->setTemperature(temperature());
+        af->setSnrLimit(minSnr());
+        QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+        s.setValue(QString("autoFit/lastSNR"),minSnr());
 	}
 
 	af->setDelay(delay());

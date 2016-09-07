@@ -30,6 +30,7 @@ public:
 	bool removeDC() const;
 	bool zeroPad() const;
     bool isUseWindow() const;
+    double minSnr() const;
 
 	void setNoDisable();
 	void disableProcessingOptions(bool disable = true);
