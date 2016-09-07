@@ -1,6 +1,7 @@
 #include "abstractfitter.h"
 
 #include <gsl/gsl_sf.h>
+#include <gsl/gsl_multifit.h>
 #include <eigen3/Eigen/SVD>
 #include <eigen3/Eigen/QR>
 #include <nlopt.hpp>
@@ -243,20 +244,50 @@ FitResult AbstractFitter::dopplerFit(const QVector<QPointF> ft, const FitResult 
 
 }
 
-double AbstractFitter::lor(double x, double center, double fwhm)
+FitResult AbstractFitter::fitLine(const FitResult &in, QVector<QPointF> data, double probeFreq)
 {
-    return 1.0/(1.0 + 4.0*(x-center)*(x-center)/(fwhm*fwhm));
-}
+    //fit to a line and exit
+    gsl_vector *yData;
+    yData = gsl_vector_alloc(data.size());
+    for(int i=0; i<data.size(); i++)
+        gsl_vector_set(yData,i,data.at(i).y());
 
-double AbstractFitter::gauss(double x, double center, double fwhm)
-{
-    double x_ = x-center;
-    double num = x_*x_;
-    double den = fwhm*fwhm/twoLogTwo;
+    gsl_multifit_robust_workspace *ws = gsl_multifit_robust_alloc(gsl_multifit_robust_bisquare,data.size(),2);
+    gsl_matrix *X = gsl_matrix_alloc(data.size(),2);
+    gsl_matrix *covar = gsl_matrix_alloc(2,2);
+    gsl_vector *c = gsl_vector_alloc(2);
 
-    double out = gsl_sf_exp(-num/den);
-    if(isnan(out))
-        out = 0.0;
+    for(int i=0; i<data.size(); i++)
+    {
+        double xVal = data.at(i).x();
+        gsl_matrix_set(X,i,0,1.0);
+        gsl_matrix_set(X,i,1,xVal);
+    }
+
+    // if there's an error in there, it will crash the program
+    gsl_set_error_handler_off();
+
+    int success = gsl_multifit_robust(X,yData,c,covar,ws);
+
+    FitResult out(in);
+    out.setCategory(FitResult::NoPeaksFound);
+    out.setType(FitResult::RobustLinear);
+    if(success == GSL_SUCCESS) {
+        gsl_multifit_robust_stats stats = gsl_multifit_robust_statistics(ws);
+        out.setStatus(success);
+        out.setIterations(1);
+        out.setProbeFreq(probeFreq);
+        out.setChisq(stats.sse*stats.sse/stats.dof);
+        out.setFitParameters(c,covar);
+    }
+
+    out.appendToLog(QString("Linear fit complete. Chi squared = %1").arg(out.chisq(),0,'e',4));
+    gsl_vector_free(yData);
+    gsl_vector_free(c);
+    gsl_matrix_free(X);
+    gsl_matrix_free(covar);
+    gsl_multifit_robust_free(ws);
+
     return out;
 }
 
@@ -299,9 +330,9 @@ double AbstractFitter::nlOptFitFunction(const std::vector<double> &p, std::vecto
     }
     double (*lsf)(double,double,double);
     if(fd->lsf == FitResult::Lorentzian)
-        lsf = &lor;
+        lsf = &Analysis::lor;
     else
-        lsf = &gauss;
+        lsf = &Analysis::gauss;
 
     for(int i=0; i<residualSq.size(); i++)
     {
@@ -356,8 +387,8 @@ double AbstractFitter::nlOptFitFunction(const std::vector<double> &p, std::vecto
 
                 if(fd->lsf == FitResult::Lorentzian)
                 {
-                    double redLor = lor(xVal,x0-split/2.0,width);
-                    double blueLor = lor(xVal,x0+split/2.0,width);
+                    double redLor = Analysis::lor(xVal,x0-split/2.0,width);
+                    double blueLor = Analysis::lor(xVal,x0+split/2.0,width);
 
                     dSplit += -(8.0*A/(width*width))*(al*(xVal-(x0-split/2.0))*(redLor*redLor)
                               - (1.0-al)*(xVal-(x0+split/2.0))*(blueLor*blueLor));
@@ -371,8 +402,8 @@ double AbstractFitter::nlOptFitFunction(const std::vector<double> &p, std::vecto
                 }
                 else
                 {
-                    double redGauss = gauss(xVal,x0-split/2.0,width);
-                    double blueGauss = gauss(xVal,x0+split/2.0,width);
+                    double redGauss = Analysis::gauss(xVal,x0-split/2.0,width);
+                    double blueGauss = Analysis::gauss(xVal,x0+split/2.0,width);
                     double redExpArg = twoLogTwo*(xVal-x0+split/2.0)*(xVal-x0+split/2.0)/(width*width);
                     double blueExpArg = twoLogTwo*(xVal-x0-split/2.0)*(xVal-x0-split/2.0)/(width*width);
 
@@ -404,13 +435,13 @@ double AbstractFitter::nlOptFitFunction(const std::vector<double> &p, std::vecto
 
                 if(fd->lsf == FitResult::Lorentzian)
                 {
-                    dX0i = 8.0*(xVal-x0)/(width*width)*lor(xVal,x0,width);
-                    dAi = lor(xVal,x0,width);
-                    dWidth += 8.0*A*(xVal-x0)*(xVal-x0)/(width*width*width)*lor(xVal,x0,width);
+                    dX0i = 8.0*(xVal-x0)/(width*width)*Analysis::lor(xVal,x0,width);
+                    dAi = Analysis::lor(xVal,x0,width);
+                    dWidth += 8.0*A*(xVal-x0)*(xVal-x0)/(width*width*width)*Analysis::lor(xVal,x0,width);
                 }
                 else
                 {
-                    double G = gauss(xVal,x0,width);
+                    double G = Analysis::gauss(xVal,x0,width);
                     double expArg = twoLogTwo*(xVal-x0)*(xVal-x0)/(width*width);
 
                     dX0i = 2.0*A*G*twoLogTwo*(xVal-x0)/(width*width);
@@ -467,4 +498,20 @@ bool AbstractFitter::isFidSaturated(const Fid f)
           return true;
     }
     return false;
+}
+
+
+double AbstractFitter::estimateLinewidth(const FitResult::BufferGas &bg, double probeFreq, double stagT)
+{
+    //estimate is based on the beamwaist diameter of cavity and transit tome of molecular beam
+    //seems to get within factor of 2....
+
+    double velocity = sqrt(bg.gamma/(bg.gamma-1.0))*sqrt(2.0*GSL_CONST_CGS_BOLTZMANN*stagT/bg.mass);
+    double lambda = GSL_CONST_CGS_SPEED_OF_LIGHT/(probeFreq*1.0e6);
+    double R = 83.2048, d = 70.0;
+    double modeDiameter = 2.0*sqrt(lambda/(2.0*M_PI)*sqrt(d*(2.0*R-d)));
+    double transitTime = modeDiameter/velocity;
+    double estWidth = (1.0/transitTime)/1.0e6;
+    return estWidth;
+
 }

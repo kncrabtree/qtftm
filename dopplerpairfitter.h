@@ -11,6 +11,11 @@ public:
 
 public slots:
 	FitResult doFit(const Scan s);
+
+private:
+    double estimateSplitting(const FitResult::BufferGas &bg, double stagT, double frequency);
+    QList<FitResult::DopplerPairParameters> estimateDopplerCenters(QList<QPair<QPointF,double> > peakList, double splitting, double ftSpacing, double tol);
+    static bool dpAmplitudeLess(const FitResult::DopplerPairParameters &left, const FitResult::DopplerPairParameters &right);
 };
 
 

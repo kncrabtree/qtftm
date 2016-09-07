@@ -89,7 +89,7 @@ FitResult DopplerPairFitter::doFit(const Scan s)
 	if(peakList.size() == 0)
 	{
         out.appendToLog(QString("No peaks detected. Fitting to line."));
-        out = Analysis::fitLine(out,ftPad,fid.probeFreq());
+        out = fitLine(out,ftPad,fid.probeFreq());
 		out.save(s.number());
 		emit fitComplete(out);
 		return out;
@@ -107,12 +107,12 @@ FitResult DopplerPairFitter::doFit(const Scan s)
 
 
 	double ftSpacing = ftBl.at(1).x() - ftBl.at(0).x();
-	double splitting = Analysis::estimateSplitting(d_bufferGas,d_temperature,fid.probeFreq());
+    double splitting = estimateSplitting(d_bufferGas,d_temperature,fid.probeFreq());
     out.appendToLog(QString("Estimated Doppler splitting: %1 MHz.").arg(QString::number(splitting,'f',6)));
-	double width = Analysis::estimateDopplerLinewidth(d_bufferGas,fid.probeFreq());
+    double width = estimateLinewidth(d_bufferGas,fid.probeFreq(),temperature());
     out.appendToLog(QString("Estimated linewidth: %1 MHz.").arg(QString::number(width,'f',6)));
     out.appendToLog(QString("Looking for possible Doppler pairs..."));
-    QList<FitResult::DopplerPairParameters> dpParams = Analysis::estimateDopplerCenters(peakList,splitting,ftSpacing);
+    QList<FitResult::DopplerPairParameters> dpParams = estimateDopplerCenters(peakList,splitting,ftSpacing,0.35);
 
     out.appendToLog(QString("Found %1 possible pairs.").arg(dpParams.size()));
 
@@ -156,7 +156,7 @@ FitResult DopplerPairFitter::doFit(const Scan s)
 	if(singlePeaks.size() == 0 && dpParams.size() == 0)
 	{
         out.appendToLog(QString("No valid Doppler pairs or strong single peaks found. Fitting to line..."));
-        out = Analysis::fitLine(out,ftPad,fid.probeFreq());
+        out = fitLine(out,ftPad,fid.probeFreq());
 		out.save(s.number());
 		emit fitComplete(out);
 		return out;
@@ -187,7 +187,7 @@ FitResult DopplerPairFitter::doFit(const Scan s)
         out.appendToLog(QString("No peaks found. Fitting to line."));
     else
         out.appendToLog(QString("Performing initial linear fit to assess chi squared."));
-    out = Analysis::fitLine(out,ftPad,fid.probeFreq());
+    out = fitLine(out,ftPad,fid.probeFreq());
 
     FitResult lastFit = out;
 
@@ -280,7 +280,7 @@ FitResult DopplerPairFitter::doFit(const Scan s)
                     {
                         //reassess potential Doppler pairs with tighter tolerance
                         out.appendToLog(QString("Reassessing Doppler pairs with tighter tolerance."));
-                        dpParams = Analysis::estimateDopplerCenters(peakList,out.splitting(),ftSpacing,0.05);
+                        dpParams = estimateDopplerCenters(peakList,out.splitting(),ftSpacing,0.05);
                         if(!dpParams.isEmpty())
                             dpParams.removeFirst();
 
@@ -329,3 +329,88 @@ FitResult DopplerPairFitter::doFit(const Scan s)
 	emit fitComplete(out);
 	return out;
 }
+
+double DopplerPairFitter::estimateSplitting(const FitResult::BufferGas &bg, double stagT, double frequency)
+{
+    double velocity = sqrt(bg.gamma/(bg.gamma-1.0))*sqrt(2.0*GSL_CONST_CGS_BOLTZMANN*stagT/bg.mass);
+    if(bg.name == QString("He"))
+        velocity /= 1.3;
+
+    return (2.0*velocity/GSL_CONST_CGS_SPEED_OF_LIGHT)*frequency;
+}
+
+
+
+QList<FitResult::DopplerPairParameters> DopplerPairFitter::estimateDopplerCenters(QList<QPair<QPointF,double> > peakList, double splitting, double ftSpacing, double tol)
+{
+    double edgeSkepticalWRTSplitting = 0.75;
+    double alphaTolerance = 0.15;
+    QList<FitResult::DopplerPairParameters> out;
+    out.reserve(peakList.size());
+    for(int i=0;i<peakList.size();i++)
+    {
+        for(int j=i+1;j<peakList.size();j++)
+        {
+             // see if splitting is within tolerance
+            if(fabs(fabs(peakList.at(i).first.x()-peakList.at(j).first.x())
+                   - splitting)/splitting < tol ||
+                    fabs(fabs(peakList.at(i).first.x()-peakList.at(j).first.x())
+                                       - splitting) < 2.5*ftSpacing)
+            {
+                double amp = (peakList.at(i).first.y()+peakList.at(j).first.y())/2.0;
+                double alpha = peakList.at(i).first.y()/2.0/amp;
+                double x0 = (peakList.at(i).first.x() + peakList.at(j).first.x())/2.0;
+                double lSkeptical = edgeSkepticalWRTSplitting*splitting;
+                double uSkeptical = 1.0 - edgeSkepticalWRTSplitting*splitting;
+                double snr = (peakList.at(i).second + peakList.at(j).second)/2.0;
+                if(alpha > alphaTolerance && alpha < (1.0-alphaTolerance))
+                {
+                    //check to make sure there's not another candidate. If there is, prefer the one with alpha closer to 0.5
+                    for(int k=j+1; k<peakList.size(); k++)
+                    {
+                        if(fabs(fabs(peakList.at(i).first.x()-peakList.at(k).first.x())
+                               - splitting)/splitting < tol ||
+                                fabs(fabs(peakList.at(i).first.x()-peakList.at(k).first.x())
+                                                   - splitting) < 4.0*ftSpacing)
+                        {
+                            double amp2 = (peakList.at(i).first.y()+peakList.at(k).first.y())/2.0;
+                            double alpha2 = peakList.at(i).first.y()/2.0/amp2;
+                            double x02 = (peakList.at(i).first.x() + peakList.at(k).first.x())/2.0;
+                            double snr2 = (peakList.at(i).second + peakList.at(k).second)/2.0;
+                            if(fabs(0.5-alpha2) < fabs(0.5-alpha))
+                            {
+                                amp = amp2;
+                                alpha = alpha2;
+                                x0 = x02;
+                                snr = snr2;
+                            }
+                        }
+                    }
+
+                    if( (x0 <= lSkeptical && snr > 5.0)
+                            || (x0 > lSkeptical	&& x0 < uSkeptical)
+                            || (x0 > uSkeptical && snr > 5.0) )
+                        out.append(FitResult::DopplerPairParameters(amp,alpha,x0));
+                }
+            }
+        }
+    }
+
+    if(out.size() < 2)
+        return out;
+
+    //need to sort by descending amplitude. std::sort is ascending...
+    std::sort(out.begin(),out.end(),&DopplerPairFitter::dpAmplitudeLess);
+    QList<FitResult::DopplerPairParameters> outSorted;
+    outSorted.reserve(out.size());
+    for(int i=out.size()-1;i>=0;i--)
+        outSorted.append(out.at(i));
+    return outSorted;
+}
+
+
+bool DopplerPairFitter::dpAmplitudeLess(const FitResult::DopplerPairParameters &left, const FitResult::DopplerPairParameters &right)
+{
+    return left.amplitude < right.amplitude;
+}
+
