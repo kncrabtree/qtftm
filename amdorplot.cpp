@@ -39,6 +39,8 @@ AmdorPlot::AmdorPlot(QWidget *parent) : ZoomPanPlot(QString("amdorPlot"),parent)
     p_diagCurve = nullptr;
     p_lastPointCurve = nullptr;
 
+    connect(this,&AmdorPlot::plotRightClicked,this,&AmdorPlot::launchContextMenu);
+
 }
 
 void AmdorPlot::setPlotRange(double min, double max)
@@ -286,6 +288,12 @@ void AmdorPlot::changeCurveSize(QwtPlotCurve *c, int size)
 void AmdorPlot::filterData()
 {
     //no filtering needed
+}
+
+void AmdorPlot::launchContextMenu(QPoint pos)
+{
+    QMenu *m = contextMenu();
+    m->popup(pos);
 }
 
 QMenu* AmdorPlot::curveContextMenu(QwtPlotCurve *c)

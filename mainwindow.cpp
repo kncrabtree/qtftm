@@ -9,6 +9,8 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QWidgetAction>
+#include <QInputDialog>
+#include <QDateTime>
 
 #include "scan.h"
 #include "singlescandialog.h"
@@ -41,6 +43,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
 	ui->rollingAvgsSpinBox->setValue(s.value(QString("peakUpAvgs"),20).toInt());
+
+    p_sleepTimer = new QTimer(this);
+    p_sleepTimer->setSingleShot(true);
+    connect(p_sleepTimer,&QTimer::timeout,ui->actionSleep_Mode,&QAction::trigger);
 
     QActionGroup *resGroup = new QActionGroup(ui->menuResolution);
     resGroup->setExclusive(true);
@@ -109,6 +115,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(ui->actionResume,&QAction::triggered,this,&MainWindow::resumeAcq);
 	connect(ui->actionPrint_Scan,&QAction::triggered,ui->analysisWidget,&AnalysisWidget::print);
 	connect(ui->actionSleep_Mode,&QAction::triggered,this,&MainWindow::sleep);
+    connect(ui->actionDelayed_Sleep,&QAction::triggered,this,&MainWindow::delayedSleep);
 	connect(ui->actionCommunication,&QAction::triggered,this,&MainWindow::launchCommunicationDialog);
 	connect(ui->actionFT_Synth,&QAction::triggered,this,&MainWindow::launchFtSettings);
 	connect(ui->actionDR_Synth,&QAction::triggered,this,&MainWindow::launchDrSettings);
@@ -343,6 +350,7 @@ void MainWindow::updateUiConfig()
 	   ui->actionResume->setEnabled((d_uiState & Acquiring) && (d_uiState & Paused) && !(d_uiState & Asleep));
 	   ui->actionAbort->setEnabled(d_uiState & Acquiring && !(d_uiState & Asleep));
 	   ui->actionSleep_Mode->setDisabled(d_uiState & (Acquiring|Tuning));
+       ui->actionDelayed_Sleep->setDisabled(d_uiState & (Acquiring|Tuning) || d_uiState & Asleep);
 	   ui->actionCommunication->setDisabled(d_uiState & (Acquiring|Tuning));
 	   ui->actionFT_Synth->setDisabled(d_uiState & (Acquiring|Tuning));
 	   ui->actionDR_Synth->setDisabled(d_uiState & (Acquiring|Tuning));
@@ -365,6 +373,7 @@ void MainWindow::updateUiConfig()
 		ui->actionResume->setEnabled(false);
 		ui->actionAbort->setEnabled(false);
 		ui->actionSleep_Mode->setEnabled(false);
+        ui->actionDelayed_Sleep->setEnabled(false);
 		ui->actionCommunication->setEnabled(true);
 		ui->actionFT_Synth->setEnabled(false);
         ui->actionDR_Synth->setEnabled(false);
@@ -754,6 +763,41 @@ void MainWindow::sleep(bool b)
 	if(b)
 		QMessageBox::information(this,QString("Sleep Mode Active"),QString("Sleep mode is active! Toggle it off before proceeding. Also, don't forget to re-enable pressure control."),QMessageBox::Ok);
 
+}
+
+void MainWindow::delayedSleep()
+{
+    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+    int min_ = s.value(QString("lastSleepDelay"),60).toInt();
+    bool ok = false;
+    int minutes = QInputDialog::getInt(this,QString("Delayed Sleep"),QString("Sleep after X minutes:"),min_,0,214783647,60,&ok);
+    if(!ok)
+        return;
+    if(minutes == 0)
+        ui->actionSleep_Mode->trigger();
+    else
+    {
+        s.setValue(QString("lastSleepDelay"),minutes);
+        QDialog d(this);
+        int secs = minutes*60;
+        d.setWindowTitle(QString("Delayed Sleep"));
+        QDateTime dt = QDateTime::currentDateTime().addSecs(secs);
+
+        QPushButton *cancelButton = new QPushButton(QString("Cancel"));
+        connect(cancelButton,&QPushButton::clicked,&d,&QDialog::reject);
+
+        QLabel *text = new QLabel(QString("Program will enter sleep mode at %1.\nPress cancel or close this window to abort.").arg(dt.toString()));
+        QVBoxLayout *vbl = new QVBoxLayout;
+        vbl->addWidget(text);
+        vbl->addWidget(cancelButton);
+
+        d.setLayout(vbl);
+
+        p_sleepTimer->start(secs*1000);
+        connect(p_sleepTimer,&QTimer::timeout,&d,&QDialog::accept);
+        if(d.exec() == QDialog::Rejected)
+            p_sleepTimer->stop();
+    }
 }
 
 void MainWindow::hardwareStatusChanged(bool success)

@@ -370,7 +370,7 @@ bool AmdorData::exportAscii(const QList<int> sets, const QString savePath) const
     return true;
 }
 
-bool AmdorData::matchThreshold() const
+double AmdorData::matchThreshold() const
 {
     return data->matchThreshold;
 }
