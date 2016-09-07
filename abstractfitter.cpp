@@ -142,10 +142,12 @@ FitResult AbstractFitter::dopplerFit(const QVector<QPointF> ft, const FitResult 
         out.appendToLog(QString("Fitting to %1 Doppler pairs and %2 single peaks").arg(dpParams.size()).arg(singleParams.size()));
     }
 
+    out.setType(fd.type);
+
     QVector<double> params, lb, ub;
     params << commonParams.at(0) << commonParams.at(1);
-    lb << 0.0 << -(qAbs(commonParams.at(1)))*10.0;
-    ub << commonParams.at(0)*10.0 << qAbs(commonParams.at(1))*10.0;
+    lb << 0.0 << -HUGE_VAL;
+    ub << commonParams.at(0)*10.0 << HUGE_VAL;
     if(!dpParams.isEmpty())
     {
         params << commonParams.at(2);
@@ -154,7 +156,7 @@ FitResult AbstractFitter::dopplerFit(const QVector<QPointF> ft, const FitResult 
     }
     params << commonParams.at(3);
     lb << commonParams.at(3)/3.0;
-    ub << commonParams.at(3)*1.7;
+    ub << commonParams.at(3)*5.0;
     for(int i=0; i<dpParams.size(); i++)
     {
         double A = dpParams.at(i).amplitude;
@@ -196,40 +198,35 @@ FitResult AbstractFitter::dopplerFit(const QVector<QPointF> ft, const FitResult 
         out.setChisq(sqErr/static_cast<double>(dof));
         out.appendToLog(QString("Chi squared: %1").arg(out.chisq(),0,'e',4));
         out.setIterations(fd.numEvals);
-//        Eigen::MatrixXd jtj(fd.lastJacobian.size(),fd.lastJacobian.size());
-//        for(int i=0; i<fd.lastJacobian.size(); i++)
-//        {
-//            for(int j=0; j<fd.lastJacobian.size(); j++)
-//                jtj(i,j) = fd.lastJacobian.at(i)*fd.lastJacobian.at(j);
-//        }
-
-//        Eigen::FullPivHouseholderQR<Eigen::MatrixXd> qr(jtj);
-//        if(qr.isInvertible())
-//        {
-//            Eigen::MatrixXd covar(fd.lastJacobian.size(),fd.lastJacobian.size());
-//            covar = qr.inverse();
 
         gsl_matrix *covar = gsl_matrix_alloc(params.size(),params.size());
         gsl_multifit_covar(fd.J,0.0,covar);
-            QList<double> uncs;
-            for(int i=0; i<covar->size1; i++)
+        QList<double> uncs;
+        for(unsigned int i=0; i<covar->size1; i++)
+        {
+            for(unsigned int j=0; j<covar->size2; j++)
             {
-                for(int j=0; j<covar->size2; j++)
-                {
-                    if(i==j)
-                        uncs.append(sqrt(gsl_matrix_get(covar,i,j)*out.chisq()));
-                }
+                if(i==j)
+                    uncs.append(sqrt(gsl_matrix_get(covar,i,j)*out.chisq()));
             }
-            gsl_matrix_free(covar);
-            gsl_matrix_free(fd.J);
-            out.setFitParameters(fd.lastParams.toList(),uncs,fd.numPairs,fd.numSingle);
+        }
+        gsl_matrix_free(covar);
+
+        out.setFitParameters(fd.lastParams.toList(),uncs,fd.numPairs,fd.numSingle);
+        bool ok = true;
+        for(int i=0; i<fd.lastParams.size(); i++)
+        {
+            if(qFuzzyCompare(fd.lastParams.at(i),lb.at(i)) || qFuzzyCompare(fd.lastParams.at(i),ub.at(i)))
+            {
+                ok = false;
+                out.appendToLog(QString("Parameter %1 went outside allowed range.").arg(i));
+            }
+        }
+        if(!ok)
+            out.setCategory(FitResult::Fail);
+        else
             out.setCategory(FitResult::Success);
-//        }
-//        else
-//        {
-//            out.appendToLog(QString("Covariance matrix is singular."));
-//            out.setCategory(FitResult::Fail);
-//        }
+
     }
     catch(const std::exception &e)
     {
@@ -240,6 +237,7 @@ FitResult AbstractFitter::dopplerFit(const QVector<QPointF> ft, const FitResult 
         out.appendToLog(QString("Exception thrown during fit: %1").arg(QString(e.what())));
     }
 
+    gsl_matrix_free(fd.J);
     return out;
 
 

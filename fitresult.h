@@ -97,7 +97,10 @@ public:
 	QList<QPair<double,double> > freqAmpPairUncList() const;
 	QList<QPair<double,double> > freqAmpSingleList() const;
 	QList<QPair<double,double> > freqAmpSingleUncList() const;
+    DopplerPairParameters dopplerParameters(int index) const;
 	QPair<double,double> baselineY0Slope() const;
+    double width() const;
+    double splitting() const;
 	QVector<QPointF> toXY() const;
 	BufferGas bufferGas() const;
 	double temperature() const;
@@ -126,6 +129,7 @@ public:
 	void setBufferGas(QString bgName);
 	void setTemperature(double t);
 	void appendToLog(const QString s);
+    void setLogText(const QString s);
 	void save(int num);
 	void loadFromFile(int num);
 

@@ -208,12 +208,47 @@ QList<QPair<double, double> > FitResult::freqAmpSingleList() const
 
 QList<QPair<double, double> > FitResult::freqAmpSingleUncList() const
 {
-	return data->freqAmpUncSingleList;
+    return data->freqAmpUncSingleList;
+}
+
+FitResult::DopplerPairParameters FitResult::dopplerParameters(int index) const
+{
+    DopplerPairParameters out(0.0,0.0,0.0);
+
+    if(type() == DopplerPair || type() == Mixed)
+    {
+        int offsetIndex = 4 + 3*index;
+        out.amplitude = data->allFitParameters.value(offsetIndex);
+        out.alpha = data->allFitParameters.value(offsetIndex+1);
+        out.centerFreq = data->allFitParameters.value(offsetIndex+2);
+    }
+
+    return out;
+
 }
 
 QPair<double, double> FitResult::baselineY0Slope() const
 {
-	return data->baselineY0Slope;
+    return data->baselineY0Slope;
+}
+
+double FitResult::width() const
+{
+    if(type() == RobustLinear)
+        return 0.0;
+
+    if(type() == Single)
+        return data->allFitParameters.value(2);
+
+    return data->allFitParameters.value(3);
+}
+
+double FitResult::splitting() const
+{
+    if(type() == DopplerPair || type() == Mixed)
+        return data->allFitParameters.value(2);
+
+    return 0.0;
 }
 
 QVector<QPointF> FitResult::toXY() const
@@ -581,7 +616,12 @@ void FitResult::setTemperature(double t)
 
 void FitResult::appendToLog(const QString s)
 {
-	data->log.append(QString("%1\n").arg(s));
+    data->log.append(QString("%1\n").arg(s));
+}
+
+void FitResult::setLogText(const QString s)
+{
+    data->log = s;
 }
 
 void FitResult::save(int num)

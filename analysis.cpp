@@ -700,14 +700,14 @@ QVector<QPointF> Analysis::removeBaseline(const QVector<QPointF> data, double y0
 double Analysis::estimateSplitting(const FitResult::BufferGas &bg, double stagT, double frequency)
 {
 	double velocity = sqrt(bg.gamma/(bg.gamma-1.0))*sqrt(2.0*GSL_CONST_CGS_BOLTZMANN*stagT/bg.mass);
-//	if(bg.name == QString("He"))
-//		velocity *= 1.5;
+    if(bg.name == QString("He"))
+        velocity /= 1.3;
 
 	return (2.0*velocity/GSL_CONST_CGS_SPEED_OF_LIGHT)*frequency;
 }
 
 
-QList<FitResult::DopplerPairParameters> Analysis::estimateDopplerCenters(QList<QPair<QPointF,double> > peakList, double splitting, double ftSpacing)
+QList<FitResult::DopplerPairParameters> Analysis::estimateDopplerCenters(QList<QPair<QPointF,double> > peakList, double splitting, double ftSpacing, double tol)
 {
     QList<FitResult::DopplerPairParameters> out;
 	out.reserve(peakList.size());
@@ -717,7 +717,7 @@ QList<FitResult::DopplerPairParameters> Analysis::estimateDopplerCenters(QList<Q
 		{
 			 // see if splitting is within tolerance
 			if(fabs(fabs(peakList.at(i).first.x()-peakList.at(j).first.x())
-				   - splitting)/splitting < splittingTolerance ||
+                   - splitting)/splitting < tol ||
 					fabs(fabs(peakList.at(i).first.x()-peakList.at(j).first.x())
 									   - splitting) < 2.5*ftSpacing)
 			{
@@ -1088,7 +1088,7 @@ FitResult Analysis::fitLine(const FitResult &in, QVector<QPointF> data, double p
         out.setFitParameters(c,covar);
     }
 
-
+    out.appendToLog(QString("Linear fit complete. Chi squared = %1").arg(out.chisq(),0,'e',4));
 	gsl_vector_free(yData);
 	gsl_vector_free(c);
 	gsl_matrix_free(X);

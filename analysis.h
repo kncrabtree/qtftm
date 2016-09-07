@@ -61,7 +61,7 @@ unsigned int power2Nplus1(unsigned int n);
 QList<double> estimateBaseline(const QVector<QPointF> ftData);
 QVector<QPointF> removeBaseline(const QVector<QPointF> data, double y0, double slope, double probeFreq = 0.0);
 double estimateSplitting(const FitResult::BufferGas &bg, double stagT, double frequency);
-QList<FitResult::DopplerPairParameters> estimateDopplerCenters(QList<QPair<QPointF, double> > peakList, double splitting, double ftSpacing);
+QList<FitResult::DopplerPairParameters> estimateDopplerCenters(QList<QPair<QPointF, double> > peakList, double splitting, double ftSpacing, double tol = splittingTolerance);
 bool dpAmplitudeLess(const FitResult::DopplerPairParameters &left, const FitResult::DopplerPairParameters &right);
 double estimateDopplerLinewidth(const FitResult::BufferGas &bg, double probeFreq, double stagT = 293.15);
 void estimateDopplerPairAmplitude(const QVector<QPointF> ft, DopplerPair *dp, QPair<double,double> baseline);

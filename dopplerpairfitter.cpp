@@ -82,9 +82,9 @@ FitResult DopplerPairFitter::doFit(const Scan s)
 	//remove baseline from ft and find peaks
     out.appendToLog(QString("Subtracting baseline and finding peaks."));
 	ftBl = Analysis::removeBaseline(ftBl,blData.at(0),blData.at(1));
-    double snr = 6.0;
-//    if(ftw.isUseWindow())
-//        snr = 6.0; //larger SNR threshold for BH-window to reduce false positives
+    double snr = 5.75;
+    if(!ftw.isUseWindow())
+        calcCoefs(7,4);
     QList<QPair<QPointF,double> > peakList = findPeaks(ftBl,blData.at(2),blData.at(3),snr);
 	out.setBaselineY0Slope(blData.at(0),blData.at(1));
 	if(peakList.size() == 0)
@@ -98,10 +98,12 @@ FitResult DopplerPairFitter::doFit(const Scan s)
 
     out.appendToLog(QString("Found %1 peaks:").arg(peakList.size()));
     out.appendToLog(QString("Num\tFreq\tA\tSNR"));
+    double maxSnr = 0.0;
 	for(int i=0; i<peakList.size(); i++)
 	{
-            out.appendToLog(QString("%1\t%2\t%3\t%4").arg(i).arg(QString::number(peakList.at(i).first.x(),'f',3))
-                     .arg(QString::number(peakList.at(i).first.y(),'f',2)).arg(QString::number(peakList.at(i).second,'f',2)));
+        maxSnr = qMax(peakList.at(i).second,maxSnr);
+        out.appendToLog(QString("%1\t%2\t%3\t%4").arg(i).arg(QString::number(peakList.at(i).first.x()+f.probeFreq(),'f',3))
+                        .arg(QString::number(peakList.at(i).first.y(),'f',2)).arg(QString::number(peakList.at(i).second,'f',2)));
 	}
 
 
@@ -161,24 +163,18 @@ FitResult DopplerPairFitter::doFit(const Scan s)
 		return out;
 	}
 
-	if(dpParams.size()>10)
-        out.appendToLog(QString("Truncating Doppler pair list to the strongest 10."));
-
-	while(dpParams.size()>10)
-		dpParams.removeLast();
-
-    if(singlePeaks.size()>10)
-        out.appendToLog(QString("Truncating single peak list to the strongest 10."));
-
-	while(singlePeaks.size()>10)
-		singlePeaks.removeLast();
-
-
 	//at this point, there are 3 possibilities:
 	//Pairs only, Mixed pairs and singles, and singles only
 	//during fitting, we may transition from mixed->pairs only, or from mixed->singles only
-	bool done = false;
-	int iterations = 50;
+
+    //strategy: first, fit to line, and determine chi squared.
+    //then add in any single peaks, see if chi squared improves, starting from strongest to weakest.
+    //continue until chi squared is not improving significantly
+    //then add in doppler pairs one at a time from strongest to weakest, continuing while the chi squared keeps improving
+
+    QList<FitResult::DopplerPairParameters> fitDp;
+    QList<QPointF> fitSingle;
+
 
     if(lsf == FitResult::Lorentzian)
         out.appendToLog(QString("Using Lorentzian lineshape."));
@@ -188,262 +184,148 @@ FitResult DopplerPairFitter::doFit(const Scan s)
     QList<double> commonParams;
     commonParams << blData.at(0) << blData.at(1) << splitting << width;
 
+    if(singlePeaks.size() == 0 && dpParams.size() == 0)
+        out.appendToLog(QString("No peaks found. Fitting to line."));
+    else
+        out.appendToLog(QString("Performing initial linear fit to assess chi squared."));
+    out = Analysis::fitLine(out,ftPad,fid.probeFreq());
+
+    FitResult lastFit = out;
+
+    bool done = false;
+    int iterations = 50;
+    bool refit = false;
+    int stage = 0;
 	while(!done)
 	{
-		if(singlePeaks.size() == 0 && dpParams.size() == 0)
-		{
-            out.appendToLog(QString("No peaks remain. Fitting to line..."));
-            out = Analysis::fitLine(out,ftPad,fid.probeFreq());
-			break;
-		}
+        if(!refit)
+        {
+            iterations = 100;
 
-        out = dopplerFit(ftPad,out,commonParams,dpParams,singlePeaks,iterations);
+            if(!singlePeaks.isEmpty())
+            {
+                stage = 1;
+                fitSingle.append(singlePeaks.takeFirst());
+                out.appendToLog(QString("Adding strongest single peak to fit....\nX = %1 MHz, Y = %2").arg(fitSingle.last().x()+f.probeFreq(),0,'f',3).arg(fitSingle.last().y(),0,'f',3));
+            }
+            else if(!dpParams.isEmpty())
+            {
+                stage = 2;
+                fitDp.append(dpParams.takeFirst());
+                out.appendToLog(QString("Adding strongest Doppler pair to fit....\nX = %1 MHz, A = %2, alpha = %3").arg(fitDp.last().centerFreq+f.probeFreq(),0,'f',3)
+                                .arg(fitDp.last().amplitude,0,'f',3).arg(fitDp.last().alpha,0,'f',3));
+            }
+            else
+                break;
+        }
+
+        refit = false;
+        out = dopplerFit(ftPad,out,commonParams,fitDp,fitSingle,iterations);
 
         if(out.category() == FitResult::Fail)
         {
             if(out.iterations() == iterations && iterations < 1000)
             {
+                refit = true;
+                out.appendToLog(QString("Fit did not converge after %1 iterations. Increasing to %2.").arg(iterations).arg(iterations*2));
+                iterations *= 2;
+                continue;
+            }
+            else
+            {
+                lastFit.setLogText(out.log());
+                lastFit.appendToLog(QString("Fit failed, falling back to previous result."));
+                out = lastFit;
+                break;
+            }
+        }
+        else
+        {
+            if(out.iterations() == iterations && iterations < 1000)
+            {
+                refit = true;
                 out.appendToLog(QString("Fit did not converge after %1 iterations. Increasing to %2.").arg(iterations).arg(iterations*2));
                 iterations *= 2;
                 continue;
             }
 
-            iterations = 50;
-            if(!singlePeaks.isEmpty())
+            double chisqLimit = 0.85;
+            if(fitSingle.isEmpty() && fitDp.size() == 1 && maxSnr < 10.0)
+                chisqLimit = 0.5;
+            if(out.chisq() < chisqLimit*lastFit.chisq())
             {
-                singlePeaks.removeLast();
-                continue;
-            }
-            dpParams.removeLast();
-            continue;
-        }
-
-		bool spurious = false;
-
-        //check single peaks
-        if(out.freqAmpSingleList().size()>0)
-        {
-            //amplitudes
-            out.appendToLog(QString("Checking single peak parameters...."));
-            for(int i=out.freqAmpSingleList().size()-1; i>=0; i--)
-            {
-                if(out.freqAmpSingleList().at(i).second <  5.0*(blData.at(2) + blData.at(3)*(out.freqAmpSingleList().at(i).first-out.probeFreq()))
-                        || out.freqAmpSingleList().at(i).second> 100.0
-                        || out.freqAmpSingleList().at(i).second < 0.0)
+                lastFit = out;
+                if(singlePeaks.isEmpty() && dpParams.isEmpty())
+                    done = true;
+                else if(stage == 1)
                 {
-                    out.appendToLog(QString("Removing single peak %1 because its amplitude (%2) is bad.").arg(i)
-                               .arg(QString::number(out.freqAmpSingleList().at(i).second,'f',2)));
-                    singlePeaks.removeAt(i);
-                    spurious = true;
-                    break;
+                    commonParams[0] = out.allFitParams().at(0);
+                    commonParams[1] = out.allFitParams().at(1);
+                    commonParams[3] = out.width();
+
+                    int index = fitSingle.size()-1;
+                    fitSingle[index].setX(out.freqAmpSingleList().at(index).first);
+                    fitSingle[index].setY(out.freqAmpSingleList().at(index).second);
+                }
+                else if(stage == 2)
+                {
+                    commonParams[0] = out.allFitParams().at(0);
+                    commonParams[1] = out.allFitParams().at(1);
+                    commonParams[2] = out.splitting();
+                    commonParams[3] = out.width();
+
+                    int index = fitDp.size()-1;
+                    fitDp[index] = out.dopplerParameters(index);
+
+                    if(fitDp.size() == 1)
+                    {
+                        //reassess potential Doppler pairs with tighter tolerance
+                        out.appendToLog(QString("Reassessing Doppler pairs with tighter tolerance."));
+                        dpParams = Analysis::estimateDopplerCenters(peakList,out.splitting(),ftSpacing,0.05);
+                        if(!dpParams.isEmpty())
+                            dpParams.removeFirst();
+
+                        out.appendToLog(QString("Found %1 additional possible pairs.").arg(dpParams.size()));
+
+                        if(dpParams.isEmpty())
+                            done = true;
+                    }
+                }
+
+            }
+            else
+            {
+                lastFit.setLogText(out.log());
+                lastFit.appendToLog(QString("Not enough improvement in chi squared (last: %1 vs current: %2). Going back to previous fit...").arg(lastFit.chisq(),0,'e',4).arg(out.chisq(),0,'e',4));
+                out = lastFit;
+
+                if(!singlePeaks.isEmpty())
+                {
+                    out.appendToLog(QString("Clearing remaining single peaks..."));
+                    singlePeaks.clear();
+                    if(dpParams.isEmpty())
+                        done = true;
+                }
+                else if(!dpParams.isEmpty())
+                {
+                    out.appendToLog(QString("Clearing remaining Doppler pairs..."));
+                    dpParams.clear();
+                    done = true;
+                }
+
+                if(stage == 1)
+                    fitSingle.removeLast();
+                else if(stage == 2)
+                {
+                    fitDp.removeLast();
+                    done = true;
                 }
             }
-
-            if(spurious)
-            {
-                iterations = 50;
-                continue;
-            }
-
-            //check uncertainties
-            for(int i=out.freqAmpSingleList().size()-1; i>=0; i--)
-            {
-                if(out.freqAmpSingleList().at(i).second < out.freqAmpSingleUncList().at(i).second)
-                {
-                    out.appendToLog(QString("Removing single peak %1 because its amplitude (%2) is less than its uncertainty (%3)").arg(i)
-                               .arg(QString::number(out.freqAmpSingleList().at(i).second,'f',2))
-                               .arg(QString::number(out.freqAmpSingleUncList().at(i).second,'f',2)));
-                    singlePeaks.removeAt(i);
-                    spurious = true;
-                    break;
-                }
-            }
-
-            if(spurious)
-            {
-                iterations = 50;
-                continue;
-            }
         }
-
-		if(out.freqAmpPairList().size()>0)
-            out.appendToLog(QString("Checking Doppler pair parameters..."));
-		for(int i=out.freqAmpPairList().size()-1; i>=0; i--)
-		{
-			if(out.freqAmpPairList().at(i).second < 4.0*(blData.at(2) + blData.at(3)*(out.freqAmpPairList().at(i).first - out.probeFreq()))
-					|| out.freqAmpPairList().at(i).second > 100.0
-					|| out.freqAmpPairList().at(i).second < 0.0)
-			{
-                out.appendToLog(QString("Removing Doppler pair %1 because its amplitude is bad (%2).").arg(i)
-						 .arg(QString::number(out.freqAmpPairList().at(i).second,'f',2)));
-				dpParams.removeAt(i);
-				spurious = true;
-				break;
-			}
-
-			if(out.allFitParams().at(5+3*i) < Analysis::alphaTolerance || out.allFitParams().at(5+3*i) > (1.0-Analysis::alphaTolerance))
-			{
-                out.appendToLog(QString("Removing Doppler pair %1 because its alpha is bad (%2).").arg(i)
-						 .arg(QString::number(out.allFitParams().at(5+3*i),'f',2)));
-				dpParams.removeAt(i);
-				spurious = true;
-				break;
-			}
-		}
-
-		if(spurious)
-		{
-			iterations = 50;
-			continue;
-		}
-
-		if(out.freqAmpPairList().size() > 1)
-		{
-            out.appendToLog(QString("Checking Doppler pair uncertainties because the number of pairs is more than 1."));
-			for(int i=out.freqAmpPairList().size()-1; i>=0; i--)
-			{
-				if(2.0*out.freqAmpPairList().at(i).second < out.freqAmpPairUncList().at(i).second)
-				{
-                    out.appendToLog(QString("Removing weakest Doppler pair because the amplitude of peak %1 (%2) is less than half its uncertainty (%3).").arg(i)
-							 .arg(QString::number(out.freqAmpPairList().at(i).second,'f',2))
-							.arg(QString::number(out.freqAmpPairUncList().at(i).second,'f',2)));
-                    dpParams.removeLast();
-					spurious = true;
-					break;
-				}
-
-				if(out.allFitParams().at(5+3*i) < out.allFitUncertainties().at(5+3*i))
-				{
-                    out.appendToLog(QString("Removing weakest Doppler pair the alpha of peak %1 (%2) is less than its uncertainty (%3).").arg(i)
-							 .arg(QString::number(out.allFitParams().at(5+3*i),'f',2))
-							.arg(QString::number(out.allFitUncertainties().at(5+3*i),'f',2)));
-                    dpParams.removeLast();
-					spurious = true;
-					break;
-				}
-			}
-		}
-
-		if(spurious)
-		{
-			iterations = 50;
-			continue;
-		}
-
-		if(dpParams.size() > 0) //check width and splitting
-		{
-			//if something looks wrong, remove weakest peak and try again
-			if(out.allFitParams().at(3) < 0.5*ftSpacing)
-			{
-                out.appendToLog(QString("Fit gave too small a linewidth (%1). Removing weakest pair.")
-						 .arg(QString::number(out.allFitParams().at(3),'f',5)));
-				dpParams.removeLast();
-				iterations = 50;
-				continue;
-			}
-
-			if(fabs(out.allFitParams().at(2)-splitting) > 0.5*splitting)
-			{
-                out.appendToLog(QString("Fit gave a splitting more than 50% away from guess (%1). Removing weakest pair.")
-						 .arg(QString::number(out.allFitParams().at(2),'f',5)));
-				dpParams.removeLast();
-				iterations = 50;
-				continue;
-			}
-
-			if(dpParams.size()>1)
-			{
-				if(out.allFitParams().at(3) < out.allFitUncertainties().at(3))
-				{
-                    out.appendToLog(QString("Fit linewidth (%1) is less than uncertainty (%2). Removing weakest pair.")
-							 .arg(QString::number(out.allFitParams().at(3),'f',5))
-							 .arg(QString::number(out.allFitUncertainties().at(3),'f',5)));
-					dpParams.removeLast();
-					iterations = 50;
-					continue;
-				}
-
-				if(out.allFitParams().at(2) < out.allFitUncertainties().at(2))
-				{
-                    out.appendToLog(QString("Fit splitting (%1) is less than uncertainty (%2). Removing weakest pair.")
-							 .arg(QString::number(out.allFitParams().at(2),'f',5))
-							 .arg(QString::number(out.allFitUncertainties().at(2),'f',5)));
-					dpParams.removeLast();
-					iterations = 50;
-					continue;
-				}
-			}
-		}
-		else //at this point, we must be fitting single peaks alone
-		{
-			//check amplitudes
-			for(int i=out.freqAmpSingleList().size()-1; i>=0; i--)
-			{
-				if(out.freqAmpSingleList().at(i).second
-						< 5.0*(blData.at(2) + blData.at(3)*(out.freqAmpSingleList().at(i).first-out.probeFreq()))
-						|| out.freqAmpSingleList().at(i).second> 100.0
-						|| out.freqAmpSingleList().at(i).second < 0.0)
-				{
-                    out.appendToLog(QString("Removing single peak %1 because its amplitude (%2) is less than its uncertainty (%3)").arg(i)
-							 .arg(QString::number(out.freqAmpSingleList().at(i).second,'f',2))
-							.arg(QString::number(out.freqAmpSingleUncList().at(i).second,'f',2)));
-					singlePeaks.removeAt(i);
-					spurious = true;
-					break;
-				}
-			}
-
-			if(spurious)
-			{
-				iterations = 50;
-				continue;
-			}
-
-			//check uncertainties
-			for(int i=out.freqAmpSingleList().size()-1; i>=0; i--)
-			{
-				if(out.freqAmpSingleList().at(i).second < 2.0*out.freqAmpSingleUncList().at(i).second)
-				{
-                    out.appendToLog(QString("Removing single peak %1 because its amplitude (%2) is less than its uncertainty (%3)").arg(i)
-							 .arg(QString::number(out.freqAmpSingleList().at(i).second,'f',2))
-							.arg(QString::number(out.freqAmpSingleUncList().at(i).second,'f',2)));
-					singlePeaks.removeAt(i);
-					spurious = true;
-					break;
-				}
-			}
-
-			if(spurious)
-			{
-				iterations = 50;
-				continue;
-			}
-
-
-			//check width
-			if(out.allFitParams().at(2) < 0.5*ftSpacing || out.allFitParams().at(2) < out.allFitUncertainties().at(2))
-			{
-                out.appendToLog(QString("Fit linewidth (%1) is less than uncertainty (%2). Removing weakest peak.")
-						 .arg(QString::number(out.allFitParams().at(2),'f',5))
-						 .arg(QString::number(out.allFitUncertainties().at(2),'f',5)));
-				singlePeaks.removeLast();
-				iterations = 50;
-				continue;
-			}
-		}
-
-		if(!spurious)
-		{
-			if(out.status() != GSL_SUCCESS)
-			{
-				iterations = iterations*2;
-			}
-
-			if(out.status() == GSL_SUCCESS || out.status() == GSL_ENOPROG || iterations > 1000)
-				done = true;
-		}
 	}
 
+    out.appendToLog(QString("Fit complete. Chi squared = %1").arg(out.chisq(),0,'e',4));
+    out.appendToLog(QString("Total Doppler pairs: %1. Total single peaks: %2").arg(out.freqAmpPairList().size()).arg(out.freqAmpSingleList().size()));
 	out.save(s.number());
 	emit fitComplete(out);
 	return out;
