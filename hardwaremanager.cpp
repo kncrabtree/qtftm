@@ -955,6 +955,22 @@ void HardwareManager::calibrateCavity()
 	    return;
     }
 
+    double drf = readDrFrequency();
+    double drp = readDrPower();
+    d_tuningOldDr = qMakePair(drf,drp);
+
+    QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
+    s.beginGroup(QString("drSynth"));
+    s.beginGroup(s.value(QString("subKey"),QString("virtual")).toString());
+    double minDr = s.value(QString("min")).toDouble();
+    double minPwr = s.value(QString("minPower"),-20.0).toDouble();
+    minDr += 648.21;
+    s.endGroup();
+    s.endGroup();
+
+    setDrSynthFreq(minDr);
+    setDrSynthPwr(minPwr);
+
     d_waitingForCalibration = true;
 
     //4.) Tune cavity
