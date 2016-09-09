@@ -43,6 +43,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
 	ui->rollingAvgsSpinBox->setValue(s.value(QString("peakUpAvgs"),20).toInt());
+    ui->activateLogOnErrorBox->setChecked(s.value(QString("activateLogOnError"),true).toBool());
 
     p_sleepTimer = new QTimer(this);
     p_sleepTimer->setSingleShot(true);
@@ -151,6 +152,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
         });
     }
+    connect(ui->activateLogOnErrorBox,&QCheckBox::toggled,this,&MainWindow::logOnErrorCallback);
 
 	//prepare status bar
 	statusLabel = new QLabel();
@@ -405,6 +407,13 @@ void MainWindow::saveLogCallback()
         else
             QMessageBox::critical(this,QString("Saving failed!"),QString("Could not open file for writing.\n\nFile: %1").arg(fileName),QMessageBox::Ok);
     }
+}
+
+void MainWindow::logOnErrorCallback(bool ch)
+{
+    QSettings s(QSettings::SystemScope, QApplication::organizationName(),QApplication::applicationName());
+    s.setValue(QString("activateLogOnError"),ch);
+    s.sync();
 }
 
 void MainWindow::scanStarting(Scan s, bool isCal)
@@ -1200,6 +1209,8 @@ void MainWindow::setLogIcon(QtFTM::LogMessageCode c)
 		case QtFTM::LogError:
             ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(ui->logTab),QIcon(QString(":/icons/error.png")));
 			d_logIcon = c;
+            if(ui->activateLogOnErrorBox->isChecked())
+                ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->logTab));
 			break;
 		default:
 			d_logIcon = c;

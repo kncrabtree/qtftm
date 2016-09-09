@@ -50,6 +50,7 @@ public slots:
     void updateBatchProgressBar();
 	void updateUiConfig();
     void saveLogCallback();
+    void logOnErrorCallback(bool ch);
     void scanStarting(Scan s, bool isCal);
 	void batchComplete(bool aborted);
 	void pauseAcq();
