@@ -17,14 +17,15 @@ class ScanData : public QSharedData {
 public:
 	ScanData() : number(-1), ts(QDateTime::currentDateTime()), ftFreq(-1.0), ftAtten(-1), drFreq(-1.0), drPower(-100.0),
 	   targetShots(0), completedShots(0), fid(Fid()), initialized(false), saved(false), aborted(false), dummy(false), skipTune(false),
-	  tuningVoltage(-1), cavityVoltage(-1), protectionDelayTime (-1),
+      postTuneShots(0), postTuneDelayShots(0), tuningVoltage(-1), cavityVoltage(-1), protectionDelayTime (-1),
 	  scopeDelayTime(-1), dipoleMoment(0.0), magnet(false), dcVoltage(0) {}
 	ScanData(const ScanData &other) :
 		QSharedData(other), number(other.number), ts(other.ts), ftFreq(other.ftFreq), ftAtten(other.ftAtten), drFreq(other.drFreq),
 	   drPower(other.drPower), flowConfig(other.flowConfig),
 		pulseConfig(other.pulseConfig), targetShots(other.targetShots), completedShots(other.completedShots),
         fid(other.fid), initialized(other.initialized), saved(other.saved), aborted(other.aborted), dummy(other.dummy),
-	   skipTune(other.skipTune), tuningVoltage(other.tuningVoltage), cavityVoltage(other.cavityVoltage),
+       skipTune(other.skipTune), postTuneShots(other.postTuneShots), postTuneDelayShots(other.postTuneDelayShots),
+       tuningVoltage(other.tuningVoltage), cavityVoltage(other.cavityVoltage),
         protectionDelayTime(other.protectionDelayTime), scopeDelayTime(other.scopeDelayTime), dipoleMoment(other.dipoleMoment),
 	   magnet(other.magnet), dcVoltage(other.dcVoltage) {}
 	~ScanData() {}
@@ -49,6 +50,8 @@ public:
 	bool aborted;
 	bool dummy;
 	bool skipTune;
+    int postTuneShots;
+    int postTuneDelayShots;
 
     int tuningVoltage;
     int cavityVoltage;
@@ -234,7 +237,20 @@ bool Scan::isDummy() const
 
 bool Scan::skipTune() const
 {
-	return data->skipTune;
+    return data->skipTune;
+}
+
+bool Scan::tuneDelay() const
+{
+    if(data->skipTune)
+        return false;
+
+    return data->postTuneShots < data->postTuneDelayShots;
+}
+
+int Scan::postTuneDelayShots() const
+{
+    return data->postTuneDelayShots;
 }
 
 int Scan::tuningVoltage() const
@@ -264,7 +280,9 @@ void Scan::setNumber(int n)
 
 void Scan::increment()
 {
-	data->completedShots++;
+    data->postTuneShots++;
+    if(!tuneDelay())
+        data->completedShots++;
 }
 
 void Scan::setFid(const Fid f)
@@ -416,7 +434,12 @@ void Scan::setDummy()
 
 void Scan::setSkiptune(bool b)
 {
-	data->skipTune = b;
+    data->skipTune = b;
+}
+
+void Scan::setPostTuneDelayShots(int s)
+{
+    data->postTuneDelayShots = s;
 }
 
 void Scan::setTuningVoltage(int v)
@@ -446,6 +469,7 @@ QString Scan::scanHeader() const
 	t << QString("#Shots\t") << completedShots() << QString("\t\n");
 	t << QString("#Cavity freq\t") << ftFreq() << QString("\tMHz\n");
 	t << QString("#Skipped Tuning\t") << skipTune() << QString("\t\n");
+    t << QString("#Post Tuning Delay") << postTuneDelayShots() << QString("\tshots\n");
     t << QString("#Tuning Voltage\t") << tuningVoltage() << QString("\tmV\n");
 	t << QString("#Attenuation\t") << attenuation() << QString("\tdB\n");
     t << QString("#Dipole Moment\t") << dipoleMoment() << QString("\tD\n");
@@ -528,6 +552,8 @@ void Scan::parseFileLine(QString s)
 		data->ftFreq = val.toDouble();
 	else if(key.startsWith(QString("#Skipped")))
 		data->skipTune = (bool)val.toInt();
+    else if(key.startsWith(QString("#Post")))
+        data->postTuneDelayShots = val.toInt();
     else if(key.startsWith(QString("#Tuning")))
         data->tuningVoltage = val.toInt();
     else if(key.startsWith(QString("#Cavity Voltage"), Qt::CaseInsensitive))

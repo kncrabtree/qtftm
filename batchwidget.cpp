@@ -931,6 +931,16 @@ Scan BatchWidget::parseLine(Scan defaultScan, QString line)
 				}
 			}
 		}
+        else if(key.startsWith(QString("post"),Qt::CaseInsensitive))
+        {
+            bool success = false;
+            int shots = val.toInt(&success);
+            if(success && shots >= 0)
+            {
+                parseSuccess = true;
+                out.setPostTuneDelayShots(shots);
+            }
+        }
 
 
 	}
@@ -1091,6 +1101,11 @@ QString BatchWidget::writeScan(Scan thisScan, Scan ref)
 		    t << QString("skiptune:true ");
 	    else
 		    t << QString("skiptune:false ");
+    }
+
+    if(thisScan.postTuneDelayShots() != ref.postTuneDelayShots() || writeAll)
+    {
+        t << QString("postTuneDelay:") << thisScan.postTuneDelayShots() << QString(" ");
     }
 
 	t.flush();

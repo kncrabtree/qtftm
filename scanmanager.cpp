@@ -145,10 +145,14 @@ void ScanManager::acqAverage(const Fid f)
 		return;
 
 	//increment the scan, and pass along messages to UI
+
 	d_currentScan.increment();
 	int n = d_currentScan.completedShots();
-	emit scanShotAcquired();
-	emit statusMessage(QString("Acquiring... (%1/%2)").arg(n).arg(d_currentScan.targetShots()));
+    if(n>0)
+    {
+        emit scanShotAcquired();
+        emit statusMessage(QString("Acquiring... (%1/%2)").arg(n).arg(d_currentScan.targetShots()));
+    }
 
 	//if the scan is complete, stop taking in new FIDs
     if(d_currentScan.isAcquisitionComplete())
@@ -160,21 +164,25 @@ void ScanManager::acqAverage(const Fid f)
 	//because Fid is implicitly shared, modifying it would cause a copy on write since currentScan.fid() was sent to UI
 	//it's more efficient to create a new Fid with the new data and assign it to currentScan, so that the
 	//vector containing the FID data doesn't get looped over twice
-	if(n>1)
-	{
-		//make data vector of the appropriate size
-		QVector<double> newData(f.size());
+    if(n>0)
+    {
+        if(n>1)
+        {
+            //make data vector of the appropriate size
+            QVector<double> newData(f.size());
 
-		//do the rolling average, and set the FID of the scan appropriately
-		for(int i=0; i<f.size(); i++)
-			newData[i] = (d_currentScan.fid().at(i)*((double)n-1.0)+f.at(i))/(double)n;
+            //do the rolling average, and set the FID of the scan appropriately
+            for(int i=0; i<f.size(); i++)
+                newData[i] = (d_currentScan.fid().at(i)*((double)n-1.0)+f.at(i))/(double)n;
 
-		d_currentScan.setFid(Fid(d_currentScan.fid().spacing(),d_currentScan.fid().probeFreq(),newData));
-	}
-	else
-		d_currentScan.setFid(f);
+            d_currentScan.setFid(Fid(d_currentScan.fid().spacing(),d_currentScan.fid().probeFreq(),newData));
+        }
+        else
+            d_currentScan.setFid(f);
 
-	emit scanFid(d_currentScan.fid());
+        emit scanFid(d_currentScan.fid());
+    }
+
 
 	//if we're done, save and notify the rest of the program that the scan is done
 	if(d_currentScan.isAcquisitionComplete())

@@ -198,6 +198,10 @@ public:
 
 	bool skipTune() const;
 
+    bool tuneDelay() const;
+
+    int postTuneDelayShots() const;
+
     int tuningVoltage() const;
 
     int cavityVoltage() const;
@@ -328,6 +332,8 @@ public:
 	void setDummy();
 
 	void setSkiptune(bool b);
+
+    void setPostTuneDelayShots(int s);
 
     void setTuningVoltage(int v);
 
