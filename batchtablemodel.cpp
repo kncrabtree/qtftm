@@ -271,7 +271,10 @@ int BatchTableModel::timeEstimate(QtFTM::BatchType type, int numRepeats) const
 		for(int i=1;i<scanList.size();i++)
 		{
 			if(fabs(scanList.at(i).first.ftFreq() - scanList.at(i-1).first.ftFreq()) > 1.0)
+            {
 				totalTime += 10;
+                totalShots += scanList.at(i).first.postTuneDelayShots() * numRepeats;
+            }
 			totalShots += scanList.at(i).first.targetShots() * numRepeats;
 		}
 	}
@@ -281,7 +284,10 @@ int BatchTableModel::timeEstimate(QtFTM::BatchType type, int numRepeats) const
         for(int i=1; i<scanList.size(); i++)
 		{
             if((scanList.at(i).second || !qFuzzyCompare(scanList.at(i-1).first.ftFreq(),scanList.at(i).first.ftFreq())))
+            {
 				totalTime += 10;
+                totalShots += scanList.at(i).first.postTuneDelayShots() * numRepeats;
+            }
 
             for(int j=i+1; j<scanList.size(); j++)
             {

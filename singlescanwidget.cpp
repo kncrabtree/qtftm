@@ -67,6 +67,7 @@ SingleScanWidget::SingleScanWidget(QWidget *parent) :
 			ui->magnetOnOffButton->setText(QString("Off"));
 	});
     connect(ui->skipTuneCheckBox,&QCheckBox::toggled,ui->postTuneDelayBox,&QSpinBox::setDisabled);
+    connect(ui->postTuneDelayBox,static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),this,&SingleScanWidget::delayChanged);
 }
 
 SingleScanWidget::~SingleScanWidget()

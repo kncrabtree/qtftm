@@ -111,10 +111,13 @@ void DrIntSetupPage::updateLabel()
 		calScans = scans;
 
     double repRate = qobject_cast<BatchWizard*>(wizard())->scanTemplate().pulseConfiguration().repRate();
+    int scansBetweenTune = field(QString("drScansBetweenTuningVoltageReadings")).toInt();
+    int numTunes = (double)(scans)/(double)(scansBetweenTune+1);
+    double delayTime = qobject_cast<BatchWizard*>(wizard())->scanTemplate().postTuneDelayShots()*(double)numTunes/repRate;
 
 	//the first shot after starting a new scan is ignored, and it usually takes about one shot worth of time to measure
 	//cavity voltage and intialize hardware.
-	double time = (scans+calScans)*(shotsSpinBox->value()+2)/repRate;
+    double time = (scans+calScans)*(shotsSpinBox->value()+2)/repRate + delayTime;
 	int h = (int)floor(time/3600.0);
 	int m = (int)floor(time)%3600/60;
 	int s = (int)round(time)%60;

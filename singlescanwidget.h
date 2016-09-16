@@ -50,6 +50,9 @@ public:
 
     void limitFtmRangeToDr();
 
+signals:
+    void delayChanged();
+
 public slots:
 	void shotsChanged(int newShots);
 
