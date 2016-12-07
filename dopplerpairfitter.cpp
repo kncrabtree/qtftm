@@ -82,8 +82,8 @@ FitResult DopplerPairFitter::doFit(const Scan s)
 	//remove baseline from ft and find peaks
     out.appendToLog(QString("Subtracting baseline and finding peaks."));
 	ftBl = Analysis::removeBaseline(ftBl,blData.at(0),blData.at(1));
-    if(!ftw.isUseWindow())
-        calcCoefs(7,4);
+//    if(!ftw.isUseWindow())
+//        calcCoefs(7,4);
     QList<QPair<QPointF,double> > peakList = findPeaks(ftBl,blData.at(2),blData.at(3));
 	out.setBaselineY0Slope(blData.at(0),blData.at(1));
 	if(peakList.size() == 0)

@@ -31,7 +31,7 @@ void AbstractFitter::setUseWindow(bool b)
     if(b)
         calcCoefs(11,6);
     else
-        calcCoefs(31,4);
+        calcCoefs(21,2);
 }
 
 void AbstractFitter::calcCoefs(int winSize, int polyOrder)
