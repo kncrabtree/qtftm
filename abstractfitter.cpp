@@ -29,7 +29,7 @@ void AbstractFitter::setUseWindow(bool b)
     ftw.setUseWindow(b);
 
     if(b)
-        calcCoefs(11,6);
+        calcCoefs(11,2);
     else
         calcCoefs(21,2);
 }
