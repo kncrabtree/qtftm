@@ -29,9 +29,9 @@ void AbstractFitter::setUseWindow(bool b)
     ftw.setUseWindow(b);
 
     if(b)
-        calcCoefs(11,2);
+        calcCoefs(11,6);
     else
-        calcCoefs(21,2);
+        calcCoefs(21,4);
 }
 
 void AbstractFitter::calcCoefs(int winSize, int polyOrder)
@@ -157,7 +157,7 @@ FitResult AbstractFitter::dopplerFit(const QVector<QPointF> ft, const FitResult 
     }
     params << commonParams.at(3);
     lb << commonParams.at(3)/3.0;
-    ub << commonParams.at(3)*5.0;
+    ub << commonParams.at(3)*7.5;
     for(int i=0; i<dpParams.size(); i++)
     {
         double A = dpParams.at(i).amplitude;
