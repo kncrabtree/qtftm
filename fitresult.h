@@ -131,8 +131,8 @@ public:
 	void appendToLog(const QString s);
     void setLogText(const QString s);
 	void save(int num);
-	void loadFromFile(int num);
-
+	void loadFromFile(int num);    
+    double yVal(double x) const;
 
 private:
 	QSharedDataPointer<FitData> data;

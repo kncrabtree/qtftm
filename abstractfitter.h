@@ -62,8 +62,8 @@ protected:
 
     virtual void calcCoefs(int winSize, int polyOrder);
     virtual QList<QPair<QPointF, double> > findPeaks(QVector<QPointF> ft, double noisey0, double noisem);
-    virtual FitResult dopplerFit(const QVector<QPointF> ft, const FitResult &in, const QList<double> commonParams, const QList<FitResult::DopplerPairParameters> dpParams, const QList<QPointF> singleParams, const int maxIterations);
-    virtual FitResult fitLine(const FitResult &in, QVector<QPointF> data, double probeFreq);
+    virtual FitResult dopplerFit(const QVector<QPointF> ft, const FitResult &in, const QList<double> commonParams, const QList<FitResult::DopplerPairParameters> dpParams, const QList<QPointF> singleParams, const int maxIterations, double noisey0, double noisem);
+    virtual FitResult fitLine(const FitResult &in, QVector<QPointF> data, double probeFreq, double noisey0, double noisem);
     double estimateLinewidth(const FitResult::BufferGas &bg, double probeFreq, double stagT);
     static double nlOptFitFunction(const std::vector<double> &p, std::vector<double> &grad, void *fitData);
 

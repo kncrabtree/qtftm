@@ -115,7 +115,7 @@ QList<QPair<QPointF,double>> AbstractFitter::findPeaks(QVector<QPointF> ft, doub
     return out;
 }
 
-FitResult AbstractFitter::dopplerFit(const QVector<QPointF> ft, const FitResult &in, const QList<double> commonParams, const QList<FitResult::DopplerPairParameters> dpParams, const QList<QPointF> singleParams, const int maxIterations)
+FitResult AbstractFitter::dopplerFit(const QVector<QPointF> ft, const FitResult &in, const QList<double> commonParams, const QList<FitResult::DopplerPairParameters> dpParams, const QList<QPointF> singleParams, const int maxIterations, double noisey0, double noisem)
 {
     //copy existing info into output
     FitResult out(in);
@@ -196,8 +196,6 @@ FitResult AbstractFitter::dopplerFit(const QVector<QPointF> ft, const FitResult 
         out.appendToLog(QString("Fitting stopped after %1 iterations.").arg(fd.numEvals));
         out.setStatus(0);
         int dof = ft.size() - params.size();
-        out.setChisq(sqErr/static_cast<double>(dof));
-        out.appendToLog(QString("Chi squared: %1").arg(out.chisq(),0,'e',4));
         out.setIterations(fd.numEvals);
 
         gsl_matrix *covar = gsl_matrix_alloc(params.size(),params.size());
@@ -223,6 +221,15 @@ FitResult AbstractFitter::dopplerFit(const QVector<QPointF> ft, const FitResult 
                 out.appendToLog(QString("Parameter %1 went outside allowed range.").arg(i));
             }
         }
+        //calculate chi squared
+        double sse = 0.0;
+        for(int i=0; i<ft.size(); i++)
+        {
+            double noise = noisey0 + noisem*ft.at(i).x();
+            sse += (out.yVal(ft.at(i).x())-ft.at(i).y())*(out.yVal(ft.at(i).x())-ft.at(i).y())/(noise*noise);
+        }
+        out.setChisq(sse/static_cast<double>(dof));
+        out.appendToLog(QString("Chi squared: %1").arg(out.chisq(),0,'e',4));
         if(!ok)
             out.setCategory(FitResult::Fail);
         else
@@ -244,7 +251,7 @@ FitResult AbstractFitter::dopplerFit(const QVector<QPointF> ft, const FitResult 
 
 }
 
-FitResult AbstractFitter::fitLine(const FitResult &in, QVector<QPointF> data, double probeFreq)
+FitResult AbstractFitter::fitLine(const FitResult &in, QVector<QPointF> data, double probeFreq, double noisey0, double noisem)
 {
     //fit to a line and exit
     gsl_vector *yData;
@@ -269,6 +276,15 @@ FitResult AbstractFitter::fitLine(const FitResult &in, QVector<QPointF> data, do
 
     int success = gsl_multifit_robust(X,yData,c,covar,ws);
 
+    //calculate my own "chi squared"
+    double sse = 0.0;
+    for(int i=0; i<data.size(); i++)
+    {
+        double ym = gsl_vector_get(c,0) + gsl_vector_get(c,1)*data.at(i).x();
+        double noise = noisey0 + noisem*data.at(i).x();
+        sse += (ym - data.at(i).y())*(ym - data.at(i).y())/(noise*noise);
+    }
+
     FitResult out(in);
     out.setCategory(FitResult::NoPeaksFound);
     out.setType(FitResult::RobustLinear);
@@ -277,7 +293,7 @@ FitResult AbstractFitter::fitLine(const FitResult &in, QVector<QPointF> data, do
         out.setStatus(success);
         out.setIterations(1);
         out.setProbeFreq(probeFreq);
-        out.setChisq(stats.sse*stats.sse/stats.dof);
+        out.setChisq(sse/stats.dof);
         out.setFitParameters(c,covar);
     }
 

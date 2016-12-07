@@ -133,7 +133,7 @@ QString FitResult::statusMessage() const
 
 int FitResult::iterations() const
 {
-	return data->iterations;
+    return data->iterations;
 }
 
 double FitResult::chisq() const
@@ -256,49 +256,54 @@ QVector<QPointF> FitResult::toXY() const
 	QVector<QPointF> out;
 	out.reserve(1000);
 
-	double width = 0.0, split = 0.0;
-	int offsetIndex = 0;
-	if(numParams() > 3)
-	{
-        if(type() == Single)
-		{
-			width = fabs(allFitParams().at(2));
-			offsetIndex = 3;
-		}
-		else
-		{
-			width = fabs(allFitParams().at(3));
-			split = allFitParams().at(2);
-			offsetIndex = 4;
-		}
-	}
-
 	for(int i=0; i<1001; i++)
 	{
 		double x = (double)i/1000.0;
-		double y = baselineY0Slope().first + x*baselineY0Slope().second;
-
-		for(int j=0; j<freqAmpPairList().size(); j++)
-		{
-			double A = allFitParams().at(offsetIndex+3*j);
-			double al = allFitParams().at(offsetIndex+3*j+1);
-			double x0 = allFitParams().at(offsetIndex+3*j+2);
-
-            y += 2.0*A*(al*lsf(x,x0-split/2.0,width) + (1.0-al)*lsf(x,x0+split/2.0,width));
-		}
-
-		for(int j=0; j<freqAmpSingleList().size(); j++)
-		{
-			double A = allFitParams().at(offsetIndex+3*freqAmpPairList().size()+2*j);
-			double x0 = allFitParams().at(offsetIndex+3*freqAmpPairList().size()+2*j+1);
-
-            y += A*lsf(x,x0,width);
-		}
-
-		out.append(QPointF(probeFreq()+x,y));
+        out.append(QPointF(probeFreq()+x,yVal(x)));
 	}
 
 	return out;
+}
+
+double FitResult::yVal(double x) const
+{
+    double width = 0.0, split = 0.0;
+    int offsetIndex = 0;
+    if(numParams() > 3)
+    {
+        if(type() == Single)
+        {
+            width = fabs(allFitParams().at(2));
+            offsetIndex = 3;
+        }
+        else
+        {
+            width = fabs(allFitParams().at(3));
+            split = allFitParams().at(2);
+            offsetIndex = 4;
+        }
+    }
+
+    double y = baselineY0Slope().first + x*baselineY0Slope().second;
+
+    for(int j=0; j<freqAmpPairList().size(); j++)
+    {
+        double A = allFitParams().at(offsetIndex+3*j);
+        double al = allFitParams().at(offsetIndex+3*j+1);
+        double x0 = allFitParams().at(offsetIndex+3*j+2);
+
+        y += 2.0*A*(al*lsf(x,x0-split/2.0,width) + (1.0-al)*lsf(x,x0+split/2.0,width));
+    }
+
+    for(int j=0; j<freqAmpSingleList().size(); j++)
+    {
+        double A = allFitParams().at(offsetIndex+3*freqAmpPairList().size()+2*j);
+        double x0 = allFitParams().at(offsetIndex+3*freqAmpPairList().size()+2*j+1);
+
+        y += A*lsf(x,x0,width);
+    }
+
+    return y;
 }
 
 FitResult::BufferGas FitResult::bufferGas() const
@@ -425,7 +430,7 @@ void FitResult::setStatus(int s)
 
 void FitResult::setIterations(int i)
 {
-	data->iterations = i;
+    data->iterations = i;
 }
 
 void FitResult::setChisq(double c)

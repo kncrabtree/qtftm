@@ -89,7 +89,7 @@ FitResult DopplerPairFitter::doFit(const Scan s)
 	if(peakList.size() == 0)
 	{
         out.appendToLog(QString("No peaks detected. Fitting to line."));
-        out = fitLine(out,ftPad,fid.probeFreq());
+        out = fitLine(out,ftPad,fid.probeFreq(),blData.at(2),blData.at(3));
 		out.save(s.number());
 		emit fitComplete(out);
 		return out;
@@ -156,7 +156,7 @@ FitResult DopplerPairFitter::doFit(const Scan s)
 	if(singlePeaks.size() == 0 && dpParams.size() == 0)
 	{
         out.appendToLog(QString("No valid Doppler pairs or strong single peaks found. Fitting to line..."));
-        out = fitLine(out,ftPad,fid.probeFreq());
+        out = fitLine(out,ftPad,fid.probeFreq(),blData.at(2),blData.at(3));
 		out.save(s.number());
 		emit fitComplete(out);
 		return out;
@@ -187,7 +187,7 @@ FitResult DopplerPairFitter::doFit(const Scan s)
         out.appendToLog(QString("No peaks found. Fitting to line."));
     else
         out.appendToLog(QString("Performing initial linear fit to assess chi squared."));
-    out = fitLine(out,ftPad,fid.probeFreq());
+    out = fitLine(out,ftPad,fid.probeFreq(),blData.at(2),blData.at(3));
 
     FitResult lastFit = out;
 
@@ -219,7 +219,7 @@ FitResult DopplerPairFitter::doFit(const Scan s)
         }
 
         refit = false;
-        out = dopplerFit(ftPad,out,commonParams,fitDp,fitSingle,iterations);
+        out = dopplerFit(ftPad,out,commonParams,fitDp,fitSingle,iterations,blData.at(2),blData.at(3));
 
         if(out.category() == FitResult::Fail)
         {
@@ -248,9 +248,9 @@ FitResult DopplerPairFitter::doFit(const Scan s)
                 continue;
             }
 
-            double chisqLimit = 0.85;
-            if(fitSingle.isEmpty() && fitDp.size() == 1 && maxSnr < 10.0)
-                chisqLimit = 0.75;
+            double chisqLimit = 0.9;
+//            if(fitSingle.isEmpty() && fitDp.size() == 1 && maxSnr < 10.0)
+//                chisqLimit = 0.75;
             if(out.chisq() < chisqLimit*lastFit.chisq())
             {
                 lastFit = out;
@@ -305,7 +305,7 @@ FitResult DopplerPairFitter::doFit(const Scan s)
                     if(dpParams.isEmpty())
                         done = true;
                 }
-                else if(!dpParams.isEmpty())
+                else if(!dpParams.isEmpty() && stage == 2)
                 {
                     out.appendToLog(QString("Clearing remaining Doppler pairs..."));
                     dpParams.clear();
