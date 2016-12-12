@@ -248,10 +248,10 @@ FitResult DopplerPairFitter::doFit(const Scan s)
                 continue;
             }
 
-            double chisqLimit = 0.9;
-//            if(fitSingle.isEmpty() && fitDp.size() == 1 && maxSnr < 10.0)
-//                chisqLimit = 0.75;
-            if(out.chisq() < chisqLimit*lastFit.chisq())
+            double chisqLimit = lastFit.chisq();
+            if(lastFit.chisq() < 3.0)
+                chisqLimit = 0.9*(lastFit.chisq()-1);
+            if(out.chisq() < chisqLimit)
             {
                 lastFit = out;
                 if(singlePeaks.isEmpty() && dpParams.isEmpty())
