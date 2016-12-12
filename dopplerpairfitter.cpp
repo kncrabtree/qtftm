@@ -325,6 +325,18 @@ FitResult DopplerPairFitter::doFit(const Scan s)
 
     out.appendToLog(QString("Fit complete. Chi squared = %1").arg(out.chisq(),0,'e',4));
     out.appendToLog(QString("Total Doppler pairs: %1. Total single peaks: %2").arg(out.freqAmpPairList().size()).arg(out.freqAmpSingleList().size()));
+    if(!out.freqAmpPairList().isEmpty())
+    {
+        out.appendToLog(QString("Doppler pair parameters:"));
+        out.appendToLog(QString("Peak\tFreq\tA\tSNR:"));
+        for(int i=0; i<out.freqAmpPairList().size(); i++)
+        {
+            double a = out.freqAmpPairList().at(i).second;
+            double f = out.freqAmpPairList().at(i).first;
+            double noise = blData.at(2) + blData.at(3)*(f-out.probeFreq());
+            out.appendToLog(QString("%1\t%2\t%3\t%4").arg(i+1).arg(f,0,'f',6).arg(a,0,'g',3).arg(a/noise,0,'f',2));
+        }
+    }
 	out.save(s.number());
 	emit fitComplete(out);
 	return out;
