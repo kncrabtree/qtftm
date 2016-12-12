@@ -6,7 +6,7 @@
 FtWorker::FtWorker(QObject *parent) :
 	QObject(parent), real(nullptr), work(nullptr), d_numPnts(0),
 	realPadded(nullptr), workPadded(nullptr), d_numPntsPadded(0),
-    d_delay(0.0), d_hpf(0.0), d_exp(0.0), d_autoPadFids(false), d_removeDC(true), d_lastMax(0.0), d_useWindow(true)
+    d_delay(0.0), d_hpf(0.0), d_exp(0.0), d_autoPadFids(false), d_removeDC(true), d_lastMax(0.0), d_useWindow(false)
 {
 }
 
