@@ -504,17 +504,23 @@ void AbstractBatchPlot::exportXY()
 
     t << QString("x%1").arg(labelBase);
     for(int i=0;i<d_plotCurveData.size();i++)
-        t << tab << QString("y%1%2").arg(i).arg(labelBase);
+    {
+        if(d_plotCurveMetaData.at(i).visible)
+            t << tab << QString("y%1%2").arg(i).arg(labelBase);
+    }
 
     for(int i=0; i<d_plotCurveData.at(0).size(); i++)
     {
         t << nl << d_plotCurveData.at(0).at(i).x();
         for(int j=0; j<d_plotCurveData.size(); j++)
         {
-            if(i < d_plotCurveData.at(j).size())
-                t << tab << d_plotCurveData.at(j).at(i).y();
-            else
-                t << tab << 0.0;
+            if(d_plotCurveMetaData.at(j).visible)
+            {
+                if(i < d_plotCurveData.at(j).size())
+                    t << tab << d_plotCurveData.at(j).at(i).y();
+                else
+                    t << tab << 0.0;
+            }
         }
     }
 
