@@ -121,6 +121,7 @@ bool DrSummaryPage::validatePage()
 	double exp = field(QString("drExp")).toDouble();
 	bool rDC = field(QString("drRemoveDc")).toBool();
 	bool padFid = field(QString("drPadFid")).toBool();
+    bool useWindow = field(QString("drWindow")).toBool();
 
 	//set filtering settings
 	fitter->setDelay(del);
@@ -128,6 +129,7 @@ bool DrSummaryPage::validatePage()
 	fitter->setExp(exp);
 	fitter->setRemoveDC(rDC);
 	fitter->setAutoPad(padFid);
+    fitter->setUseWindow(useWindow);
 
 
 	//make BatchDR

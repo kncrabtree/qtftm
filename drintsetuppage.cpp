@@ -50,7 +50,8 @@ DrIntSetupPage::DrIntSetupPage(QWidget *parent) :
 	registerField(QString("drHpf"),aw->ui->analysisPlot->getHpfBox());
 	registerField(QString("drExp"),aw->ui->analysisPlot->getExpBox());
 	registerField(QString("drRemoveDc"),aw->ui->analysisPlot->getRemoveDcBox());
-    registerField(QString("drPadFid"),aw->ui->analysisPlot->getUseWindowBox());
+    registerField(QString("drPadFid"),aw->ui->analysisPlot->getPadFidBox());
+    registerField(QString("drWindow"),aw->ui->analysisPlot->getUseWindowBox());
 
 	connect(this,&DrIntSetupPage::newFid,aw->plot(),&FtPlot::newFid,Qt::UniqueConnection);
 	connect(aw,&AnalysisWidget::linesChanged,this,&QWizardPage::completeChanged);
