@@ -42,6 +42,14 @@ public:
 		Asleep = 0x08
 	};
 
+    struct FlowWidgets {
+        QLineEdit *nameEdit;
+        QDoubleSpinBox *controlBox;
+        Led *led;
+        QLabel *nameLabel;
+        QDoubleSpinBox *displayBox;
+    };
+
 
 	Q_DECLARE_FLAGS(State,StateFlag)
 
@@ -66,11 +74,11 @@ public slots:
     void magnetUpdate(bool mag);
     void viewBatchCallback();
     void mirrorPosUpdate(int pos);
-    void flowControllerUpdate(int i ,double d);
-    void pressureUpdate(double p);
-    void flowSetpointUpdate(int i, double d);
+    void updateFlowName(int ch, QString name);
+    void updateFlow(int ch ,double val);
+    void updateFlowSetpoint(int ch, double val);
     void pressureSetpointUpdate(double d);
-    void pressureControlMode(bool on);
+    void pressureControlMode(bool en);
 
 	void singleScanCallback();
 	void batchScanCallback();
@@ -115,13 +123,12 @@ private:
 	QProgressBar *mirrorProgress;
 
 	ScanManager *sm;
-	HardwareManager *hwm;
+    HardwareManager *p_hwm;
 	LogHandler *lh;
     AmdorWidget *p_amdorWidget;
 
 	QList<QPair<QLabel*,Led*>> d_ledList;
-    QList<QLineEdit*> d_gasBoxes;
-    QList<QDoubleSpinBox*> d_gasSetpointBoxes;
+    QList<FlowWidgets> d_flowWidgets;
 
     QAction *res1kHzAction;
     QAction *res2kHzAction;

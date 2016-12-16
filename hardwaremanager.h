@@ -148,6 +148,8 @@ signals:
      */
     void flowUpdate(int,double);
 
+    void flowNameUpdate(int,QString);
+
     void pressureUpdate(double);
 
     /*!
@@ -430,6 +432,8 @@ public slots:
 	\return int Tuning attenuation, in dB
     */
     int readTuneAttenuation();
+
+    void setFlowChannelName(int index, QString name);
 
     /*!
     \brief Fetches most recent protection delay PinSwitchDriver

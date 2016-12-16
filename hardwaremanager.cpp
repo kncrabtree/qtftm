@@ -92,6 +92,7 @@ void HardwareManager::initializeHardware()
 
     fc = new FlowControllerHardware();
     connect(fc,&FlowController::flowUpdate,this,&HardwareManager::flowUpdate);
+    connect(fc,&FlowController::channelNameUpdate,this,&HardwareManager::flowNameUpdate);
     connect(fc,&FlowController::pressureUpdate,this,&HardwareManager::pressureUpdate);
     connect(fc,&FlowController::flowSetpointUpdate,this,&HardwareManager::flowSetpointUpdate);
     connect(fc,&FlowController::pressureSetpointUpdate,this,&HardwareManager::pressureSetpointUpdate);
@@ -466,7 +467,15 @@ int HardwareManager::readTuneAttenuation()
 		int out = -1;
 		QMetaObject::invokeMethod(md,"lastTuneAttenuation",Qt::BlockingQueuedConnection,Q_RETURN_ARG(int,out));
 		return out;
-	}
+    }
+}
+
+void HardwareManager::setFlowChannelName(int index, QString name)
+{
+    if(fc->thread() == thread())
+        fc->setChannelName(index,name);
+    else
+        QMetaObject::invokeMethod(fc,"setChannelName",Q_ARG(int,index),Q_ARG(QString,name));
 }
 
 int HardwareManager::setProtectionDelay(int a)
