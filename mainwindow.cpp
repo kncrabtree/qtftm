@@ -727,7 +727,10 @@ void MainWindow::batchScanCallback()
 
     AutoFitWidget *aw = new AutoFitWidget(guessBufferString(),ui->peakUpPlot->getDelay(),ui->peakUpPlot->getHpf(),ui->peakUpPlot->getExp(),ui->peakUpPlot->getPadFidBox()->isChecked());
 
-	BatchWizard wiz(ssw,aw,this);
+    QList<QPair<double,bool>> flows;
+    for(int i=0; i<d_flowWidgets.size(); i++)
+        flows.append(qMakePair(d_flowWidgets.at(i).displayBox->value(),d_flowWidgets.at(i).controlBox->value()>0.0));
+    BatchWizard wiz(ssw,aw,ui->pressureDoubleSpinBox->value(),ui->pressureControlButton->isChecked(),flows,this);
 
 	connect(&wiz,&BatchWizard::setupDr,sm,&ScanManager::prepareScan);
     connect(sm,&ScanManager::dummyComplete,&wiz,&BatchWizard::drPrepComplete);
@@ -1375,10 +1378,7 @@ void MainWindow::startBatchManager(BatchManager *bm)
 
 
     connect(batchThread,&QThread::started,bm,&BatchManager::beginBatch);
-    if(bm->sleepWhenComplete())
-	    connect(batchThread,&QThread::finished,ui->actionSleep_Mode,&QAction::trigger,Qt::UniqueConnection);
-    else
-	   disconnect(batchThread,&QThread::finished,ui->actionSleep_Mode,&QAction::trigger);
+    connect(bm,&BatchManager::sleepSignal,ui->actionSleep_Mode,&QAction::trigger,Qt::UniqueConnection);
 
     bm->moveToThread(batchThread);
     batchThread->start();

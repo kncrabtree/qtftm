@@ -146,6 +146,8 @@ public:
 	*/
 	QList<double> gasFlows() const;
 
+    FlowConfig flowConfig() const;
+
     double repRate() const;
 	/*!
 	 \brief

@@ -10,6 +10,7 @@
 #include "batchcategorize.h"
 
 class DrIntSetupPage;
+class StartPage;
 
 /*!
  \brief Wizard for configuring batch acquisitions
@@ -45,7 +46,7 @@ class BatchWizard : public QWizard
 {
 	Q_OBJECT
 public:
-	explicit BatchWizard(SingleScanWidget *w, AutoFitWidget *a, QWidget *parent = nullptr);
+    explicit BatchWizard(SingleScanWidget *w, AutoFitWidget *a, double pressure, bool pEnabled, QList<QPair<double, bool> > flows, QWidget *parent = nullptr);
 	~BatchWizard();
 
     enum Page { Page_Start, Page_SurveySetup, Page_SurveyCalSetup, Page_SurveyScanSetup, Page_SurveySummary,
@@ -70,7 +71,7 @@ public slots:
     void setCalTemplate(Scan s){ d_calTemplate = s; }
 	void setDrRanges(const QList<QPair<double,double> > r) { d_drRanges = r; }
 	void setCatTests(const QList<BatchCategorize::CategoryTest> l) { d_catTests = l; }
-    void setBatchManager(BatchManager *b) { p_bm = b; }
+    void setBatchManager(BatchManager *b);
     void setFitter(AbstractFitter *af);
 	void prepareDr(Scan s);
 	void drPrepComplete();
@@ -86,6 +87,7 @@ private:
     BatchManager *p_bm;
     AbstractFitter *p_ftr;
     DrIntSetupPage *p_dip;
+    StartPage *p_start;
 	
 };
 

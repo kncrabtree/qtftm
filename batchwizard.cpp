@@ -18,14 +18,14 @@
 #include "amdorconfigpage.h"
 #include "amdorsetuppage.h"
 
-BatchWizard::BatchWizard(SingleScanWidget *w, AutoFitWidget *a, QWidget *parent) :
+BatchWizard::BatchWizard(SingleScanWidget *w, AutoFitWidget *a, double pressure, bool pEnabled, QList<QPair<double, bool> > flows, QWidget *parent) :
     QWizard(parent), p_ssw(w), p_afw(a), p_bm(nullptr), p_ftr(nullptr)
 {
 	setWindowTitle(QString("Batch Acquisition Setup"));
 	setDefaultProperty("QDoubleSpinBox","value","valueChanged");
 
 	//make pages and connections, if necessary
-	StartPage *sp = new StartPage(this);
+    p_start = new StartPage(pressure,pEnabled,flows,this);
 
     SurveySetupPage *sSetP = new SurveySetupPage(p_afw,this);
     connect(sSetP,&SurveySetupPage::fitter,this,&BatchWizard::setFitter);
@@ -51,7 +51,7 @@ BatchWizard::BatchWizard(SingleScanWidget *w, AutoFitWidget *a, QWidget *parent)
 	connect(dsump,&DrSummaryPage::batchDr,this,&BatchWizard::setBatchManager);
 
     BatchProcessingPage *bpp = new BatchProcessingPage(p_afw,this);
-    connect(sp,&StartPage::typeSelected,bpp,&BatchProcessingPage::setType);
+    connect(p_start,&StartPage::typeSelected,bpp,&BatchProcessingPage::setType);
     connect(bpp,&BatchProcessingPage::fitter,this,&BatchWizard::setFitter);
 
     BatchSetupPage *bsp = new BatchSetupPage(p_ssw,this);
@@ -76,7 +76,7 @@ BatchWizard::BatchWizard(SingleScanWidget *w, AutoFitWidget *a, QWidget *parent)
     connect(asp,&AmdorSetupPage::batchManager,this,&BatchWizard::setBatchManager);
 
 	//insert pages into wizard
-	setPage(Page_Start, sp);
+    setPage(Page_Start, p_start);
     setPage(Page_SurveySetup, sSetP);
 	setPage(Page_SurveyCalSetup, scp);
 	setPage(Page_SurveyScanSetup, ssp);
@@ -108,6 +108,12 @@ BatchWizard::~BatchWizard()
         if(p_ftr)
             delete p_ftr;
     }
+}
+
+void BatchWizard::setBatchManager(BatchManager *b)
+{
+    p_bm = b;
+    p_start->applyLimits(p_bm);
 }
 
 void BatchWizard::setFitter(AbstractFitter *af)
