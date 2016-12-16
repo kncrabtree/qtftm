@@ -66,6 +66,8 @@ SingleScanWidget::SingleScanWidget(QWidget *parent) :
 		else
 			ui->magnetOnOffButton->setText(QString("Off"));
 	});
+    connect(ui->skipTuneCheckBox,&QCheckBox::toggled,ui->postTuneDelayBox,&QSpinBox::setDisabled);
+    connect(ui->postTuneDelayBox,static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),this,&SingleScanWidget::delayChanged);
 }
 
 SingleScanWidget::~SingleScanWidget()
@@ -187,6 +189,8 @@ void SingleScanWidget::setFromScan(const Scan s)
     ui->magnetOnOffButton->setChecked(s.magnet());
     ui->dipoleDoubleSpinBox->setValue(s.dipoleMoment());
     ui->dcControlSpinBox->setValue(s.dcVoltage());
+    ui->skipTuneCheckBox->setChecked(s.skipTune());
+    ui->postTuneDelayBox->setValue(s.postTuneDelayShots());
 }
 
 Scan SingleScanWidget::toScan() const
@@ -204,6 +208,8 @@ Scan SingleScanWidget::toScan() const
     out.setMagnet(ui->magnetOnOffButton->isChecked());
     out.setDcVoltage(ui->dcControlSpinBox->value());
     out.setSkiptune(ui->skipTuneCheckBox->isChecked());
+    if(!ui->skipTuneCheckBox->isChecked())
+        out.setPostTuneDelayShots(ui->postTuneDelayBox->value());
     return out;
 }
 

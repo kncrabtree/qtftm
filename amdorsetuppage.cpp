@@ -176,6 +176,8 @@ void AmdorSetupPage::newEntryPopup(int pos)
 
     d.setLayout(vl);
 
+    fBox->setFocus();
+
     if(d.exec() == QDialog::Accepted)
         p_model->insertEntry(fBox->value(),pBox->value(),pos);
 }

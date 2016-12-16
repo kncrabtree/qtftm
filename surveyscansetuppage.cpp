@@ -31,6 +31,7 @@ SurveyScanSetupPage::SurveyScanSetupPage(SingleScanWidget *ssw, QWidget *parent)
 
 	connect(surveyScanSsw->shotsSpinBox(),static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
 		   this,&SurveyScanSetupPage::updateLabel);
+    connect(surveyScanSsw,&SingleScanWidget::delayChanged,this,&SurveyScanSetupPage::updateLabel);
 }
 
 int SurveyScanSetupPage::nextId() const
@@ -72,15 +73,22 @@ void SurveyScanSetupPage::updateLabel()
 	double calTuneTime = calScans*10.0;
 	double scanTuneTime = surveyScans*1.0;
 
+
+
+
 	double calIntegrationTime = 0.0;
-
     double repRate = surveyScanSsw->pulseConfig().repRate();
+    double delayTime = surveyScanSsw->toScan().postTuneDelayShots()*(double)surveyScans/repRate;
+    if(hasCal)
+    {
+        BatchWizard *wiz = qobject_cast<BatchWizard*>(wizard());
+        delayTime += wiz->calTemplate().postTuneDelayShots()*(double)calScans/repRate;
+        calIntegrationTime = (double)field(QString("surveyCalShots")).toInt()*calScans/repRate;
 
-	if(hasCal)
-		calIntegrationTime = (double)field(QString("surveyCalShots")).toInt()*calScans/repRate;
+    }
 
 	double scanIntegrationTime = (double)surveyScans*surveyScanSsw->shots()/repRate;
-	double totalTime = calTuneTime + scanTuneTime + calIntegrationTime + scanIntegrationTime;
+    double totalTime = calTuneTime + scanTuneTime + calIntegrationTime + scanIntegrationTime + delayTime;
 
 	QDateTime dt = QDateTime::currentDateTime().addSecs((int)totalTime);
 	int h = (int)floor(totalTime/3600.0);

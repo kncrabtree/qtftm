@@ -731,6 +731,18 @@ QFrame *AnalysisWidget::renderPrintSidebar()
 	skipTuneUnit->setAlignment(Qt::AlignLeft);
     sl->addWidget(skipTuneUnit,lnum++,2,Qt::AlignLeft);
 
+    QLabel *postTuneText = new QLabel(QString("Post tune delay"));
+    postTuneText ->setAlignment(Qt::AlignLeft);
+    sl->addWidget(postTuneText ,lnum,0,Qt::AlignLeft);
+
+    QLabel *postTuneVal = new QLabel(QString::number(d_currentScan.postTuneDelayShots()));
+    postTuneVal->setAlignment(Qt::AlignRight);
+    sl->addWidget(postTuneVal,lnum,1,Qt::AlignRight);
+
+    QLabel *postTuneUnit = new QLabel(QString("shots"));
+    postTuneUnit->setAlignment(Qt::AlignLeft);
+    sl->addWidget(postTuneUnit,lnum++,2,Qt::AlignLeft);
+
     QLabel *tVoltText = new QLabel(QString("Tuning Voltage"));
     tVoltText->setAlignment(Qt::AlignLeft);
     sl->addWidget(tVoltText,lnum,0,Qt::AlignLeft);
