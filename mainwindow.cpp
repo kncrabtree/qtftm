@@ -725,7 +725,7 @@ void MainWindow::batchScanCallback()
     ssw->setMagnet(ui->magnetOnOffButton->isChecked());
     ssw->setDcVoltage(ui->dcControlSpinBox->value());
 
-    AutoFitWidget *aw = new AutoFitWidget(guessBufferString(),ui->peakUpPlot->getDelay(),ui->peakUpPlot->getHpf(),ui->peakUpPlot->getExp(),ui->peakUpPlot->getPadFidBox()->isChecked());
+    AutoFitWidget *aw = new AutoFitWidget(guessBufferString(),ui->peakUpPlot->getDelay(),ui->peakUpPlot->getHpf(),ui->peakUpPlot->getExp(),ui->peakUpPlot->getPadFidBox()->isChecked(),ui->peakUpPlot->getUseWindowBox());
 
     QList<QPair<double,bool>> flows;
     for(int i=0; i<d_flowWidgets.size(); i++)
