@@ -22,8 +22,6 @@ AutoFitWidget::AutoFitWidget(QString bgName, double d, double h, double e, bool 
 {
 	ui->setupUi(this);
 
-	connect(ui->autoFitEnabledCheckBox,&QAbstractButton::toggled,ui->autoFitSettingsBox,&QWidget::setEnabled);
-	connect(ui->autoFitEnabledCheckBox,&QAbstractButton::toggled,this,&AutoFitWidget::autoFitEnabledChanged);
 
 	ui->delayDoubleSpinBox->setValue(d);
 	ui->highPassDoubleSpinBox->setValue(h);
@@ -31,6 +29,9 @@ AutoFitWidget::AutoFitWidget(QString bgName, double d, double h, double e, bool 
 	ui->zeroPadFIDCheckBox->setChecked(zp);
     ui->applyBHWindowCheckBox->setChecked(winf);
 	ui->temperatureDoubleSpinBox->setValue(t);
+
+    connect(ui->autoFitEnabledCheckBox,&QAbstractButton::toggled,ui->autoFitSettingsBox,&QWidget::setEnabled);
+    connect(ui->autoFitEnabledCheckBox,&QAbstractButton::toggled,this,&AutoFitWidget::autoFitEnabledChanged);
 
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
     double snr = s.value(QString("autoFit/lastSNR"),5.0).toDouble();
