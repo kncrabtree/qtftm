@@ -60,6 +60,7 @@ bool QC9518::testConnection()
     blockSignals(false);
 
     pGenWriteCmd(QString(":SPULSE:STATE 1\n"));
+    pGenWriteCmd(QString(":SYSTEM:KLOCK 0\n"));
 
     emit configUpdate(d_config);
     emit connected();
