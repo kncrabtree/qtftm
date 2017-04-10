@@ -76,6 +76,25 @@ QPair<int, int> BatchManager::loadScanRange()
     return out;
 }
 
+void BatchManager::setPressureLimits(double min, double max)
+{
+    d_pressureLimits.enabled = true;
+    d_pressureLimits.min = min;
+    d_pressureLimits.max = max;
+}
+
+void BatchManager::addFlowLimit(bool enabled, double min, double max)
+{
+    Limits l;
+    if(enabled)
+    {
+        l.enabled = true;
+        l.min = min;
+        l.max = max;
+    }
+    d_flowLimits.append(l);
+}
+
 
 void BatchManager::scanComplete(const Scan s)
 {
@@ -83,11 +102,18 @@ void BatchManager::scanComplete(const Scan s)
 	{
 		//this means there was a hardware error. Abort immediately
         writeReport();
-		emit batchComplete(true);
+        stopBatch(true,d_sleep);
 		return;
 	}
 
     advanceBatch(s);
+
+    if(checkAbortConditions(s))
+    {
+        writeReport();
+        stopBatch(true,true);
+        return;
+    }
 
 	if(!s.isAborted() && !isBatchComplete())
 	{
@@ -114,7 +140,7 @@ void BatchManager::scanComplete(const Scan s)
             emit processingComplete(s);
         writeReport();
 
-        emit batchComplete(s.isAborted());
+        stopBatch(s.isAborted(),d_sleep);
 	}
 
 }
@@ -143,6 +169,43 @@ void BatchManager::beginBatch()
         loadBatch();
 }
 
+bool BatchManager::checkAbortConditions(const Scan s)
+{
+    if(d_pressureLimits.enabled)
+    {
+        if(s.pressure() < d_pressureLimits.min)
+        {
+            emit logMessage(QString("Aborting %1 %2 because pressure (%3) fell below minimum limit (%4)").arg(d_prettyName).arg(d_batchNum).arg(s.pressure(),0,'f',3).arg(d_pressureLimits.min,0,'f',3),QtFTM::LogError);
+            return true;
+        }
+        if(s.pressure() > d_pressureLimits.max)
+        {
+            emit logMessage(QString("Aborting %1 %2 because pressure (%3) exceeded maximum limit (%4)").arg(d_prettyName).arg(d_batchNum).arg(s.pressure(),0,'f',3).arg(d_pressureLimits.max,0,'f',3),QtFTM::LogError);
+            return true;
+        }
+    }
+
+    FlowConfig fc = s.flowConfig();
+    for(int i=0; i<d_flowLimits.size(); i++)
+    {
+        if(!d_flowLimits.at(i).enabled)
+            continue;
+
+        double flow = fc.setting(i,QtFTM::FlowSettingFlow).toDouble();
+        if(flow < d_flowLimits.at(i).min)
+        {
+            emit logMessage(QString("Aborting %1 %2 because channel %3 flow (%4) fell below minimum limit (%5)").arg(d_prettyName).arg(d_batchNum).arg(i+1).arg(flow,0,'f',3).arg(d_flowLimits.at(i).min,0,'f',3),QtFTM::LogError);
+            return true;
+        }
+        if(flow > d_flowLimits.at(i).max)
+        {
+            emit logMessage(QString("Aborting %1 %2 because channel %3 flow (%4) exceeded maximum limit (%5)").arg(d_prettyName).arg(d_batchNum).arg(i+1).arg(flow,0,'f',3).arg(d_flowLimits.at(i).max,0,'f',3),QtFTM::LogError);
+            return true;
+        }
+    }
+    return false;
+}
+
 void BatchManager::loadBatch()
 {
     if(d_batchType != QtFTM::Attenuation)
@@ -152,7 +215,7 @@ void BatchManager::loadBatch()
             Scan s(d_loadScanList.at(i));
             if(s.number() < 1)
             {
-                emit batchComplete(true);
+                stopBatch(true,false);
                 return;
             }
             advanceBatch(s);
@@ -167,8 +230,15 @@ void BatchManager::loadBatch()
         for(int i=0;i<d_loadAttnList.size(); i++)
             processScan(d_loadAttnList.at(i));
 
-        emit batchComplete(d_loadAttnList.isEmpty());
+        stopBatch(d_loadAttnList.isEmpty(),false);
     }
+}
+
+void BatchManager::stopBatch(bool aborted, bool sleep)
+{
+    emit batchComplete(aborted);
+    if(sleep)
+        emit sleepSignal();
 }
 
 

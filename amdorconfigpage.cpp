@@ -65,7 +65,7 @@ AmdorConfigPage::AmdorConfigPage(AutoFitWidget *afw, QWidget *parent) :
     fl->addRow(QString("Calibration?"),calBox);
 
 
-    p_afw = new AutoFitWidget(afw->bufferGas().name,afw->delay(),afw->hpf(),afw->exp(),afw->zeroPad(),afw->temperature());
+    p_afw = new AutoFitWidget(afw->bufferGas().name,afw->delay(),afw->hpf(),afw->exp(),afw->zeroPad(),afw->isUseWindow(),afw->temperature());
 
     QVBoxLayout *vbl = new QVBoxLayout();
     vbl->addLayout(fl,0);

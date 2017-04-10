@@ -187,6 +187,11 @@ QList<double> Scan::gasFlows() const
     return out;
 }
 
+FlowConfig Scan::flowConfig() const
+{
+    return data->flowConfig;
+}
+
 double Scan::repRate() const
 {
     return data->pulseConfig.repRate();

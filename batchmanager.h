@@ -48,6 +48,14 @@ class BatchManager : public QObject
 public:
 	static QList<QPair<QString,QtFTM::BatchType> > typeList();
 
+    struct Limits {
+        bool enabled;
+        double min;
+        double max;
+
+        Limits() : enabled(false), min(-HUGE_VAL), max(HUGE_VAL) {}
+    };
+
 
 
 
@@ -104,6 +112,8 @@ public:
     void setSleepWhenComplete(bool sleep) { d_sleep = sleep; }
     bool sleepWhenComplete() { return d_sleep; }
     int number() { return d_batchNum; }
+    void setPressureLimits(double min, double max);
+    void addFlowLimit(bool enabled, double min, double max);
 	
 signals:
 	/*!
@@ -136,6 +146,8 @@ signals:
     void titleReady(QString);
 
     void processingComplete(Scan s);
+
+    void sleepSignal();
 
     //for batches whose number of shots cannot be predicted (eg category), this signal advances the batch progress bar
     void advanced();
@@ -200,6 +212,8 @@ protected:
 	*/
 	virtual bool isBatchComplete() =0;
 
+    virtual bool checkAbortConditions(const Scan s);
+
     AbstractFitter *d_fitter; /*!< Worker for computing FTs */
 
     int d_batchNum;
@@ -208,10 +222,14 @@ protected:
     bool d_loading;
     bool d_thisScanIsCal;
 
+    Limits d_pressureLimits;
+    QList<Limits> d_flowLimits;
+
     bool d_sleep;
 
 private:
     void loadBatch();
+    void stopBatch(bool aborted, bool sleep);
 
 };
 

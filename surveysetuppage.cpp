@@ -12,7 +12,7 @@ SurveySetupPage::SurveySetupPage(AutoFitWidget *afw, QWidget *parent) :
 	setTitle(QString("Enter survey parameters"));
 	setSubTitle(QString("Fill in the survey parameters. You will be able to configure the details of the survey and calibration scans (if applicable) on the following pages."));
 
-    surAfw = new AutoFitWidget(afw->bufferGas().name,afw->delay(),afw->hpf(),afw->exp(),afw->zeroPad(),afw->temperature());
+    surAfw = new AutoFitWidget(afw->bufferGas().name,afw->delay(),afw->hpf(),afw->exp(),afw->zeroPad(),afw->isUseWindow(),afw->temperature());
 
 	QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
 	s.beginGroup(QString("ftmSynth"));

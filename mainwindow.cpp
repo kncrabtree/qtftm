@@ -87,31 +87,27 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->menuResolution->addActions(resGroup->actions());
 
-    //recall gas names
-    d_gasBoxes.append(ui->g1lineEdit);
-    d_gasBoxes.append(ui->g2lineEdit);
-    d_gasBoxes.append(ui->g3lineEdit);
-    d_gasBoxes.append(ui->g4lineEdit);
+    QGridLayout *gl = new QGridLayout;
+    for(int i=0; i<QTFTM_PGEN_NUMCHANNELS; i++)
+    {
+        QLabel *lbl = new QLabel(QString("Ch%1").arg(i),this);
+        lbl->setAlignment(Qt::AlignRight|Qt::AlignVCenter);
 
-    d_gasSetpointBoxes.append(ui->g1setPointBox);
-    d_gasSetpointBoxes.append(ui->g2setPointBox);
-    d_gasSetpointBoxes.append(ui->g3setPointBox);
-    d_gasSetpointBoxes.append(ui->g4setPointBox);
+        Led *led = new Led(this);
+        gl->addWidget(lbl,i/2,(2*i)%4,1,1,Qt::AlignVCenter);
+        gl->addWidget(led,i/2,((2*i)%4)+1,1,1,Qt::AlignVCenter);
 
-    d_ledList.append(qMakePair(ui->gasLedLabel,ui->gasLed));
-    d_ledList.append(qMakePair(ui->dcLedLabel,ui->dcLed));
-    d_ledList.append(qMakePair(ui->mwLedLabel,ui->mwLed));
-    d_ledList.append(qMakePair(ui->drLedLabel,ui->drLed));
-   d_ledList.append(qMakePair(ui->chELedLabel,ui->aux1Led));
-    d_ledList.append(qMakePair(ui->chFLedLabel,ui->aux2Led));
-    d_ledList.append(qMakePair(ui->chGLedLabel,ui->aux3Led));
-    d_ledList.append(qMakePair(ui->chHLedLabel,ui->aux4Led));
+        d_ledList.append(qMakePair(lbl,led));
+    }
+    gl->setColumnStretch(0,1);
+    gl->setColumnStretch(1,0);
+    gl->setColumnStretch(2,1);
+    gl->setColumnStretch(3,0);
+    ui->pulseConfigBox->setLayout(gl);
 
     auto doubleVc = static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged);
     auto intVc = static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged);
 
-    for(int i=0; i<d_gasSetpointBoxes.size(); i++)
-        connect(d_gasSetpointBoxes.at(i),doubleVc,[=](double d){ emit setFlowSetpoint(i,d);});
 	connect(ui->actionPause,&QAction::triggered,this,&MainWindow::pauseAcq);
 	connect(ui->actionResume,&QAction::triggered,this,&MainWindow::resumeAcq);
 	connect(ui->actionPrint_Scan,&QAction::triggered,ui->analysisWidget,&AnalysisWidget::print);
@@ -144,14 +140,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(res5kHzAction,&QAction::triggered,[=](){ resolutionChanged(QtFTM::Res_5kHz); });
     connect(res10kHzAction,&QAction::triggered,[=](){ resolutionChanged(QtFTM::Res_10kHz); });
     connect(ui->saveLogButton,&QAbstractButton::clicked,this,&MainWindow::saveLogCallback);
-    for(int i=0; i<d_gasBoxes.size();i++)
-    {
-        connect(d_gasBoxes.at(i),&QLineEdit::textChanged,[=](){
-            QString name = d_gasBoxes.at(i)->text();           
-            emit changeGasName(i,name);
-
-        });
-    }
     connect(ui->activateLogOnErrorBox,&QCheckBox::toggled,this,&MainWindow::logOnErrorCallback);
 
 	//prepare status bar
@@ -180,69 +168,127 @@ MainWindow::MainWindow(QWidget *parent) :
 	acquisitionThread = new QThread(this);
 	controlThread = new QThread(this);
 
-	hwm = new HardwareManager();
-	connect(this,&MainWindow::scopeResolutionChanged,hwm,&HardwareManager::scopeResolutionChanged);
-	connect(hwm,&HardwareManager::ftmSynthUpdate,this,&MainWindow::ftmCavityUpdate);
-	connect(hwm,&HardwareManager::probeFreqUpdate,this,&MainWindow::ftmProbeUpdate);
-    connect(hwm,&HardwareManager::synthRangeChanged,this,&MainWindow::synthSettingsChanged);
-	connect(hwm,&HardwareManager::drSynthFreqUpdate,this,&MainWindow::drSynthFreqUpdate);
-	connect(hwm,&HardwareManager::drSynthPwrUpdate,this,&MainWindow::drSynthPwrUpdate);
-    connect(hwm,&HardwareManager::attenUpdate,this,&MainWindow::attnUpdate);
-    connect(hwm,&HardwareManager::taattenUpdate,this,&MainWindow::taattnUpdate);
-    connect(hwm,&HardwareManager::attnTablePrepComplete,this,&MainWindow::attnTablePrepComplete);
-    connect(hwm,&HardwareManager::logMessage,lh,&LogHandler::logMessage);
-	connect(hwm,&HardwareManager::statusMessage,lh,&LogHandler::sendStatusMessage);
-	connect(hwm,&HardwareManager::allHardwareConnected,this,&MainWindow::hardwareStatusChanged);
-	connect(ui->ftmControlDoubleSpinBox,doubleVc,hwm,&HardwareManager::setFtmCavityFreqFromUI);
-	connect(ui->drControlDoubleSpinBox,doubleVc,hwm,&HardwareManager::setDrSynthFreqFromUI);
-	connect(ui->pwrControlDoubleSpinBox,doubleVc,hwm,&HardwareManager::setDrSynthPwrFromUI);
-	connect(ui->attnControlSpinBox,intVc,hwm,&HardwareManager::setAttnFromUI);
-    connect(hwm,&HardwareManager::attenUpdate,this,&MainWindow::setcvUpdate);
-    connect(ui->dcControlSpinBox,intVc,hwm,&HardwareManager::setDcVoltageFromUI);
-    connect(hwm,&HardwareManager::dcVoltageUpdate,this,&MainWindow::dcVoltageUpdate);
-    connect(ui->magnetOnOffButton,&QAbstractButton::toggled,hwm,&HardwareManager::setMagnetFromUI);
-    connect(hwm,&HardwareManager::magnetUpdate,this,&MainWindow::magnetUpdate);
-    connect(hwm,&HardwareManager::flowUpdate,this,&MainWindow::flowControllerUpdate);
-    connect(hwm,&HardwareManager::pressureUpdate,this,&MainWindow::pressureUpdate);
-    connect(hwm,&HardwareManager::flowSetpointUpdate,this,&MainWindow::flowSetpointUpdate);
-    connect(hwm,&HardwareManager::pressureSetpointUpdate,this,&MainWindow::pressureSetpointUpdate);
-    connect(hwm,&HardwareManager::pressureControlMode,this,&MainWindow::pressureControlMode);
-    connect(this,&MainWindow::changeGasName,hwm,&HardwareManager::setGasName);
-    connect(this,&MainWindow::setFlowSetpoint,hwm,&HardwareManager::setFlowSetpoint);
-    connect(ui->pressureSetPointBox,doubleVc,hwm,&HardwareManager::setPressureSetpoint);
+    p_hwm = new HardwareManager();
+    connect(this,&MainWindow::scopeResolutionChanged,p_hwm,&HardwareManager::scopeResolutionChanged);
+    connect(p_hwm,&HardwareManager::ftmSynthUpdate,this,&MainWindow::ftmCavityUpdate);
+    connect(p_hwm,&HardwareManager::probeFreqUpdate,this,&MainWindow::ftmProbeUpdate);
+    connect(p_hwm,&HardwareManager::synthRangeChanged,this,&MainWindow::synthSettingsChanged);
+    connect(p_hwm,&HardwareManager::drSynthFreqUpdate,this,&MainWindow::drSynthFreqUpdate);
+    connect(p_hwm,&HardwareManager::drSynthPwrUpdate,this,&MainWindow::drSynthPwrUpdate);
+    connect(p_hwm,&HardwareManager::attenUpdate,this,&MainWindow::attnUpdate);
+    connect(p_hwm,&HardwareManager::taattenUpdate,this,&MainWindow::taattnUpdate);
+    connect(p_hwm,&HardwareManager::attnTablePrepComplete,this,&MainWindow::attnTablePrepComplete);
+    connect(p_hwm,&HardwareManager::logMessage,lh,&LogHandler::logMessage);
+    connect(p_hwm,&HardwareManager::statusMessage,lh,&LogHandler::sendStatusMessage);
+    connect(p_hwm,&HardwareManager::allHardwareConnected,this,&MainWindow::hardwareStatusChanged);
+    connect(ui->ftmControlDoubleSpinBox,doubleVc,p_hwm,&HardwareManager::setFtmCavityFreqFromUI);
+    connect(ui->drControlDoubleSpinBox,doubleVc,p_hwm,&HardwareManager::setDrSynthFreqFromUI);
+    connect(ui->pwrControlDoubleSpinBox,doubleVc,p_hwm,&HardwareManager::setDrSynthPwrFromUI);
+    connect(ui->attnControlSpinBox,intVc,p_hwm,&HardwareManager::setAttnFromUI);
+    connect(p_hwm,&HardwareManager::attenUpdate,this,&MainWindow::setcvUpdate);
+    connect(ui->dcControlSpinBox,intVc,p_hwm,&HardwareManager::setDcVoltageFromUI);
+    connect(p_hwm,&HardwareManager::dcVoltageUpdate,this,&MainWindow::dcVoltageUpdate);
+    connect(ui->magnetOnOffButton,&QAbstractButton::toggled,p_hwm,&HardwareManager::setMagnetFromUI);
+    connect(p_hwm,&HardwareManager::magnetUpdate,this,&MainWindow::magnetUpdate);
+    connect(p_hwm,&HardwareManager::flowUpdate,this,&MainWindow::updateFlow);
+    connect(p_hwm,&HardwareManager::flowNameUpdate,this,&MainWindow::updateFlowName);
+    connect(p_hwm,&HardwareManager::pressureUpdate,ui->pressureDoubleSpinBox,&QDoubleSpinBox::setValue);
+    connect(p_hwm,&HardwareManager::flowSetpointUpdate,this,&MainWindow::updateFlowSetpoint);
+    connect(p_hwm,&HardwareManager::pressureSetpointUpdate,this,&MainWindow::pressureSetpointUpdate);
+    connect(p_hwm,&HardwareManager::pressureControlMode,this,&MainWindow::pressureControlMode);
+    connect(this,&MainWindow::changeGasName,p_hwm,&HardwareManager::setGasName);
+    connect(this,&MainWindow::setFlowSetpoint,p_hwm,&HardwareManager::setFlowSetpoint);
+    connect(ui->pressureControlBox,doubleVc,p_hwm,&HardwareManager::setPressureSetpoint);
 
-    connect(ui->pressureControlButton,&QAbstractButton::clicked,hwm,&HardwareManager::setPressureControlMode);
-    connect(ui->pressureControlButton,&QAbstractButton::clicked,[=](bool b){
+    gl = static_cast<QGridLayout*>(ui->gasControlGroup->layout());
+    QGridLayout *gl2 = static_cast<QGridLayout*>(ui->flowStatusBox->layout());
+    QWidget *lastFocusWidget = nullptr;
+    for(int i=0; i<QTFTM_FLOW_NUMCHANNELS; i++)
+    {
+        FlowWidgets fw;
+        fw.nameEdit = new QLineEdit(this);
+        connect(fw.nameEdit,&QLineEdit::editingFinished,[=](){
+            QMetaObject::invokeMethod(p_hwm,"setFlowChannelName",Q_ARG(int,i),Q_ARG(QString,fw.nameEdit->text()));
+        });
+
+        fw.controlBox = new QDoubleSpinBox(this);
+        fw.controlBox->setSuffix(QString(" sccm"));
+        fw.controlBox->setRange(0.0,10000.0);
+        fw.controlBox->setSpecialValueText(QString("Off"));
+        fw.controlBox->setKeyboardTracking(false);
+        connect(fw.controlBox,doubleVc,[=](double val){
+            QMetaObject::invokeMethod(p_hwm,"setFlowSetpoint",Q_ARG(int,i),Q_ARG(double,val));
+        });
+        lastFocusWidget = fw.controlBox;
+
+        fw.nameLabel = new QLabel(QString("Ch%1").arg(i+1),this);
+        fw.nameLabel->setMinimumWidth(QFontMetrics(QFont(QString("sans-serif"))).width(QString("MMMMMMMM")));
+        fw.nameLabel->setAlignment(Qt::AlignRight|Qt::AlignVCenter);
+
+        fw.led = new Led(this);
+
+        fw.displayBox = new QDoubleSpinBox(this);
+        fw.displayBox->setRange(-9999.9,9999.9);
+        fw.displayBox->setDecimals(2);
+        fw.displayBox->setSuffix(QString(" sccm"));
+        fw.displayBox->blockSignals(true);
+        fw.displayBox->setReadOnly(true);
+        fw.displayBox->setFocusPolicy(Qt::ClickFocus);
+        fw.displayBox->setButtonSymbols(QAbstractSpinBox::NoButtons);
+
+        d_flowWidgets.append(fw);
+
+        gl->addWidget(new QLabel(QString::number(i+1),this),1+i,0,1,1);
+        gl->addWidget(fw.nameEdit,i+1,1,1,1);
+        gl->addWidget(fw.controlBox,i+1,2,1,1);
+
+        gl2->addWidget(fw.nameLabel,i+1,0,1,1,Qt::AlignRight);
+        gl2->addWidget(fw.displayBox,i+1,1,1,1);
+        gl2->addWidget(fw.led,i+1,2,1,1);
+    }
+    gl->addWidget(new QLabel(QString("Pressure"),this),2+QTFTM_FLOW_NUMCHANNELS,1,1,1,Qt::AlignRight);
+    gl->addWidget(ui->pressureControlBox,2+QTFTM_FLOW_NUMCHANNELS,2,1,1);
+    gl->addWidget(new QLabel(QString("Pressure Control Mode"),this),3+QTFTM_FLOW_NUMCHANNELS,1,1,1,Qt::AlignRight);
+    gl->addWidget(ui->pressureControlButton,3+QTFTM_FLOW_NUMCHANNELS,2,1,1);
+    gl->addItem(new QSpacerItem(10,10,QSizePolicy::Minimum,QSizePolicy::Expanding),4+QTFTM_FLOW_NUMCHANNELS,0,1,3);
+    if(lastFocusWidget != nullptr)
+        setTabOrder(lastFocusWidget,ui->pressureControlBox);
+
+    setTabOrder(ui->pressureControlBox,ui->pressureControlButton);
+    setTabOrder(ui->pressureControlButton,ui->pulseConfigWidget);
+
+    connect(ui->pressureControlButton,&QAbstractButton::clicked,p_hwm,&HardwareManager::setPressureControlMode);
+    connect(ui->pressureControlButton,&QAbstractButton::toggled,[=](bool b){
 	    if(b)
 		    ui->pressureControlButton->setText(QString("On"));
 	    else
 		    ui->pressureControlButton->setText(QString("Off"));
     });
 
-	connect(hwm,&HardwareManager::pGenChannelSetting,ui->pulseConfigWidget,&PulseConfigWidget::newSetting);
-	connect(hwm,&HardwareManager::pGenChannelSetting,this,&MainWindow::updatePulseLed);
-	connect(hwm,&HardwareManager::pGenConfigUpdate,ui->pulseConfigWidget,&PulseConfigWidget::newConfig);
-	connect(hwm,&HardwareManager::pGenConfigUpdate,this,&MainWindow::updatePulseLeds);
-	connect(hwm,&HardwareManager::repRateUpdate,ui->pulseConfigWidget,&PulseConfigWidget::newRepRate);
-	connect(hwm,&HardwareManager::hmProtectionDelayUpdate,ui->pulseConfigWidget,&PulseConfigWidget::newProtDelay);
-	connect(hwm,&HardwareManager::hmScopeDelayUpdate,ui->pulseConfigWidget,&PulseConfigWidget::newScopeDelay);
-	connect(ui->pulseConfigWidget,&PulseConfigWidget::changeSetting,hwm,&HardwareManager::setPulseSetting);
-	connect(ui->pulseConfigWidget,&PulseConfigWidget::changeRepRate,hwm,&HardwareManager::setRepRate);
-	connect(ui->pulseConfigWidget,&PulseConfigWidget::changeProtDelay,hwm,&HardwareManager::setProtectionDelayFromUI);
-	connect(ui->pulseConfigWidget,&PulseConfigWidget::changeScopeDelay,hwm,&HardwareManager::setScopeDelayFromUI);
-    connect(hwm,&HardwareManager::mirrorPosUpdate,this,&MainWindow::mirrorPosUpdate);
-    connect(hwm,&HardwareManager::tuningComplete,this,&MainWindow::tuningComplete);
+    connect(p_hwm,&HardwareManager::pGenChannelSetting,ui->pulseConfigWidget,&PulseConfigWidget::newSetting);
+    connect(p_hwm,&HardwareManager::pGenChannelSetting,this,&MainWindow::updatePulseLed);
+    connect(p_hwm,&HardwareManager::pGenConfigUpdate,ui->pulseConfigWidget,&PulseConfigWidget::newConfig);
+    connect(p_hwm,&HardwareManager::pGenConfigUpdate,this,&MainWindow::updatePulseLeds);
+    connect(p_hwm,&HardwareManager::repRateUpdate,ui->pulseConfigWidget,&PulseConfigWidget::newRepRate);
+    connect(p_hwm,&HardwareManager::hmProtectionDelayUpdate,ui->pulseConfigWidget,&PulseConfigWidget::newProtDelay);
+    connect(p_hwm,&HardwareManager::hmScopeDelayUpdate,ui->pulseConfigWidget,&PulseConfigWidget::newScopeDelay);
+    connect(ui->pulseConfigWidget,&PulseConfigWidget::changeSetting,p_hwm,&HardwareManager::setPulseSetting);
+    connect(ui->pulseConfigWidget,&PulseConfigWidget::changeRepRate,p_hwm,&HardwareManager::setRepRate);
+    connect(ui->pulseConfigWidget,&PulseConfigWidget::changeProtDelay,p_hwm,&HardwareManager::setProtectionDelayFromUI);
+    connect(ui->pulseConfigWidget,&PulseConfigWidget::changeScopeDelay,p_hwm,&HardwareManager::setScopeDelayFromUI);
+    connect(p_hwm,&HardwareManager::mirrorPosUpdate,this,&MainWindow::mirrorPosUpdate);
+    connect(p_hwm,&HardwareManager::tuningComplete,this,&MainWindow::tuningComplete);
     connect(ui->actionTune_Cavity,&QAction::triggered,this,&MainWindow::tuneCavityCallback);
     connect(ui->actionCalibrate,&QAction::triggered,this,&MainWindow::calibrateCavityCallback);
-    connect(hwm,&HardwareManager::canTuneUp,ui->actionTune_Up,&QAction::setEnabled);
-    connect(hwm,&HardwareManager::canTuneDown,ui->actionTune_Down,&QAction::setEnabled);
-    connect(hwm,&HardwareManager::modeChanged,this,&MainWindow::modeChanged);
-    connect(hwm,&HardwareManager::tuningVoltageChanged,this,&MainWindow::tuningVoltageChanged);
+    connect(p_hwm,&HardwareManager::canTuneUp,ui->actionTune_Up,&QAction::setEnabled);
+    connect(p_hwm,&HardwareManager::canTuneDown,ui->actionTune_Down,&QAction::setEnabled);
+    connect(p_hwm,&HardwareManager::modeChanged,this,&MainWindow::modeChanged);
+    connect(p_hwm,&HardwareManager::tuningVoltageChanged,this,&MainWindow::tuningVoltageChanged);
     connect(ui->actionTune_Up,&QAction::triggered,this,&MainWindow::tuneUpCallback);
     connect(ui->actionTune_Down,&QAction::triggered,this,&MainWindow::tuneDownCallback);
 
-	connect(controlThread,&QThread::started,hwm,&HardwareManager::initializeHardware);
-	hwm->moveToThread(controlThread);
+    connect(controlThread,&QThread::started,p_hwm,&HardwareManager::initializeHardware);
+    p_hwm->moveToThread(controlThread);
 
 	sm = new ScanManager();
 
@@ -258,12 +304,12 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(ui->actionAbort,&QAction::triggered,sm,&ScanManager::abortScan);
 	connect(ui->rollingAvgsSpinBox,intVc,sm,&ScanManager::setPeakUpAvgs);
 	connect(ui->resetRollingAvgsButton,&QAbstractButton::clicked,sm,&ScanManager::resetPeakUpAvgs);
-	connect(hwm,&HardwareManager::scopeWaveAcquired,sm,&ScanManager::fidReceived);
-	connect(sm,&ScanManager::initializeHardwareForScan,hwm,&HardwareManager::prepareForScan);
-	connect(hwm,&HardwareManager::scanInitialized,sm,&ScanManager::startScan);
-	connect(hwm,&HardwareManager::probeFreqUpdate,sm,&ScanManager::setCurrentProbeFreq);
-    connect(hwm,&HardwareManager::failure,sm,&ScanManager::failure);
-    connect(hwm,&HardwareManager::retryScan,sm,&ScanManager::retryScan);
+    connect(p_hwm,&HardwareManager::scopeWaveAcquired,sm,&ScanManager::fidReceived);
+    connect(sm,&ScanManager::initializeHardwareForScan,p_hwm,&HardwareManager::prepareForScan);
+    connect(p_hwm,&HardwareManager::scanInitialized,sm,&ScanManager::startScan);
+    connect(p_hwm,&HardwareManager::probeFreqUpdate,sm,&ScanManager::setCurrentProbeFreq);
+    connect(p_hwm,&HardwareManager::failure,sm,&ScanManager::failure);
+    connect(p_hwm,&HardwareManager::retryScan,sm,&ScanManager::retryScan);
 
 
 	sm->moveToThread(acquisitionThread);
@@ -284,11 +330,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tvSpinBox->blockSignals(true);
 	ui->drDoubleSpinBox->blockSignals(true);
 	ui->powerDoubleSpinBox->blockSignals(true);
-	ui->g1DoubleSpinBox->blockSignals(true);
-	ui->g2DoubleSpinBox->blockSignals(true);
-	ui->g3DoubleSpinBox->blockSignals(true);
-	ui->g4DoubleSpinBox->blockSignals(true);
-	ui->pDoubleSpinBox->blockSignals(true);
 	ui->dcSpinBox->blockSignals(true);
 	ui->scanSpinBox->blockSignals(true);
 
@@ -300,16 +341,6 @@ MainWindow::MainWindow(QWidget *parent) :
 	ui->shotsProgressBar->setValue(0);
 
     synthSettingsChanged();
-
-    s.beginGroup(QString("flowController"));
-    s.beginReadArray(QString("channels"));
-    for(int i=0; i<d_gasBoxes.size(); i++)
-    {
-        s.setArrayIndex(i);
-        QString name = s.value(QString("name"),QString("")).toString();
-        d_gasBoxes[i]->setText(name);
-        emit changeGasName(i,name);
-    }
 
 
 	d_uiState = Idle;
@@ -326,7 +357,7 @@ MainWindow::~MainWindow()
 
 	controlThread->quit();
 	controlThread->wait();
-	delete hwm;
+    delete p_hwm;
 
 	delete ui;
 
@@ -586,87 +617,56 @@ void MainWindow::mirrorPosUpdate(int pos)
         mirrorProgress->setValue(pos);
 }
 
-void MainWindow::flowControllerUpdate(int i, double d)
+void MainWindow::updateFlow(int ch, double val)
 {
-    switch(i+1)
+    if(ch < 0 || ch >= d_flowWidgets.size())
+        return;
+
+    d_flowWidgets.at(ch).displayBox->setValue(val);
+}
+
+void MainWindow::updateFlowName(int ch, QString name)
+{
+    if(ch < 0 || ch >= d_flowWidgets.size())
+        return;
+
+    if(name.isEmpty())
+        d_flowWidgets.at(ch).nameLabel->setText(QString("Ch%1").arg(ch+1));
+    else
     {
-    case 1:
-        ui->g1DoubleSpinBox->setValue(d);
-        break;
-    case 2:
-        ui->g2DoubleSpinBox->setValue(d);
-        break;
-    case 3:
-        ui->g3DoubleSpinBox->setValue(d);
-        break;
-    case 4:
-        ui->g4DoubleSpinBox->setValue(d);
-        break;
+        d_flowWidgets.at(ch).nameLabel->setText(name.mid(0,9));
+        d_flowWidgets.at(ch).nameEdit->blockSignals(true);
+        d_flowWidgets.at(ch).nameEdit->setText(name);
+        d_flowWidgets.at(ch).nameEdit->blockSignals(false);
     }
 }
 
-void MainWindow::pressureUpdate(double p)
+void MainWindow::updateFlowSetpoint(int ch, double val)
 {
-    ui->pDoubleSpinBox->setValue(p);
-}
+    if(ch < 0 || ch >= d_flowWidgets.size())
+        return;
 
-void MainWindow::flowSetpointUpdate(int i, double d)
-{
-    switch(i+1)
-    {
-    case 1:
-        ui->g1setPointBox->blockSignals(true);
-        ui->g1setPointBox->setValue(d);
-        ui->g1setPointBox->blockSignals(false);
-        break;
-    case 2:
-        ui->g2setPointBox->blockSignals(true);
-        ui->g2setPointBox->setValue(d);
-        ui->g2setPointBox->blockSignals(false);
-        break;
-    case 3:
-        ui->g3setPointBox->blockSignals(true);
-        ui->g3setPointBox->setValue(d);
-        ui->g3setPointBox->blockSignals(false);
-        break;
-    case 4:
-        ui->g4setPointBox->blockSignals(true);
-        ui->g4setPointBox->setValue(d);
-        ui->g4setPointBox->blockSignals(false);
-        break;
-    }
+    d_flowWidgets.at(ch).controlBox->blockSignals(true);
+    d_flowWidgets.at(ch).controlBox->setValue(val);
+    d_flowWidgets.at(ch).controlBox->blockSignals(false);
+
+    if(qFuzzyCompare(1.0,val+1.0))
+        d_flowWidgets.at(ch).led->setState(false);
+    else
+        d_flowWidgets.at(ch).led->setState(true);
 }
 
 void MainWindow::pressureSetpointUpdate(double d)
 {
-    ui->pressureSetPointBox->blockSignals(true);
-    ui->pressureSetPointBox->setValue(d);
-    ui->pressureSetPointBox->blockSignals(false);
+    ui->pressureControlBox->blockSignals(true);
+    ui->pressureControlBox->setValue(d);
+    ui->pressureControlBox->blockSignals(false);
 }
 
-void MainWindow::pressureControlMode(bool on)
+void MainWindow::pressureControlMode(bool en)
 {
-	ui->pressureLed->setState(on);
-    if(on)
-    {
-        if(!ui->pressureControlButton->isChecked())
-        {
-            ui->pressureControlButton->blockSignals(true);
-            ui->pressureControlButton->setChecked(true);
-            ui->pressureControlButton->setText(QString("On"));
-            ui->pressureControlButton->blockSignals(false);
-        }
-    }
-    else
-    {
-        if(ui->pressureControlButton->isChecked())
-        {
-            ui->pressureControlButton->blockSignals(true);
-            ui->pressureControlButton->setChecked(false);
-            ui->pressureControlButton->setText(QString("Off"));
-            ui->pressureControlButton->blockSignals(false);
-        }
-    }
+    ui->pressureControlButton->setChecked(en);
+    ui->pressureLed->setState(en);
 }
 
 void MainWindow::singleScanCallback()
@@ -725,9 +725,12 @@ void MainWindow::batchScanCallback()
     ssw->setMagnet(ui->magnetOnOffButton->isChecked());
     ssw->setDcVoltage(ui->dcControlSpinBox->value());
 
-    AutoFitWidget *aw = new AutoFitWidget(guessBufferString(),ui->peakUpPlot->getDelay(),ui->peakUpPlot->getHpf(),ui->peakUpPlot->getExp(),ui->peakUpPlot->getPadFidBox()->isChecked());
+    AutoFitWidget *aw = new AutoFitWidget(guessBufferString(),ui->peakUpPlot->getDelay(),ui->peakUpPlot->getHpf(),ui->peakUpPlot->getExp(),ui->peakUpPlot->getPadFidBox()->isChecked(),ui->peakUpPlot->getUseWindowBox()->isChecked());
 
-	BatchWizard wiz(ssw,aw,this);
+    QList<QPair<double,bool>> flows;
+    for(int i=0; i<d_flowWidgets.size(); i++)
+        flows.append(qMakePair(d_flowWidgets.at(i).displayBox->value(),d_flowWidgets.at(i).controlBox->value()>0.0));
+    BatchWizard wiz(ssw,aw,ui->pressureDoubleSpinBox->value(),ui->pressureControlButton->isChecked(),flows,this);
 
 	connect(&wiz,&BatchWizard::setupDr,sm,&ScanManager::prepareScan);
     connect(sm,&ScanManager::dummyComplete,&wiz,&BatchWizard::drPrepComplete);
@@ -767,7 +770,7 @@ void MainWindow::sleep(bool b)
 	else
 		d_uiState = Idle;
 
-	QMetaObject::invokeMethod(hwm,"sleep",Q_ARG(bool,b));
+    QMetaObject::invokeMethod(p_hwm,"sleep",Q_ARG(bool,b));
 	updateUiConfig();
 	if(b)
 		QMessageBox::information(this,QString("Sleep Mode Active"),QString("Sleep mode is active! Toggle it off before proceeding. Also, don't forget to re-enable pressure control."),QMessageBox::Ok);
@@ -827,8 +830,8 @@ void MainWindow::hardwareStatusChanged(bool success)
 void MainWindow::launchCommunicationDialog()
 {
 	CommunicationDialog d(this);
-	connect(&d,&CommunicationDialog::testConnection,hwm,&HardwareManager::testObjectConnection);
-	connect(hwm,&HardwareManager::testComplete,&d,&CommunicationDialog::testComplete);
+    connect(&d,&CommunicationDialog::testConnection,p_hwm,&HardwareManager::testObjectConnection);
+    connect(p_hwm,&HardwareManager::testComplete,&d,&CommunicationDialog::testComplete);
 
 	d.exec();
 }
@@ -838,7 +841,7 @@ void MainWindow::launchFtSettings()
 	FtSynthSettingsWidget *w = new FtSynthSettingsWidget;
 
 	//connect band change signal here
-    connect(w,&SynthSettingsWidget::bandChanged,hwm,&HardwareManager::ftmSynthChangeBandFromUi);
+    connect(w,&SynthSettingsWidget::bandChanged,p_hwm,&HardwareManager::ftmSynthChangeBandFromUi);
 
 	launchSettingsDialog(w);
     synthSettingsChanged();
@@ -849,7 +852,7 @@ void MainWindow::launchDrSettings()
 	DrSynthSettingsWidget *d = new DrSynthSettingsWidget;
 
 	//connect band change signal here
-    connect(d,&SynthSettingsWidget::bandChanged,hwm,&HardwareManager::drSynthChangeBandFromUi);
+    connect(d,&SynthSettingsWidget::bandChanged,p_hwm,&HardwareManager::drSynthChangeBandFromUi);
 
     launchSettingsDialog(d);
     synthSettingsChanged();
@@ -859,8 +862,8 @@ void MainWindow::launchIOBoardSettings()
 {
     IOBoardConfigDialog d(this);
 
-    connect(&d,&IOBoardConfigDialog::testConnection,hwm,&HardwareManager::testObjectConnection);
-    connect(hwm,&HardwareManager::testComplete,&d,&IOBoardConfigDialog::testComplete);
+    connect(&d,&IOBoardConfigDialog::testConnection,p_hwm,&HardwareManager::testObjectConnection);
+    connect(p_hwm,&HardwareManager::testComplete,&d,&IOBoardConfigDialog::testComplete);
 
     d.exec();
 }
@@ -894,7 +897,7 @@ void MainWindow::tuneCavityCallback()
     double freq = ui->ftmControlDoubleSpinBox->value();
     d_uiState |= Tuning;
     updateUiConfig();
-    QMetaObject::invokeMethod(hwm,"tuneCavity",Q_ARG(double,freq));
+    QMetaObject::invokeMethod(p_hwm,"tuneCavity",Q_ARG(double,freq));
 }
 
 void MainWindow::calibrateCavityCallback()
@@ -917,7 +920,7 @@ void MainWindow::calibrateCavityCallback()
         mirrorProgress->setRange(0,0);
 	   d_uiState |= Tuning;
         updateUiConfig();
-        QMetaObject::invokeMethod(hwm,"calibrateCavity");
+        QMetaObject::invokeMethod(p_hwm,"calibrateCavity");
     }
 }
 
@@ -933,7 +936,7 @@ void MainWindow::tuneUpCallback()
     {
 	   d_uiState |= Tuning;
         updateUiConfig();
-        QMetaObject::invokeMethod(hwm,"changeCavityMode",Q_ARG(double,ui->ftmControlDoubleSpinBox->value()),Q_ARG(bool,true));
+        QMetaObject::invokeMethod(p_hwm,"changeCavityMode",Q_ARG(double,ui->ftmControlDoubleSpinBox->value()),Q_ARG(bool,true));
     }
 }
 
@@ -943,7 +946,7 @@ void MainWindow::tuneDownCallback()
     {
 	   d_uiState |= Tuning;
         updateUiConfig();
-        QMetaObject::invokeMethod(hwm,"changeCavityMode",Q_ARG(double,ui->ftmControlDoubleSpinBox->value()),Q_ARG(bool,false));
+        QMetaObject::invokeMethod(p_hwm,"changeCavityMode",Q_ARG(double,ui->ftmControlDoubleSpinBox->value()),Q_ARG(bool,false));
     }
 }
 
@@ -1013,8 +1016,8 @@ void MainWindow::changeAttnFileCallback()
 
     if(!attenFile.isEmpty())
     {
-	   connect(hwm,&HardwareManager::attnLoadSuccess,this,&MainWindow::attnFileSuccess,Qt::UniqueConnection);
-        QMetaObject::invokeMethod(hwm,"changeAttnFile",Q_ARG(QString,attenFile));
+       connect(p_hwm,&HardwareManager::attnLoadSuccess,this,&MainWindow::attnFileSuccess,Qt::UniqueConnection);
+        QMetaObject::invokeMethod(p_hwm,"changeAttnFile",Q_ARG(QString,attenFile));
     }
 
 }
@@ -1026,7 +1029,7 @@ void MainWindow::attnFileSuccess(bool success)
     else
 	   statusLabel->setText(QString("Attenuation file could not be loaded. See log for details."));
 
-    disconnect(hwm,&HardwareManager::attnLoadSuccess,this,&MainWindow::attnFileSuccess);
+    disconnect(p_hwm,&HardwareManager::attnLoadSuccess,this,&MainWindow::attnFileSuccess);
 }
 
 void MainWindow::genAttnTableCallback()
@@ -1078,7 +1081,7 @@ void MainWindow::genAttnTableCallback()
     if(ret != QDialog::Accepted)
         return;
 
-    QMetaObject::invokeMethod(hwm,"prepareForAttnTableGeneration",Q_ARG(int,attn10GHzBox->value()));
+    QMetaObject::invokeMethod(p_hwm,"prepareForAttnTableGeneration",Q_ARG(int,attn10GHzBox->value()));
 }
 
 void MainWindow::attnTablePrepComplete(bool success)
@@ -1186,7 +1189,7 @@ void MainWindow::attnTableBatchComplete(bool aborted)
     ui->shotsProgressBar->setValue(1);
     QSettings s(QSettings::SystemScope,QApplication::organizationName(),QApplication::applicationName());
     QString attenFile = s.value(QString("attn/file"),QString("")).toString();
-    QMetaObject::invokeMethod(hwm,"changeAttnFile",Q_ARG(QString,attenFile));
+    QMetaObject::invokeMethod(p_hwm,"changeAttnFile",Q_ARG(QString,attenFile));
     d_uiState = Idle;
     ui->actionPrint_Summary->setEnabled(true);
     updateUiConfig();
@@ -1375,10 +1378,7 @@ void MainWindow::startBatchManager(BatchManager *bm)
 
 
     connect(batchThread,&QThread::started,bm,&BatchManager::beginBatch);
-    if(bm->sleepWhenComplete())
-	    connect(batchThread,&QThread::finished,ui->actionSleep_Mode,&QAction::trigger,Qt::UniqueConnection);
-    else
-	   disconnect(batchThread,&QThread::finished,ui->actionSleep_Mode,&QAction::trigger);
+    connect(bm,&BatchManager::sleepSignal,ui->actionSleep_Mode,&QAction::trigger,Qt::UniqueConnection);
 
     bm->moveToThread(batchThread);
     batchThread->start();
@@ -1399,25 +1399,10 @@ QString MainWindow::guessBufferString()
 {
 	QString out;
 	double max = 0.0;
-	if(ui->g1setPointBox->value() > max)
-	{
-		max = ui->g1setPointBox->value();
-		out = ui->g1lineEdit->text();
-	}
-	if(ui->g2setPointBox->value() > max)
-	{
-		max = ui->g2setPointBox->value();
-		out = ui->g2lineEdit->text();
-	}
-	if(ui->g3setPointBox->value() > max)
-	{
-		max = ui->g3setPointBox->value();
-		out = ui->g3lineEdit->text();
-	}
-	if(ui->g4DoubleSpinBox->value() > max)
-	{
-		max = ui->g4setPointBox->value();
-		out = ui->g4lineEdit->text();
+    for(int i=0; i<d_flowWidgets.size(); i++)
+    {
+        if(d_flowWidgets.at(i).controlBox->value() > max)
+            out = d_flowWidgets.at(i).nameEdit->text();
 	}
 
 	return out;
