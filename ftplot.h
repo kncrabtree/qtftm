@@ -63,7 +63,7 @@ public slots:
 	void displayFt(){ setDisplayType(ShowFt); }
 	void zoomDetail() { d_zoom = Detail; setDisplayType(d_type,true); }
 	void zoomAll() { d_zoom = All; setDisplayType(d_type,true); }
-	void setAutoScale(bool as = true) { d_verticalAutoScale = as; if(as) replot(); }
+    void setAutoScale(bool as = true) { d_verticalAutoScale = as; if(as) replot(); }
 	void hideTraces();
 	void reclaimSpinBoxes();
 	void setFitCurveColor();

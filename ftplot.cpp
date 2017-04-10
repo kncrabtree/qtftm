@@ -364,12 +364,12 @@ void FtPlot::replot()
 		double axisYMax = axisScaleDiv(QwtPlot::yLeft).upperBound();
 		if(d_verticalAutoScale)
 		{
-			if(fabs(axisYMax - d_verticalScaleMax) > 0.001)
+            if(!qFuzzyCompare(axisYMax,d_verticalScaleMax))
 				setAxisScale(QwtPlot::yLeft,0.0,d_verticalScaleMax);
 		}
 		else
 		{
-			if(fabs(axisYMax - d_verticalZoomScale) > 0.001)
+            if(!qFuzzyCompare(axisYMax,d_verticalZoomScale))
 				setAxisScale(QwtPlot::yLeft,0.0,d_verticalZoomScale);
 		}
 	}
@@ -431,7 +431,7 @@ QMenu *FtPlot::buildContextMenu()
 	QAction *autoScaleAction = zoomMenu->addAction(QString("Autoscale vertical"));
 	if(d_verticalAutoScale)
 		autoScaleAction->setEnabled(false);
-	connect(autoScaleAction,&QAction::triggered,this,&FtPlot::setAutoScale);
+    connect(autoScaleAction,&QAction::triggered,[=](){ setAutoScale(true); });
 
 
 	if(d_type == ShowFid)
