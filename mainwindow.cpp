@@ -756,14 +756,14 @@ void MainWindow::batchScanCallback()
 
 void MainWindow::sleep(bool b)
 {
-	if(batchThread->isRunning()) // this should never happen, but we don't want to allow user to activate sleep mode during a scan!
-	{
-		ui->actionSleep_Mode->blockSignals(true);
-		ui->actionSleep_Mode->setChecked(false);
-		ui->actionSleep_Mode->setEnabled(false);
-		ui->actionSleep_Mode->blockSignals(false);
-		return;
-	}
+//	if(batchThread->isRunning()) // this should never happen, but we don't want to allow user to activate sleep mode during a scan!
+//	{
+//		ui->actionSleep_Mode->blockSignals(true);
+//		ui->actionSleep_Mode->setChecked(false);
+//		ui->actionSleep_Mode->setEnabled(false);
+//		ui->actionSleep_Mode->blockSignals(false);
+//		return;
+//	}
 
 	if(b)
 		d_uiState = Asleep;

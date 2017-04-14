@@ -154,8 +154,14 @@ void BatchManager::beginBatch()
     {
 
 	   if(d_batchType != QtFTM::Attenuation)
+       {
             emit logMessage(QString("Beginning %1 %2. First scan: %3.").arg(d_prettyName).arg(d_batchNum).arg(firstScanNum),
                             QtFTM::LogHighlight);
+
+           if(d_sleep)
+               emit logMessage(QString("Sleep mode will activate when complete."),QtFTM::LogHighlight);
+
+       }
     }
 
     emit titleReady(title());
