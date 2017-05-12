@@ -321,7 +321,7 @@
             <string> MHz</string>
            </property>
            <property name="decimals">
-            <number>3</number>
+            <number>4</number>
            </property>
            <property name="minimum">
             <double>-10.000000000000000</double>
@@ -427,11 +427,9 @@
            <widget class="Led" name="pressureLed" native="true"/>
           </item>
          </layout>
-         <zorder>label_13</zorder>
          <zorder>pressureDoubleSpinBox</zorder>
          <zorder>pressureLed</zorder>
-         <zorder></zorder>
-         <zorder>magnetLed</zorder>
+         <zorder>label_13</zorder>
         </widget>
        </item>
        <item>
@@ -604,7 +602,7 @@
                     <string> MHz</string>
                    </property>
                    <property name="decimals">
-                    <number>3</number>
+                    <number>4</number>
                    </property>
                    <property name="minimum">
                     <double>1000.000000000000000</double>

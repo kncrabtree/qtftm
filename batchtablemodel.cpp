@@ -54,7 +54,7 @@ QVariant BatchTableModel::data(const QModelIndex &index, int role) const
             return QString("%1 dB").arg(scanList.at(index.row()).first.attenuation());
 		break;
 	case 3:
-		return QString::number(scanList.at(index.row()).first.drFreq(),'f',3);
+        return QString::number(scanList.at(index.row()).first.drFreq(),'f',4);
 		break;
 	case 4:
 		return QString::number(scanList.at(index.row()).first.drPower(),'f',1);

@@ -27,7 +27,7 @@ DrSetupPage::DrSetupPage(QWidget *parent) :
 
 	startBox = new QDoubleSpinBox(this);
 	startBox->setObjectName(QString("drStartBox"));
-	startBox->setDecimals(3);
+    startBox->setDecimals(4);
 	startBox->setMinimum(synthMin);
 	startBox->setMaximum(synthMax);
 	startBox->setSingleStep(100.0);
@@ -38,7 +38,7 @@ DrSetupPage::DrSetupPage(QWidget *parent) :
 
 	stopBox = new QDoubleSpinBox(this);
 	stopBox->setObjectName(QString("drStopBox"));
-	stopBox->setDecimals(3);
+    stopBox->setDecimals(4);
 	stopBox->setMinimum(synthMin);
 	stopBox->setMaximum(synthMax);
 	stopBox->setSingleStep(100.0);
