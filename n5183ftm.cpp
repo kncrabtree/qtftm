@@ -1,6 +1,6 @@
-#include "n5813ftm.h"
+#include "n5183ftm.h"
 
-N5813FTM::N5813FTM()
+N5183FTM::N5183FTM()
 {
     d_subKey = QString("n5183ftm");
     d_prettyName = QString("Keysight N5183 FTM Synthesizer");
@@ -24,7 +24,7 @@ N5813FTM::N5813FTM()
 
 
 
-bool N5813FTM::testConnection()
+bool N5183FTM::testConnection()
 {
     if(!p_comm->testConnection())
     {
@@ -53,7 +53,7 @@ bool N5813FTM::testConnection()
     return true;
 }
 
-void N5813FTM::initialize()
+void N5183FTM::initialize()
 {
     FtmSynthesizer::initialize();
 
@@ -61,7 +61,7 @@ void N5813FTM::initialize()
     testConnection();
 }
 
-double N5813FTM::setSynthFreq(double d)
+double N5183FTM::setSynthFreq(double d)
 {
     if (!p_comm->writeCmd(QString(":FREQ %1MHZ\n").arg(d,0,'f',3)))
     {
@@ -72,14 +72,14 @@ double N5813FTM::setSynthFreq(double d)
     return readFreq();
 }
 
-double N5813FTM::readSynthFreq()
+double N5183FTM::readSynthFreq()
 {
     QByteArray resp = p_comm->queryCmd(QString(":FREQ?\n"));
 
     return resp.trimmed().toDouble()/1.0e6;
 }
 
-double N5813FTM::setSynthPower(double d)
+double N5183FTM::setSynthPower(double d)
 {
     double power = readSynthPower();
     if(qAbs(d-power) > 0.09)
@@ -92,7 +92,7 @@ double N5813FTM::setSynthPower(double d)
     return readPower();
 }
 
-double N5813FTM::readSynthPower()
+double N5183FTM::readSynthPower()
 {
     QByteArray resp = p_comm->queryCmd(QString(":POWER?\n"));
 
