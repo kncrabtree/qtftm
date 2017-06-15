@@ -38,6 +38,10 @@ typedef HP8673FTM FtmSynthHardware;
 #include "hp8340ftm.h"
 class HP8340FTM;
 typedef HP8340FTM FtmSynthHardware;
+#elif QTFTM_FTMSYNTH == 3
+#include "n5183ftm.h"
+class N5183FTM;
+typedef N5183FTM FtmSynthHardware;
 #else
 #include "virtualftmsynth.h"
 class VirtualFtmSynth;
