@@ -4,10 +4,10 @@
 #include "ftmsynthesizer.h"
 
 
-class N5813FTM : public FtmSynthesizer
+class N5183FTM : public FtmSynthesizer
 {
 public:
-    N5813FTM();
+    N5183FTM();
 
     // HardwareObject interface
 public slots:
