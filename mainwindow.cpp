@@ -1392,8 +1392,12 @@ QString MainWindow::guessBufferString()
 	double max = 0.0;
     for(int i=0; i<d_flowWidgets.size(); i++)
     {
-        if(d_flowWidgets.at(i).controlBox->value() > max)
+        double val = d_flowWidgets.at(i).controlBox->value();
+        if(val > max)
+        {
             out = d_flowWidgets.at(i).nameEdit->text();
+            max = val;
+        }
 	}
 
 	return out;
