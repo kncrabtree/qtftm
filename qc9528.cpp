@@ -35,7 +35,7 @@ bool Qc9528::testConnection()
         return false;
     }
 
-    QByteArray resp = p_comm->queryCmd(QString("*IDN?\n"));
+    QByteArray resp = p_comm->queryCmd(QString("*IDN?\r\n"));
 
     if(resp.isEmpty())
     {
@@ -85,12 +85,12 @@ bool Qc9528::testConnection()
         return false;
     }
 
-    if(!pGenWriteCmd(QString(":PULSE0:STATE 1\n")))
+    if(!pGenWriteCmd(QString(":PULSE0:STATE 1\r\n")))
     {
         emit connected(false,QString("Could not start pulsing."));
         return false;
     }
-    pGenWriteCmd(QString(":SYSTEM:KLOCK 0\n"));
+    pGenWriteCmd(QString(":SYSTEM:KLOCK 0\r\n"));
 
     emit configUpdate(d_config);
     emit connected();
@@ -154,7 +154,7 @@ QVariant Qc9528::read(const int index, const QtFTM::PulseSetting s)
 
     switch (s) {
     case QtFTM::PulseDelay:
-        resp = p_comm->queryCmd(QString(":PULSE%1:DELAY?\n").arg(index+1));
+        resp = p_comm->queryCmd(QString(":PULSE%1:DELAY?\r\n").arg(index+1));
         if(!resp.isEmpty())
         {
             bool ok = false;
@@ -167,7 +167,7 @@ QVariant Qc9528::read(const int index, const QtFTM::PulseSetting s)
         }
         break;
     case QtFTM::PulseWidth:
-        resp = p_comm->queryCmd(QString(":PULSE%1:WIDTH?\n").arg(index+1));
+        resp = p_comm->queryCmd(QString(":PULSE%1:WIDTH?\r\n").arg(index+1));
         if(!resp.isEmpty())
         {
             bool ok = false;
@@ -180,7 +180,7 @@ QVariant Qc9528::read(const int index, const QtFTM::PulseSetting s)
         }
         break;
     case QtFTM::PulseEnabled:
-        resp = p_comm->queryCmd(QString(":PULSE%1:STATE?\n").arg(index+1));
+        resp = p_comm->queryCmd(QString(":PULSE%1:STATE?\r\n").arg(index+1));
         if(!resp.isEmpty())
         {
             bool ok = false;
@@ -193,7 +193,7 @@ QVariant Qc9528::read(const int index, const QtFTM::PulseSetting s)
         }
         break;
     case QtFTM::PulseLevel:
-        resp = p_comm->queryCmd(QString(":PULSE%1:POLARITY?\n").arg(index+1));
+        resp = p_comm->queryCmd(QString(":PULSE%1:POLARITY?\r\n").arg(index+1));
         if(!resp.isEmpty())
         {
             if(QString(resp).startsWith(QString("NORM"),Qt::CaseInsensitive))
@@ -223,7 +223,7 @@ QVariant Qc9528::read(const int index, const QtFTM::PulseSetting s)
 
 double Qc9528::readRepRate()
 {
-    QByteArray resp = p_comm->queryCmd(QString(":PULSE0:PERIOD?\n"));
+    QByteArray resp = p_comm->queryCmd(QString(":PULSE0:PERIOD?\r\n"));
     if(resp.isEmpty())
         return -1.0;
 
@@ -258,7 +258,7 @@ bool Qc9528::set(const int index, const QtFTM::PulseSetting s, const QVariant va
        }
        else if(qAbs(val.toDouble() - d_config.at(index).delay) > 0.001)
         {
-            bool success = pGenWriteCmd(QString(":PULSE%1:DELAY %2\n").arg(index+1).arg(val.toDouble()/1e6,0,'f',9));
+            bool success = pGenWriteCmd(QString(":PULSE%1:DELAY %2\r\n").arg(index+1).arg(val.toDouble()/1e6,0,'f',9));
             if(!success)
                 out = false;
             else
@@ -279,7 +279,7 @@ bool Qc9528::set(const int index, const QtFTM::PulseSetting s, const QVariant va
        }
        else if(qAbs(val.toDouble() - d_config.at(index).width) > 0.001)
         {
-            bool success = pGenWriteCmd(QString(":PULSE%1:WIDTH %2\n").arg(index+1).arg(val.toDouble()/1e6,0,'f',9));
+            bool success = pGenWriteCmd(QString(":PULSE%1:WIDTH %2\r\n").arg(index+1).arg(val.toDouble()/1e6,0,'f',9));
             if(!success)
                 out = false;
             else
@@ -302,9 +302,9 @@ bool Qc9528::set(const int index, const QtFTM::PulseSetting s, const QVariant va
         {
             bool success = false;
             if(val.toInt() == static_cast<int>(QtFTM::PulseLevelActiveHigh))
-                success = pGenWriteCmd(QString(":PULSE%1:POLARITY NORM\n").arg(index+1));
+                success = pGenWriteCmd(QString(":PULSE%1:POLARITY NORM\r\n").arg(index+1));
             else
-                success = pGenWriteCmd(QString(":PULSE%1:POLARITY INV\n").arg(index+1));
+                success = pGenWriteCmd(QString(":PULSE%1:POLARITY INV\r\n").arg(index+1));
 
             if(!success)
                 out = false;
@@ -328,9 +328,9 @@ bool Qc9528::set(const int index, const QtFTM::PulseSetting s, const QVariant va
         {
             bool success = false;
             if(val.toBool())
-                success = pGenWriteCmd(QString(":PULSE%1:STATE 1\n").arg(index+1));
+                success = pGenWriteCmd(QString(":PULSE%1:STATE 1\r\n").arg(index+1));
             else
-                success = pGenWriteCmd(QString(":PULSE%1:STATE 0\n").arg(index+1));
+                success = pGenWriteCmd(QString(":PULSE%1:STATE 0\r\n").arg(index+1));
 
             if(!success)
                 out = false;
@@ -363,7 +363,7 @@ bool Qc9528::setRepRate(double d)
     if(d < 0.01 || d > 20.0)
         return false;
 
-    if(!pGenWriteCmd(QString(":PULSE0:PERIOD %1\n").arg(1.0/d,0,'f',9)))
+    if(!pGenWriteCmd(QString(":PULSE0:PERIOD %1\r\n").arg(1.0/d,0,'f',9)))
     {
         emit hardwareFailure();
         emit logMessage(QString("Could not set reprate to %1 Hz (%2 s)").arg(d,0,'f',1).arg(1.0/d,0,'f',9));
@@ -384,9 +384,9 @@ bool Qc9528::setRepRate(double d)
 void Qc9528::sleep(bool b)
 {
     if(b)
-        pGenWriteCmd(QString(":PULSE0:STATE 0\n"));
+        pGenWriteCmd(QString(":PULSE0:STATE 0\r\n"));
     else
-        pGenWriteCmd(QString(":PULSE0:STATE 1\n"));
+        pGenWriteCmd(QString(":PULSE0:STATE 1\r\n"));
 
     HardwareObject::sleep(b);
 }
