@@ -47,6 +47,10 @@ protected:
 #include "qc9518.h"
 class QC9518;
 typedef QC9518 PulseGeneratorHardware;
+#elif QTFTM_PGEN==2
+#include "qc9528.h"
+class Qc9528;
+typedef Qc9528 PulseGeneratorHardware;
 #else
 #include "virtualpulsegenerator.h"
 class VirtualPulseGenerator;

@@ -99,7 +99,7 @@ FTMSYNTH=1
 DRSYNTH=2
 
 #####################################################
-#pulse generator. 0 = virtual, 1 = QC 9518
+#pulse generator. 0 = virtual, 1 = QC 9518, 2 = QC 9528
 #Indicate numbers of Gas, DC, MW, and DR channels
 #Also be sure to indicate total number of channels
 #####################################################

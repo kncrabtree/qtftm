@@ -23,7 +23,8 @@ HEADERS += \
     $$PWD/virtualhvps.h \
     $$PWD/glassmanfj02r60.h \
     $$PWD/n5183dr.h \
-    $$PWD/n5183ftm.h
+    $$PWD/n5183ftm.h \
+    $$PWD/qc9528.h
 
 SOURCES += \
     $$PWD/dpo3012.cpp \
@@ -50,7 +51,8 @@ SOURCES += \
     $$PWD/virtualhvps.cpp \
     $$PWD/glassmanfj02r60.cpp \
     $$PWD/n5183dr.cpp \
-    $$PWD/n5183ftm.cpp
+    $$PWD/n5183ftm.cpp \
+    $$PWD/qc9528.cpp
 
 equals(IOB, 1) {
 HEADERS += labjacku3.h \
