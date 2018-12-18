@@ -43,7 +43,7 @@ bool Qc9528::testConnection()
         return false;
     }
 
-    if(!resp.startsWith(QByteArray("QC, 9528")))
+    if(!resp.startsWith(QByteArray("QC,9528")))
     {
         emit connected(false,QString("ID response invalid. Response: %1 (Hex: %2)").arg(QString(resp.trimmed())).arg(QString(resp.toHex())));
         return false;
