@@ -17,6 +17,7 @@ public slots:
 protected:
     bool hwSetVoltage(int v);
     int hwReadVoltage();
+    
 
 private:
     int d_fullScaleVoltage;
@@ -29,6 +30,8 @@ private:
     QByteArray sendQueryCmd();
     void sendErrorMessage(int errCode);
     bool checkFault();
+    bool enableTimeoutCmd();
+    bool disableTimeoutCmd();
 };
 
 #endif // GLASSMANFJ02R60_H
