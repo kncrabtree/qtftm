@@ -27,15 +27,14 @@ bool GlassmanFJ02R60::testConnection()
         return false;
     }
 
-    QByteArray resp = p_comm->queryCmd(formatMessage(QString("V")));
-
+    QByteArray resp = sendQueryCmd();	//PBC modified to be the new simple query command
     if(resp.isEmpty())
     {
         emit connected(false,QString("Did not respond to ID Query"));
         return false;
     }
 
-    if(!resp.startsWith('B') || resp.length() != 6)
+    if(!resp.startsWith('R') || resp.length() != 16)
     {
         emit connected(false,QString("ID Response invalid. Response: %1 (Hex: %2)").arg(QString(resp)).arg(QString(resp.toHex())));
         return false;
@@ -56,6 +55,7 @@ void GlassmanFJ02R60::initialize()
     p_comm->setReadOptions(1000,true,QByteArray("\r"));
     p_comm->initialize();
     testConnection();
+    //disableTimeoutCmd();    //See warning about the safety of this command in its description
 }
 
 bool GlassmanFJ02R60::hwSetVoltage(int v)
@@ -80,7 +80,7 @@ bool GlassmanFJ02R60::hwSetVoltage(int v)
         else
             break;
     }
-
+    
     if(res != 0)
     {
         sendErrorMessage(res);
@@ -128,7 +128,6 @@ int GlassmanFJ02R60::hwReadVoltage()
         emit logMessage(QString("Could not parse voltage. Response: %1 (Hex: %2)").arg(QString(resp).arg(QString(resp.toHex()))),QtFTM::LogError);
         return -1;
     }
-
     d_currentVoltage = v;
     return v;
 
@@ -171,13 +170,56 @@ int GlassmanFJ02R60::sendSetCommand(QString cmd)
                 return -1;
         }
     }
-
     return -1;
 }
 
 QByteArray GlassmanFJ02R60::sendQueryCmd()
 {
-    return p_comm->queryCmd(formatMessage("Q"));
+	QString Test = QString("Q51");
+	QByteArray dat = Test.toLatin1().toUpper();
+	dat.prepend(1);
+    dat.append("\r");
+    QByteArray QueryCmd; //PBC Hard coding the query command, theres only one you can send
+    QueryCmd.resize(5);
+    QueryCmd[0] = 0x01;
+    QueryCmd[1] = 0x51;
+    QueryCmd[2] = 0x35;
+    QueryCmd[3] = 0x31;
+    QueryCmd[4] = 0x0d;
+    QByteArray Test2 = QByteArrayLiteral("\x01\x51\x35\x31\x0d");	//Testing a cleaner version
+    //for (int i; i<5; i++) printf ("%d\n", (int) Test[i]);
+    return p_comm->queryCmd(QString(dat.toUpper()));
+}
+
+bool GlassmanFJ02R60::disableTimeoutCmd()
+{
+    /*
+     * Note: the timeout is a safety feature from the manufacturer to prevent unsupervised operation in remote mode
+     * It is against the manufacturer's recommendation to disable it, do so at your own risk, this is afterall a HV power supply
+    */
+    QString Test = QString("C174");
+	QByteArray dat = Test.toLatin1().toUpper();
+	dat.prepend(1);
+    dat.append("\r");
+    QByteArray Resp = p_comm->queryCmd(QString(dat.toUpper()));
+    if (Resp.startsWith('A')) return true;
+	else return false;
+}
+
+bool GlassmanFJ02R60::enableTimeoutCmd()
+{
+    /*
+     * Note: When the comm timeout is enabled it automatically drops the voltate to 0 if the device is in remote mode and not polled approximately every second
+     * The code should manage this, but disabling it can produce more reliable control if it isnt polled often enough for some reason.
+     * It will be enabled by default
+    */
+    QString Test = QString("C073");
+	QByteArray dat = Test.toLatin1().toUpper();
+	dat.prepend(1);
+    dat.append("\r");
+    QByteArray Resp = p_comm->queryCmd(QString(dat.toUpper()));
+    if (Resp.startsWith('A')) return true;
+	else return false;
 }
 
 void GlassmanFJ02R60::sendErrorMessage(int errCode)
@@ -229,7 +271,6 @@ bool GlassmanFJ02R60::checkFault()
         }
 
     }
-
     return true;
 }
 
