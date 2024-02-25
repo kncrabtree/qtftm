@@ -5,7 +5,7 @@
 #include <gsl/gsl_multifit.h>
 #include <gsl/gsl_sf.h>
 #include "fitresult.h"
-
+#include <QDataStream>
 
 QVector<double> Analysis::extractCoordinateVector(const QVector<QPointF> data, Analysis::Coordinate c)
 {

@@ -1,7 +1,9 @@
 #include "analysisplot.h"
+#include "qpen.h"
 #include <qwt6/qwt_plot_canvas.h>
 #include <qwt6/qwt_plot_renderer.h>
 #include <qwt6/qwt_scale_widget.h>
+#include <qwt6/qwt_scale_map.h>
 #include <qwt6/qwt_plot_grid.h>
 #include <QColorDialog>
 #include <QSettings>
