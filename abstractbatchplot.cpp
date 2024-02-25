@@ -2,12 +2,14 @@
 
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QTextStream>
 
 #include <qwt6/qwt_plot_renderer.h>
 #include <qwt6/qwt_legend_label.h>
 #include <qwt6/qwt_legend.h>
 #include <qwt6/qwt_picker_machine.h>
 #include <qwt6/qwt_symbol.h>
+#include <qwt6/qwt_scale_map.h>
 
 AbstractBatchPlot::AbstractBatchPlot(QString name, QWidget *parent) :
     ZoomPanPlot(name,parent), d_zoneScanNum(0), d_showZonePending(false), d_recalcZoneOnResize(false), d_doNotReplot(false), d_hideBadZones(false), d_hidePlotLabels(false)
@@ -18,7 +20,7 @@ AbstractBatchPlot::AbstractBatchPlot(QString name, QWidget *parent) :
     setAxisFont(QwtPlot::yRight,labelFont);
 
     QwtPlotPicker *picker = new QwtPlotPicker(this->canvas());
-    picker->setAxis(QwtPlot::xBottom,QwtPlot::yLeft);
+    picker->setAxes(QwtPlot::xBottom,QwtPlot::yLeft);
     picker->setStateMachine(new QwtPickerClickPointMachine);
     picker->setMousePattern(QwtEventPattern::MouseSelect1,Qt::RightButton);
     picker->setTrackerMode(QwtPicker::AlwaysOn);

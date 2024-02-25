@@ -2,6 +2,7 @@
 #define FTPLOT_H
 
 #include <qwt6/qwt_plot.h>
+#include <qwt6/qwt_text.h>
 #include <qwt6/qwt_plot_curve.h>
 #include <qwt6/qwt_series_data.h>
 #include "fid.h"

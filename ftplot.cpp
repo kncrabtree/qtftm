@@ -1,5 +1,6 @@
 #include "ftplot.h"
 #include "ftworker.h"
+#include "qpen.h"
 #include <QAction>
 #include <QActionGroup>
 #include <QPalette>
@@ -10,6 +11,8 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QWidgetAction>
+
+#include <qwt6/qwt_scale_div.h>
 
 FtPlot::FtPlot(QWidget *parent) :
 	QwtPlot(parent), d_fidDisplayPoints(0), d_type(ShowFt), d_zoom(All), tracesHidden(true),
@@ -492,7 +495,7 @@ bool FtPlot::eventFilter(QObject *obj, QEvent *ev)
 
 void FtPlot::zoom(const QWheelEvent *we)
 {
-	int numSteps = we->delta()/8/15;
+    int numSteps = we->angleDelta().y()/8/15;
 	double scaleYMax = axisScaleDiv(QwtPlot::yLeft).upperBound();
 	scaleYMax -= scaleYMax*0.1*numSteps;
 

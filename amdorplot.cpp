@@ -12,10 +12,12 @@
 #include <QFormLayout>
 #include <QSpinBox>
 #include <QApplication>
+#include <QVariant>
 
 #include <qwt6/qwt_plot_curve.h>
 #include <qwt6/qwt_symbol.h>
 #include <qwt6/qwt_legend.h>
+#include <qwt6/qwt_text.h>
 
 AmdorPlot::AmdorPlot(QWidget *parent) : ZoomPanPlot(QString("amdorPlot"),parent)
 {

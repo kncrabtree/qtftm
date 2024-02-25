@@ -5,8 +5,10 @@
 
 #include <qwt6/qwt_plot_curve.h>
 #include <qwt6/qwt_plot_marker.h>
+#include <qwt6/qwt_text.h>
 
 #include "pulsegenconfig.h"
+#include "qpen.h"
 
 PulsePlot::PulsePlot(QWidget *parent) :
     ZoomPanPlot(QString("pulsePlot"),parent)

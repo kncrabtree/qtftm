@@ -6,7 +6,7 @@
 #include <QFile>
 #include <QTextStream>
 
-#include <boost/foreach.hpp>
+// #include <boost/foreach.hpp>
 
 class AmdorDataData : public QSharedData
 {

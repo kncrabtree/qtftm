@@ -2,6 +2,7 @@
 #define AMDORPLOT_H
 
 #include "zoompanplot.h"
+#include <QVariant>
 
 #include <qwt6/qwt_symbol.h>
 

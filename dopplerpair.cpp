@@ -1,5 +1,9 @@
 #include "dopplerpair.h"
+#include "qcolor.h"
+#include "qpen.h"
 #include <QFontMetrics>
+#include <QTextStream>
+#include <qwt6/qwt_text.h>
 
 DopplerPair::DopplerPair(int n, double c, double s, double a, QObject *parent) :
     QObject(parent), num(n), d_center(c), d_splitting(s), d_amplitude(a)

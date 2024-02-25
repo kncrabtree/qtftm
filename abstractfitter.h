@@ -7,6 +7,7 @@
 #include <gsl/gsl_blas.h>
 #include <eigen3/Eigen/Core>
 
+#include <cmath>
 #include "fitresult.h"
 #include "scan.h"
 #include "ftworker.h"
