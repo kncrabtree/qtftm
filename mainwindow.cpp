@@ -11,6 +11,7 @@
 #include <QWidgetAction>
 #include <QInputDialog>
 #include <QDateTime>
+#include <QIcon>
 
 #include "scan.h"
 #include "singlescandialog.h"
@@ -38,6 +39,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	//build UI and make trivial connections
 	ui->setupUi(this);
+
+    QIcon icon;
+    icon.addFile(QString::fromUtf8(":/icons/qtftm.png"), QSize(), QIcon::Normal, QIcon::Off);
+    MainWindow::setWindowIcon(icon);
 
     p_amdorWidget = nullptr;
 

@@ -5,6 +5,7 @@
 #include <QSettings>
 #include <QDesktopServices>
 #include <QProcessEnvironment>
+#include <QIcon>
 
 #include <gsl/gsl_errno.h>
 
@@ -22,6 +23,8 @@ int main(int argc, char *argv[])
  #endif
 
 	QApplication a(argc, argv);
+    QIcon icon(":/icons/qtftm.png");
+    a.setWindowIcon(icon);
 
 	//QSettings information
 	const QString appName = QString("QtFTM");
