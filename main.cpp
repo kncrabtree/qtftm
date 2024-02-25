@@ -43,8 +43,8 @@ int main(int argc, char *argv[])
     }
 
 	QApplication::setApplicationName(appName);
-    QApplication::setOrganizationDomain(QString("crabtreelab.ucdavis.edu"));
-    QApplication::setOrganizationName(QString("CrabtreeLab"));
+    QApplication::setOrganizationDomain(QString("mcguirelab.mit.edu"));
+    QApplication::setOrganizationName(QString("McGuireLab"));
 	QSettings::setPath(QSettings::NativeFormat,QSettings::SystemScope,appDataPath);
 	const QString lockFilePath = QString("%1/%2").arg(appDataPath).arg(QApplication::organizationName());
 
@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 	//list containing lockfile names and application names
 	QList<QPair<QString,QString> > incompatibleApps;
 	//add other apps here
-    //if the app is from a different organization (e.g. CfA Spectroscopy Lab instead of CrabtreeLab), enter full path to lockfile and prepend with !
+    //if the app is from a different organization (e.g. CfA Spectroscopy Lab, McGuire Lab instead of CrabtreeLab), enter full path to lockfile and prepend with !
 	incompatibleApps.append(qMakePair(lockFileName,appName));
     incompatibleApps.append(qMakePair(QString("lock_blackchirp.lock"),QString("BlackChirp")));
 
